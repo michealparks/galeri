@@ -1,0 +1,53 @@
+{
+  "name": "galeri",
+  "version": "1.0.0",
+  "description": "Fantastic Art Rendering Technology",
+  "main": "main.js",
+  "scripts": {
+    "start": "cross-env NODE_ENV=production electron ./",
+    "start:hot": "cross-env HOT=1 NODE_ENV=development electron ./main",
+    "server": "cross-env NODE_ENV=development node server.js",
+    "dev": "concurrently --kill-others \"npm run server\" \"npm run start:hot\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/michealparks/galeri.git"
+  },
+  "author": "Micheal Parks",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/michealparks/galeri/issues"
+  },
+  "homepage": "https://github.com/michealparks/galeri#readme",
+  "bin": {
+    "electron": "./node_modules/.bin/electron"
+  },
+  "devDependencies": {
+    "babel-core": "^6.14.0",
+    "babel-loader": "^6.2.5",
+    "babel-plugin-add-module-exports": "^0.2.1",
+    "babel-plugin-dev-expression": "^0.2.1",
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.14.0",
+    "babel-preset-react": "^6.11.1",
+    "babel-preset-react-hmre": "^1.1.1",
+    "babel-preset-react-optimize": "^1.0.1",
+    "concurrently": "^2.2.0",
+    "devtron": "^1.3.0",
+    "electron": "^1.4.1",
+    "electron-debug": "^1.0.1",
+    "electron-devtools-installer": "^2.0.1",
+    "express": "^4.14.0",
+    "json-loader": "^0.5.4",
+    "react-hot-loader": "^3.0.0-beta.5",
+    "webpack": "^1.13.2",
+    "webpack-dev-middleware": "^1.8.2",
+    "webpack-hot-middleware": "^2.12.2",
+    "webpack-merge": "^0.14.1",
+    "webpack-validator": "^2.2.7"
+  },
+  "dependencies": {
+    "cheerio": "^0.22.0",
+    "react": "^15.3.2",
+    "react-dom": "^15.3.2"
+  }
+}

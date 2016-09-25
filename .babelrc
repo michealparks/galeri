@@ -1,0 +1,13 @@
+{
+  "presets": ["react", "react-hmre"],
+  "plugins": ["transform-es2015-modules-commonjs", "add-module-exports"],
+  "env": {
+    "development": {
+      "plugins": ["react-hot-loader/babel"]
+    },
+    "production": {
+      "presets": ["react-optimize"],
+      "plugins": ["babel-plugin-dev-expression"]
+    }
+  }
+}
