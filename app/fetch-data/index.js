@@ -17,7 +17,7 @@ const getNextImage = () => {
 
   const nextImage = cache.pop()
 
-  return getProps(nextImage).catch(() => getNextImage())
+  return getProps(nextImage)
 }
 
 const init = callback => {

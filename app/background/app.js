@@ -13,76 +13,84 @@ class App extends React.Component {
   constructor (props) {
     super(props)
 
+    this._i = 0
     this._imageRefreshRate = 10000 // 1000 * 60 * 60
-    this._updateTimerId = 0
+    this._updateTimerId = -1
     this._didDescriptionUpdate = false
     this._newDescription = ''
     this._descriptionLifeCycle = 0
 
     this.state = {
-      i: 0,
-      images: ['', ''],
-      positions: ['', ''],
+      img_0: '',
+      img_1: '',
+      pos_0: '',
+      pos_1: '',
       description: '',
       descriptionPosition: 'left',
       shouldDescriptionAnimate: true
     }
 
     this.shouldComponentUpdate = shouldComponentUpdate.bind(this)
+  }
 
-    const onOnlineStatusChange = () => navigator.onLine
-      ? this.updateImage()
-      : clearTimeout(this._updateTimerId)
-
-    window.addEventListener('online', onOnlineStatusChange)
-    window.addEventListener('offline', onOnlineStatusChange)
-
-    // listen for requests for next image
-    ipcRenderer.on('next-image-request', () => {
-      clearTimeout(this._updateTimerId)
+  onOnlineStatusChange () {
+    if (navigator.onLine) {
+      this._updateTimerId = -1
       this.updateImage()
-    })
+    } else {
+      this._updateTimerId = -2
+      clearTimeout(this._updateTimerId)
+    }
+  }
+
+  componentDidMount () {
+    this.onImageFetch = this.onImageFetch.bind(this)
+    this.onOnlineStatusChange = this.onOnlineStatusChange.bind(this)
+
+    window.addEventListener('online', this.onOnlineStatusChange)
+    window.addEventListener('offline', this.onOnlineStatusChange)
 
     // cancel any data fetching if the computer is suspended
-    ipcRenderer.on('suspend', () => clearTimeout(this._updateTimerId))
+    ipcRenderer.on('suspend', () => {
+      this._updateTimerId = -2
+      clearTimeout(this._updateTimerId)
+    })
+    ipcRenderer.on('next-image-request', this.onOnlineStatusChange)
+    ipcRenderer.on('resume', this.onOnlineStatusChange)
 
-    // resume image fetching when awakened
-    ipcRenderer.on('resume', () => this.updateImage())
+    this.onOnlineStatusChange()
   }
 
   updateImage () {
     if (!getNextImage) return setTimeout(() => this.updateImage(0), 100)
 
-    session.getCacheSize(console.log.bind(console))
     let count = 0
-    session.clearCache(() =>
-      ++count === 2 ? getNextImage().then(this.onImageFetch) : null)
-    session.clearStorageData({}, () =>
-      ++count === 2 ? getNextImage().then(this.onImageFetch) : null)
-  }
+    const getImg = () => {
+      if (++count === 2) {
+        getNextImage().then(this.onImageFetch).catch(this.onOnlineStatusChange)
+      }
+    }
 
-  componentDidMount () {
-    this.onImageFetch = this.onImageFetch.bind(this)
-    this.updateImage()
+    session.clearCache(getImg)
+    session.clearStorageData({}, getImg)
   }
 
   onImageFetch ({ img, content, position }) {
-    let { images, positions, i } = this.state
-
-    i = ++i % 2
-    images[i] = img
-    positions[i] = position
-
+    this._i = (this._i + 1) % 2
     this._newDescription = content
+
     this.setState({
-      i,
-      images,
-      positions,
+      [`img_${this._i}`]: img,
+      [`pos_${this._i}`]: position,
       descriptionPosition: 'bottom'
     })
 
-    this._updateTimerId = setTimeout(() =>
-      this.updateImage(), this._imageRefreshRate)
+    if (this._updateTimerId === -2) {
+      this._updateTimerId = -1
+    } else {
+      this._updateTimerId = setTimeout(() =>
+        this.updateImage(), this._imageRefreshRate)
+    }
   }
 
   componentDidUpdate () {
@@ -111,9 +119,11 @@ class App extends React.Component {
     return (
       <div>
         <BackgroundImage
-          i={ state.i }
-          positions={ state.positions }
-          images={ state.images } />
+          i={ this._i }
+          pos_0={ state.pos_0 }
+          pos_1={ state.pos_1 }
+          img_0={ state.img_0 }
+          img_1={ state.img_1 } />
         <Description
           __html={ state.description }
           position={ state.descriptionPosition }

@@ -1,12 +1,7 @@
 const { ipcMain, BrowserWindow } = require('electron')
 
-const sendToWindows = (msg, arg) => {
-  const windows = BrowserWindow.getAllWindows()
-
-  console.log(windows);
-
-  (windows || []).forEach(win => win.webContents.send(msg, arg))
-}
+const sendToWindows = (msg, arg) => BrowserWindow.getAllWindows()
+  .forEach(win => win.webContents.send(msg, arg))
 
 const sendToBackground = (msg, arg) => BrowserWindow.getAllWindows()[0]
   .webContents.send(msg, arg)

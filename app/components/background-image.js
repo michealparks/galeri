@@ -1,14 +1,14 @@
 const React = require('react')
 const classnames = require('classnames')
 
-const BackgroundImage = ({ images, positions, i }) => (
+const BackgroundImage = ({ img_0, img_1, pos_0, pos_1, i }) => (
   <div className='background'>
     <div
-      className={ classnames(`bg-image bg-image--${positions[0]}`, { 'bg-image--active': i === 0 }) }
-      style={{ backgroundImage: `url("${images[0]}")` }} />
+      className={ classnames(`bg-image bg-image--${pos_0}`, { 'bg-image--active': i === 0 }) }
+      style={{ backgroundImage: `url("${img_0}")` }} />
     <div
-      className={ classnames(`bg-image bg-image--${positions[1]}`, { 'bg-image--active': i === 1 }) }
-      style={{ backgroundImage: `url("${images[1]}")` }} />
+      className={ classnames(`bg-image bg-image--${pos_1}`, { 'bg-image--active': i === 1 }) }
+      style={{ backgroundImage: `url("${img_1}")` }} />
   </div>
 )
 
