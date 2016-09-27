@@ -2,16 +2,15 @@ const electron = require('electron')
 const menubar = require('menubar')
 const { initIPC } = require('./app/main/ipc')
 const { NODE_ENV } = process.env
-const { app, BrowserWindow, Menu } = electron
-
-if (NODE_ENV === 'development') require('electron-debug')()
+const { app, BrowserWindow, Menu, session } = electron
 
 let backgroundWindow
 
 let menubarWindow = menubar({
   index: `file://${__dirname}/app/menubar.html`,
-  // icon: `file://${__dirname}/../../../build/icon_32x32.png`,
+  icon: `${__dirname}/assets/icon_32x32.png`,
   preloadWindow: true,
+  showDockIcon: NODE_ENV === 'development',
   transparent: true,
   alwaysOnTop: true,
   width: 250,
@@ -51,13 +50,17 @@ app.on('ready', () => {
   backgroundWindow = new BrowserWindow({
     width,
     height: height + 50,
-    title: 'Caboodle',
+    title: 'Galeri',
     type: 'desktop',
+    partition: 'background',
     show: false,
     frame: false,
     transparent: true,
     enableLargerThanScreen: true
   })
+
+  // TODO: this doesn't work. memory leak persisting.
+  session.fromPartition('background', { cache: false })
 
   // menubarWindow.on('ready', () => {})
   backgroundWindow.loadURL(`file://${__dirname}/app/background.html`)
@@ -66,5 +69,8 @@ app.on('ready', () => {
 
   initIPC()
 
-  if (NODE_ENV === 'development') setDevFeatures(backgroundWindow)
+  if (NODE_ENV === 'development') {
+    require('electron-debug')()
+    setDevFeatures(backgroundWindow)
+  }
 })

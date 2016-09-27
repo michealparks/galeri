@@ -1,8 +1,10 @@
 const React = require('react')
 const { shouldComponentUpdate } = require('react-addons-pure-render-mixin')
-const { ipcRenderer } = require('electron')
+const { ipcRenderer, remote } = require('electron')
 const BackgroundImage = require('../components/background-image')
 const Description = require('../components/description')
+const { session } = remote.getCurrentWindow().webContents
+
 let getNextImage
 
 require('../fetch-data')(fn => { getNextImage = fn })
@@ -51,7 +53,12 @@ class App extends React.Component {
   updateImage () {
     if (!getNextImage) return setTimeout(() => this.updateImage(0), 100)
 
-    getNextImage().then(this.onImageFetch)
+    session.getCacheSize(console.log.bind(console))
+    let count = 0
+    session.clearCache(() =>
+      ++count === 2 ? getNextImage().then(this.onImageFetch) : null)
+    session.clearStorageData({}, () =>
+      ++count === 2 ? getNextImage().then(this.onImageFetch) : null)
   }
 
   componentDidMount () {
@@ -65,8 +72,6 @@ class App extends React.Component {
     i = ++i % 2
     images[i] = img
     positions[i] = position
-
-    console.log(img, content)
 
     this._newDescription = content
     this.setState({

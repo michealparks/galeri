@@ -1,10 +1,6 @@
-const images = []
 
 const loadImage = url => new Promise((res, rej) => {
-  images.pop()
-  images.unshift(document.createElement('img'))
-
-  const img = images[0]
+  let img = document.createElement('img')
 
   img.onerror = e => rej(e)
   img.onload = () => {

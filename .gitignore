@@ -1,6 +1,8 @@
 node_modules/
 bower_components/
+release/
 *.log
 
 build/
 dist/
+main.js

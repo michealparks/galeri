@@ -4,7 +4,6 @@ const wikiUrl = 'https://en.wikipedia.org/wiki/Wikipedia:Featured_pictures'
 const parenRegex = / *\([^)]*\)*/g
 
 const getImages = () => Promise.all([
-  // fetch(`${wikiUrl}/Artwork/Literary_illustrations`), <- proving to be unrewarding
   fetch(`${wikiUrl}/Artwork/Paintings`),
   fetch(`${wikiUrl}/Artwork/East_Asian_art`)
 ])
@@ -18,8 +17,6 @@ const getImages = () => Promise.all([
         const rawUrl = tag.attribs.src.split('/')
         const size = rawUrl.pop().replace(/^[0-9]{3,4}\px/, '2000px')
         const { title, href } = $($gallerytext[i]).find('a')[0].attribs
-
-        console.log(`https:${rawUrl.join('/')}/${size}`)
 
         return {
           title,

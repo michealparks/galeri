@@ -1,7 +1,5 @@
 const React = require('react')
 
-const App = () => (
-  <div></div>
-)
+const App = () => null
 
 module.exports = App
