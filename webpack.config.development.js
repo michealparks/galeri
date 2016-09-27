@@ -3,15 +3,15 @@ const validate = require('webpack-validator')
 const merge = require('webpack-merge')
 const baseConfig = require('./webpack.config.base')
 const { PORT = 3000 } = process.env
-const hmwScript = `webpack-hot-middleware/client?path=http://localhost:${PORT}/__webpack_hmr&timeout=20000&reload=true`
+const hmwScript = `webpack-hot-middleware/client?path=http://localhost:${PORT}/__webpack_hmr`
 
 module.exports = validate(merge(baseConfig, {
   debug: true,
 
   entry: {
-    hmr: ['react-hot-loader/patch'],
-    background: ['./app/background', hmwScript],
-    menu: ['./app/menu', hmwScript]
+    hmr: ['react-hot-loader/patch', hmwScript],
+    background: ['./app/background'],
+    menu: ['./app/menu']
   },
 
   output: {

@@ -1,12 +1,18 @@
 const React = require('react')
+const { shouldComponentUpdate } = require('react-addons-pure-render-mixin')
+const { ipcRenderer } = require('electron')
 const BackgroundImage = require('../components/background-image')
 const Description = require('../components/description')
-const onImageFetch = require('../fetch-data')
+let getNextImage
+
+require('../fetch-data')(fn => { getNextImage = fn })
 
 class App extends React.Component {
   constructor (props) {
     super(props)
 
+    this._imageRefreshRate = 10000 // 1000 * 60 * 60
+    this._updateTimerId = 0
     this._didDescriptionUpdate = false
     this._newDescription = ''
     this._descriptionLifeCycle = 0
@@ -19,19 +25,59 @@ class App extends React.Component {
       descriptionPosition: 'left',
       shouldDescriptionAnimate: true
     }
+
+    this.shouldComponentUpdate = shouldComponentUpdate.bind(this)
+
+    const onOnlineStatusChange = () => navigator.onLine
+      ? this.updateImage()
+      : clearTimeout(this._updateTimerId)
+
+    window.addEventListener('online', onOnlineStatusChange)
+    window.addEventListener('offline', onOnlineStatusChange)
+
+    // listen for requests for next image
+    ipcRenderer.on('next-image-request', () => {
+      clearTimeout(this._updateTimerId)
+      this.updateImage()
+    })
+
+    // cancel any data fetching if the computer is suspended
+    ipcRenderer.on('suspend', () => clearTimeout(this._updateTimerId))
+
+    // resume image fetching when awakened
+    ipcRenderer.on('resume', () => this.updateImage())
   }
 
-  componentWillMount () {
-    onImageFetch(({ img, content, position }) => {
-      let { images, positions, i } = this.state
+  updateImage () {
+    if (!getNextImage) return setTimeout(() => this.updateImage(0), 100)
 
-      i = ++i % 2
-      images[i] = img
-      positions[i] = position
+    getNextImage().then(this.onImageFetch)
+  }
 
-      this._newDescription = content
-      this.setState({ images, positions, i, descriptionPosition: 'bottom' })
+  componentDidMount () {
+    this.onImageFetch = this.onImageFetch.bind(this)
+    this.updateImage()
+  }
+
+  onImageFetch ({ img, content, position }) {
+    let { images, positions, i } = this.state
+
+    i = ++i % 2
+    images[i] = img
+    positions[i] = position
+
+    console.log(img, content)
+
+    this._newDescription = content
+    this.setState({
+      i,
+      images,
+      positions,
+      descriptionPosition: 'bottom'
     })
+
+    this._updateTimerId = setTimeout(() =>
+      this.updateImage(), this._imageRefreshRate)
   }
 
   componentDidUpdate () {

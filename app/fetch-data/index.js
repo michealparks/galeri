@@ -1,59 +1,50 @@
-const { ipcRenderer } = require('electron')
+const fs = require('fs')
+const { knuthShuffle } = require('knuth-shuffle')
 const { getImages } = require('./wikipedia')
 const getProps = require('./get-props')
 
-let setImageTimeoutId
-const setImageInterval = 10000 // 1000 * 60 * 60
+let cache
+let unshuffledCache
+let defaultConfig = '{"timestamp": null, "images": []}'
 
-const setImage = (images, updateFn) => {
-  // set timeout to randomly select image again
-  setImageTimeoutId = setTimeout(() => {
-    setImage(images, updateFn)
-  }, setImageInterval)
+// TODO set timeout to update image array
 
-  return getProps(images).then(props => {
-    updateFn(props)
-    ipcRenderer.send('next-image-done', props)
-  })
+// get stored images
+const getNextImage = () => {
+  if (!cache.length) {
+    cache = knuthShuffle(unshuffledCache.slice(0))
+  }
+
+  const nextImage = cache.pop()
+
+  return getProps(nextImage).catch(() => getNextImage())
 }
 
-const init = updateFn => {
-  // TODO check if image array is older than 48 hours
-    // TODO if older then fetch new image data and store in db
+const init = callback => {
+  fs.readFile('./images.json', 'utf8', (err, data) => {
+    if (err) { /* we don't care! */ }
 
-  // TODO set timeout to update image array
+    data = JSON.parse(data || defaultConfig)
+    const { images, timestamp } = data
 
-  // randomly select an image
-  getImages().then(images => {
-    // listen for requests for next image
-    ipcRenderer.on('next-image-request', () => {
-      clearTimeout(setImageTimeoutId)
-      setImage(images, updateFn)
-    })
+    unshuffledCache = images
+    cache = images.slice(0)
+    knuthShuffle(cache)
 
-    // cancel any data fetching if the computer is suspended
-    ipcRenderer.on('suspend', () => {
-      clearTimeout(setImageTimeoutId)
-    })
-
-    // resume image fetching when awakened
-    ipcRenderer.on('resume', () => {
-      setImage(images, updateFn)
-    })
-
-    const onOnlineStatusChange = () => {
-      if (navigator.onLine) {
-        setImage(images, updateFn)
-      } else {
-        clearTimeout(setImageTimeoutId)
-      }
+    // if image array is older than 48 hours fetch new image data and store
+    if (timestamp && Date.now() - timestamp < 1000 * 60 * 60 * 48) {
+      console.log(cache, cache.pop())
+      return callback(getNextImage)
     }
 
-    window.addEventListener('online', onOnlineStatusChange)
-    window.addEventListener('offline', onOnlineStatusChange)
+    getImages().then(images => {
+      fs.writeFile('./images.json', JSON.stringify({
+        timestamp: Date.now(),
+        images: images.filter(image => !image.href.includes('undefined'))
+      }), 'utf8')
 
-    // set initial image
-    onOnlineStatusChange()
+      callback(getNextImage)
+    })
   })
 }
 

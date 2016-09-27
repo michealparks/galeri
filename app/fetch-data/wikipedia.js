@@ -1,9 +1,10 @@
 /* global fetch */
 const cheerio = require('cheerio')
 const wikiUrl = 'https://en.wikipedia.org/wiki/Wikipedia:Featured_pictures'
+const parenRegex = / *\([^)]*\)*/g
 
 const getImages = () => Promise.all([
-  fetch(`${wikiUrl}/Artwork/Literary_illustrations`),
+  // fetch(`${wikiUrl}/Artwork/Literary_illustrations`), <- proving to be unrewarding
   fetch(`${wikiUrl}/Artwork/Paintings`),
   fetch(`${wikiUrl}/Artwork/East_Asian_art`)
 ])
@@ -32,7 +33,11 @@ const getImages = () => Promise.all([
 const getDescription = url => fetch(url)
   .then(response => response.text())
   .then(response => {
-    return cheerio.load(response)('#mw-content-text').find('p').html()
+    return cheerio.load(response)('#mw-content-text')
+      .find('p').html()
+      // remove any unneccessary, cognitive-overloading
+      // parenthetical information from wikipedia
+      .replace(parenRegex, '')
   })
 
 module.exports = {

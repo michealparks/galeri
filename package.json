@@ -1,12 +1,12 @@
 {
   "name": "galeri",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Fantastic Art Rendering Technology",
   "main": "main.js",
   "scripts": {
     "start": "cross-env NODE_ENV=production electron ./",
     "start:hot": "cross-env HOT=1 NODE_ENV=development electron ./main",
-    "server": "cross-env NODE_ENV=development node server.js",
+    "server": "cross-env NODE_ENV=development node server",
     "dev": "concurrently --kill-others \"npm run server\" \"npm run start:hot\""
   },
   "repository": {
@@ -46,9 +46,19 @@
     "webpack-validator": "^2.2.7"
   },
   "dependencies": {
+    "application-config": "^1.0.1",
+    "auto-launch": "^5.0.1",
     "cheerio": "^0.22.0",
     "classnames": "^2.2.5",
+    "knuth-shuffle": "^1.0.1",
+    "menubar": "^5.1.0",
     "react": "^15.3.2",
+    "react-addons-pure-render-mixin": "^15.3.2",
     "react-dom": "^15.3.2"
+  },
+  "build": {
+    "appId": "caboodle.by.micheal.parks",
+    "category": "public.app-category.lifestyle",
+    "copyright": "Copyright © 2016 Micheal Parks"
   }
 }
