@@ -63,7 +63,10 @@ app.on('ready', () => {
   session.fromPartition('background', { cache: false })
 
   // menubarWindow.on('ready', () => {})
-  backgroundWindow.loadURL(`file://${__dirname}/app/background.html`)
+  backgroundWindow.loadURL(`file://${__dirname}/app/background.html`, {
+    'extraHeaders': 'pragma: no-cache\n'
+  })
+  // backgroundWindow.loadURL(`file://${__dirname}/app/background.html`)
   backgroundWindow.once('ready-to-show', backgroundWindow.show)
   backgroundWindow.on('closed', () => { backgroundWindow = null })
 
