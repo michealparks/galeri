@@ -3,14 +3,19 @@ const { knuthShuffle } = require('knuth-shuffle')
 const { getImages } = require('./wikipedia')
 const getProps = require('./get-props')
 
-let cache
-let unshuffledCache
+let isConfigRead = false
+let cache = []
+let unshuffledCache = []
 let defaultConfig = { timestamp: null, images: [] }
 
 // TODO set timeout to update image array
 
+let queue
+
 // get stored images
 const getNextImage = () => {
+  if (!isConfigRead) return new Promise((rs, rj) => { queue = { rs, rj } })
+
   if (!cache.length) {
     cache = knuthShuffle(unshuffledCache.slice(0))
   }
@@ -20,36 +25,34 @@ const getNextImage = () => {
   return getProps(nextImage)
 }
 
-const init = callback => {
-  config.read((err, data) => {
-    if (err) { /* we don't care! */ }
+config.read((err, data) => {
+  isConfigRead = true
 
-    const { images, timestamp } = data.length ? data : defaultConfig
+  if (err) { queue.rj(err) }
+
+  const { images, timestamp } = data.length ? data : defaultConfig
+
+  if (timestamp && Date.now() - timestamp < 1000 * 60 * 60 * 48) {
+    unshuffledCache = images
+    cache = knuthShuffle(unshuffledCache.slice(0))
+
+    queue.rs(getNextImage())
+  }
+
+  // if image array is older than 48 hours fetch new image data and store
+  getImages().then(images => {
+    images = images.filter(image => !image.href.includes('undefined'))
+
+    config.write({
+      timestamp: Date.now(),
+      images
+    })
 
     unshuffledCache = images
-    cache = images.slice(0)
-    knuthShuffle(cache)
+    cache = knuthShuffle(unshuffledCache.slice(0))
 
-    // if image array is older than 48 hours fetch new image data and store
-    if (timestamp && Date.now() - timestamp < 1000 * 60 * 60 * 48) {
-      return callback(getNextImage)
-    }
-
-    getImages().then(images => {
-      images = images.filter(image => !image.href.includes('undefined'))
-
-      config.write({
-        timestamp: Date.now(),
-        images
-      })
-
-      unshuffledCache = images
-      cache = images.slice(0)
-      knuthShuffle(cache)
-
-      callback(getNextImage)
-    })
+    queue.rs(getNextImage())
   })
-}
+})
 
-module.exports = init
+module.exports = getNextImage

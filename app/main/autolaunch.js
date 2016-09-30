@@ -1,17 +1,36 @@
-const { ipcMain } = require('electron')
+const { ipcMain, app } = require('electron')
 const AutoLaunch = require('auto-launch')
 const { sendToMenubar } = require('./ipc')
-const appLauncher = new AutoLaunch({ name: 'Galeri' })
+const { getConfig, setConfig } = require('./app-config')
 
-// TODO: get autolaunch setting from config
-// TODO: if is disabled then disable, else enable
+// See https://github.com/Teamwork/node-auto-launch/issues/28#issuecomment-222194437
+const appPath = process.platform === 'darwin'
+  ? app.getPath('exe').replace(/\.app\/Content.*/, '.app')
+  : undefined // Use the default
 
-appLauncher.isEnabled()
-  .then(enabled => sendToMenubar('auto-launch', { enabled }))
-  .catch(err => console.error(err))
+const appLauncher = new AutoLaunch({
+  name: 'Galeri',
+  path: appPath
+})
 
-ipcMain.on('preferences:set-auto-launch', (e, { enabled }) =>
-  // TODO: store setting in config
-  enabled ? appLauncher.enable() : appLauncher.disable())
+const init = () => {
+  // get autolaunch setting from config
+  getConfig(({ autolaunch }) => {
+    sendToMenubar('auto-launch', { enabled: autolaunch })
 
-appLauncher.enable()
+    // if autolaunch is disabled then disable, else enable
+    appLauncher.isEnabled().then(enabled => {
+      if (!enabled && autolaunch) appLauncher.enable()
+      if (enabled && !autolaunch) appLauncher.disable()
+    })
+  })
+}
+
+ipcMain.on('preferences:set-auto-launch', (e, { enabled }) => {
+  if (enabled) appLauncher.enable()
+  else appLauncher.disable()
+
+  setConfig({ autolaunch: enabled })
+})
+
+module.exports = init

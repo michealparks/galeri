@@ -1,8 +1,11 @@
 const electron = require('electron')
 const menubar = require('menubar')
 const { initIPC } = require('./app/main/ipc')
+const initAutoUpdate = require('./app/main/autoupdate')
+const initAutoLaunch = require('./app/main/autolaunch')
 const { NODE_ENV } = process.env
 const { app, BrowserWindow, Menu, session } = electron
+const delayedInitTime = 3000
 
 let backgroundWindow
 
@@ -12,7 +15,7 @@ let menubarWindow = menubar({
   preloadWindow: true,
   showDockIcon: NODE_ENV === 'development',
   transparent: true,
-  alwaysOnTop: true,
+  // alwaysOnTop: true,
   width: 250,
   height: 320,
   y: 30
@@ -60,17 +63,22 @@ app.on('ready', () => {
   })
 
   // TODO: this doesn't work. memory leak persisting.
-  session.fromPartition('background', { cache: false })
+  backgroundWindow.webContents.session = session.fromPartition('background', { cache: false })
 
-  // menubarWindow.on('ready', () => {})
   backgroundWindow.loadURL(`file://${__dirname}/app/background.html`, {
     'extraHeaders': 'pragma: no-cache\n'
   })
-  // backgroundWindow.loadURL(`file://${__dirname}/app/background.html`)
+  backgroundWindow.webContents.reloadIgnoringCache()
   backgroundWindow.once('ready-to-show', backgroundWindow.show)
   backgroundWindow.on('closed', () => { backgroundWindow = null })
 
   initIPC()
+
+  // To keep app startup fast, some non-essential code is delayed.
+  // setTimeout(() => {
+  //   initAutoUpdate()
+  //   initAutoLaunch()
+  // }, delayedInitTime)
 
   if (NODE_ENV === 'development') {
     require('electron-debug')()

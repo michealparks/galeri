@@ -3,8 +3,8 @@
   "plugins": ["transform-es2015-modules-commonjs", "add-module-exports"],
   "env": {
     "development": {
-      "presets": ["react-hmre"],
-      "plugins": ["react-hot-loader/babel"]
+      "presets": [],
+      "plugins": []
     },
     "production": {
       "presets": ["react-optimize"],

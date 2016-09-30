@@ -6,11 +6,8 @@ const sendToWindows = (msg, arg) => BrowserWindow.getAllWindows()
 const sendToBackground = (msg, arg) => BrowserWindow.getAllWindows()[0]
   .webContents.send(msg, arg)
 
-const sendToMenubar = (msg, arg) => {
-  const menubar = BrowserWindow.getAllWindows()[1]
-
-  menubar && menubar.webContents.send(msg, arg)
-}
+const sendToMenubar = (msg, arg) => BrowserWindow.getAllWindows()[1]
+  .webContents.send(msg, arg)
 
 // sent from taskbar window
 ipcMain.on('next-image-request', (e, arg) =>

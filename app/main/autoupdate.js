@@ -1,13 +1,7 @@
-const delayedInitTime = 3000
-const updateCheckInterval = 1000 * 60 * 60 * 24
 const electron = require('electron')
+const updateCheckInterval = 1000 * 60 * 60 * 24
 
-electron.app.on('ready', () => {
-  // To keep app startup fast, some code is delayed.
-  setTimeout(delayedInit, delayedInitTime)
-})
-
-const delayedInit = () => process.platform === 'linux'
+const init = () => process.platform === 'linux'
   ? initLinux()
   : initDarwinWin32()
 
@@ -47,9 +41,11 @@ const initDarwinWin32 = () => {
     })
   })
 
-  autoUpdater.setFeedURL('url', ['header1'])
-
-  autoUpdater.checkForUpdates()
-
-  setInterval(autoUpdater.checkForUpdates, updateCheckInterval)
+  // autoUpdater.setFeedURL('url', ['header1'])
+  //
+  // autoUpdater.checkForUpdates()
+  //
+  // setInterval(autoUpdater.checkForUpdates, updateCheckInterval)
 }
+
+module.exports = init

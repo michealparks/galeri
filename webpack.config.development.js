@@ -9,7 +9,7 @@ module.exports = validate(merge(baseConfig, {
   debug: true,
 
   entry: {
-    hmr: ['react-hot-loader/patch', hmwScript],
+    hmr: [hmwScript],
     background: ['./app/background'],
     menu: ['./app/menu']
   },
