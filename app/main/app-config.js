@@ -31,9 +31,9 @@ const setConfig = (...args) => {
   const newConfig = args[0]
   const optns = args.length === 3 ? args[1] : null
   const callback = optns ? args[3] : args[2]
-  
+
   assign(cache, newConfig)
-  
+
   if (optns && !optns.shallow) config.write(cache, callback)
 }
 

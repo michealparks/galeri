@@ -3,6 +3,7 @@ const React = require('react')
 const { render } = require('react-dom')
 const { ipcRenderer, remote } = require('electron')
 const App = require('./app')
+const { initCanvas, fillCanvas } = require('./fill-canvas')
 const getNextImage = require('../fetch-data')
 const root = document.querySelector('#root')
 
@@ -21,17 +22,17 @@ const state = {
   shouldComponentUpdate: true
 }
 
+render(<App />, root, initCanvas)
+
 const update = newState => render(
   <App index={ i } { ...Object.assign(state, newState) } />,
   root
 )
 
 const onOnlineStatusChange = () => {
-  console.log(0)
   if (navigator.onLine) {
     updateTimerId = -1
     updateImage()
-    console.log(1)
   } else {
     updateTimerId = -2
     clearTimeout(updateTimerId)
@@ -60,14 +61,12 @@ const onImageFetch = ({ img, content, position, height, width }) => {
   i = (i + 1) % 2
   newDescription = content
 
-  let dummyImage = new Image()
-
-  dummyImage.onload = () => {
+  fillCanvas(img, i, () => {
     update({
       width,
       height,
-      [`img_${i}`]: dummyImage.src,
-      [`pos_${i}`]: position,
+      // [`img_${i}`]: dummyImage.src,
+      // [`pos_${i}`]: position,
       descriptionPosition: 'bottom'
     })
 
@@ -80,9 +79,31 @@ const onImageFetch = ({ img, content, position, height, width }) => {
     } else {
       updateTimerId = setTimeout(updateImage, refreshRate)
     }
-  }
+  })
 
-  dummyImage.src = img
+  // let dummyImage = new Image()
+  //
+  // dummyImage.onload = () => {
+  //   update({
+  //     width,
+  //     height,
+  //     [`img_${i}`]: dummyImage.src,
+  //     [`pos_${i}`]: position,
+  //     descriptionPosition: 'bottom'
+  //   })
+  //
+  //   setTimeout(onDescriptionHide, 800)
+  //   setTimeout(onDescriptionReplace, 800 + 200)
+  //   setTimeout(onDescriptionShow, 6000 - 800 + 200)
+  //
+  //   if (updateTimerId === -2) {
+  //     updateTimerId = -1
+  //   } else {
+  //     updateTimerId = setTimeout(updateImage, refreshRate)
+  //   }
+  // }
+  //
+  // dummyImage.src = img
 }
 
 const onDescriptionHide = () => {

@@ -1,4 +1,4 @@
-const { get } = require('https')
+const https = require('https')
 const url = require('url')
 const sizeOf = require('image-size')
 
@@ -6,7 +6,7 @@ const loadImage = imgUrl => new Promise((res, rej) => {
   let dimensions
   const { hostname, path } = url.parse(imgUrl)
 
-  const req = get({
+  const req = https.get({
     headers: {
       'cache-control': 'no-cache, no-store',
       'pragma-directive': 'no-cache',
