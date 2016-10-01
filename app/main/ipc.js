@@ -9,19 +9,9 @@ const sendToBackground = (msg, arg) => BrowserWindow.getAllWindows()[0]
 const sendToMenubar = (msg, arg) => BrowserWindow.getAllWindows()[1]
   .webContents.send(msg, arg)
 
-// sent from taskbar window
-ipcMain.on('next-image-request', (e, arg) =>
-  sendToBackground('next-image-request', arg))
-
-ipcMain.on('preferences.showDescriptionOnDesktop', (e, arg) =>
-  sendToBackground('preferences.showDescriptionOnDesktop', arg))
-
-ipcMain.on('preferences.refreshRate', (e, arg) =>
-  sendToBackground('preferences.refreshRate', arg))
-
-// sent from background window
-ipcMain.on('next-image-done', (event, arg) =>
-  sendToMenubar('next-image-done', arg))
+// preferences can only be toggled from menubar, so send to background
+ipcMain.on('preferences', (e, arg) =>
+  sendToBackground('preferences', arg))
 
 // powerMonitor can only be called after app.ready() fires
 const initIPC = () => {

@@ -13,22 +13,23 @@ let defaultConfig = { timestamp: null, images: [] }
 let queue
 
 // get stored images
-const getNextImage = () => {
+const getNextImage = callback => {
   if (!isConfigRead || !unshuffledCache.length) {
-    return new Promise((rs, rj) => { queue = { rs, rj } })
+    queue = callback
+    return
   }
 
   if (!cache.length) {
     cache = knuthShuffle(unshuffledCache.slice(0))
   }
 
-  return getProps(cache.pop())
+  getProps(cache.pop(), callback)
 }
 
 config.read((err, data) => {
-  isConfigRead = true
+  if (err) return queue(err)
 
-  if (err) { queue.rj(err) }
+  isConfigRead = true
 
   const { images, timestamp } = data.length ? data : defaultConfig
 
@@ -36,7 +37,7 @@ config.read((err, data) => {
     unshuffledCache = images
     cache = knuthShuffle(unshuffledCache.slice(0))
 
-    if (queue && unshuffledCache.length) return queue.rs(getNextImage())
+    if (queue && unshuffledCache.length) return getProps(cache.pop(), queue)
   }
 
   // if image array is older than 48 hours fetch new image data and store
@@ -51,7 +52,7 @@ config.read((err, data) => {
     unshuffledCache = images
     cache = knuthShuffle(unshuffledCache.slice(0))
 
-    if (queue) queue.rs(getNextImage())
+    if (queue) getProps(cache.pop(), queue)
   })
 })
 

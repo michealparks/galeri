@@ -1,4 +1,3 @@
-/* global Image */
 const React = require('react')
 const { render } = require('react-dom')
 const { ipcRenderer, remote } = require('electron')
@@ -7,25 +6,22 @@ const { initCanvas, fillCanvas } = require('./fill-canvas')
 const getNextImage = require('../fetch-data')
 const root = document.querySelector('#root')
 
-let i = 0
-let refreshRate = 10000
+let lastUpdateTime
+let refreshRate = 1000 * 60 * 30
 let updateTimerId = -1
 let newDescription = ''
 
 const state = {
-  img_0: '',
-  img_1: '',
-  pos_0: '',
-  pos_1: '',
+  activeIndex: null,
   description: '',
   descriptionPosition: 'left',
   shouldComponentUpdate: true
 }
 
-render(<App />, root, initCanvas)
+render(<App {...state} />, root, initCanvas)
 
 const update = newState => render(
-  <App index={ i } { ...Object.assign(state, newState) } />,
+  <App {...Object.assign(state, newState)} />,
   root
 )
 
@@ -39,40 +35,22 @@ const onOnlineStatusChange = () => {
   }
 }
 
-const updateImage = () => {
-  let count = 0
-  const getImg = () => {
-    if (++count !== 2) return
-
-    getNextImage().then(onImageFetch).catch(err => {
-      console.error(err)
-      onOnlineStatusChange()
-    })
+const onImageFetch = (err, data) => {
+  if (err) {
+    console.error(err)
+    return onOnlineStatusChange()
   }
 
-  const win = remote.getCurrentWindow().webContents
+  state.activeIndex = ((state.activeIndex || 0) + 1) % 2
+  newDescription = data.content
 
-  win.clearHistory()
-  win.session.clearCache(getImg)
-  win.session.clearStorageData(getImg)
-}
-
-const onImageFetch = ({ img, content, position, height, width }) => {
-  i = (i + 1) % 2
-  newDescription = content
-
-  fillCanvas(img, i, () => {
+  fillCanvas(data.img, state.activeIndex, () => {
     update({
-      width,
-      height,
-      // [`img_${i}`]: dummyImage.src,
-      // [`pos_${i}`]: position,
       descriptionPosition: 'bottom'
     })
 
     setTimeout(onDescriptionHide, 800)
     setTimeout(onDescriptionReplace, 800 + 200)
-    setTimeout(onDescriptionShow, 6000 - 800 + 200)
 
     if (updateTimerId === -2) {
       updateTimerId = -1
@@ -80,30 +58,21 @@ const onImageFetch = ({ img, content, position, height, width }) => {
       updateTimerId = setTimeout(updateImage, refreshRate)
     }
   })
+}
 
-  // let dummyImage = new Image()
-  //
-  // dummyImage.onload = () => {
-  //   update({
-  //     width,
-  //     height,
-  //     [`img_${i}`]: dummyImage.src,
-  //     [`pos_${i}`]: position,
-  //     descriptionPosition: 'bottom'
-  //   })
-  //
-  //   setTimeout(onDescriptionHide, 800)
-  //   setTimeout(onDescriptionReplace, 800 + 200)
-  //   setTimeout(onDescriptionShow, 6000 - 800 + 200)
-  //
-  //   if (updateTimerId === -2) {
-  //     updateTimerId = -1
-  //   } else {
-  //     updateTimerId = setTimeout(updateImage, refreshRate)
-  //   }
-  // }
-  //
-  // dummyImage.src = img
+const updateImage = () => {
+  let count = 0
+  const getImg = () => {
+    if (++count !== 2) return
+
+    getNextImage(onImageFetch)
+  }
+
+  const win = remote.getCurrentWindow().webContents
+
+  win.clearHistory()
+  win.session.clearCache(getImg)
+  win.session.clearStorageData(getImg)
 }
 
 const onDescriptionHide = () => {
@@ -122,20 +91,16 @@ const onDescriptionReplace = () => {
   })
 }
 
-const onDescriptionShow = () => {
-  update({ [`img_${(i + 1) % 2}`]: '' })
-}
-
 window.addEventListener('online', onOnlineStatusChange)
 window.addEventListener('offline', onOnlineStatusChange)
 
 // cancel any data fetching if the computer is suspended
 ipcRenderer.on('suspend', () => {
+  console.log('suspend')
   updateTimerId = -2
   clearTimeout(updateTimerId)
 })
 
-ipcRenderer.on('next-image-request', onOnlineStatusChange)
 ipcRenderer.on('resume', onOnlineStatusChange)
 
 onOnlineStatusChange()

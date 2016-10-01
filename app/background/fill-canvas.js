@@ -11,7 +11,6 @@ const {
 } = window
 
 let initCanvas = () => {
-  console.log('INIT')
   canvas = [
     document.querySelector('#canvas_0'),
     document.querySelector('#canvas_1')
@@ -28,45 +27,41 @@ let initCanvas = () => {
 }
 
 const fillCanvas = (src, i, callback) => {
-  const img = new Image()
+  let img = new Image()
 
   img.onload = () => {
     const { naturalWidth, naturalHeight } = img
     const { width, height } = canvas[i]
+    const imgRatio = naturalWidth / naturalHeight
+    const canvasRatio = width / height
 
-    // landscape is smaller than screen
-    if (naturalWidth > naturalHeight &&
-        naturalHeight < height) {
-      ctx[i].drawImage(
-        img,
-        -(naturalWidth - width) / 2,
-        0,
-        (height - naturalHeight) + naturalWidth,
-        height
-      )
-    // landscape is larger than screen
-    } else if (naturalWidth > naturalHeight &&
-               naturalHeight >= height) {
+    if (imgRatio <= canvasRatio) {
       ctx[i].drawImage(
         img,
         0,
-        -(naturalHeight - height) / 2,
+        0,
         width,
-        (Math.abs(width - naturalWidth) *
-        naturalWidth > width ? -1 : 1) + naturalHeight
+        Math.round(width / imgRatio)
+        // 0,
+        // 0,
+        // width * 2,
+        // Math.round(width / imgRatio) * 2
       )
-    // portrait
     } else {
       ctx[i].drawImage(
         img,
         0,
-        -width / 4,
-        width,
-        naturalHeight + (width - naturalWidth)
+        0,
+        Math.round(height * imgRatio),
+        height
+        // 0,
+        // 0,
+        // Math.round(height * imgRatio) * 2,
+        // height * 2
       )
     }
 
-    callback()
+    window.requestAnimationFrame(callback)
   }
 
   img.src = src

@@ -47,6 +47,15 @@ const setDevFeatures = winEl => {
     .catch((err) => console.log('An error occurred: ', err))
 }
 
+const shouldQuit = app.makeSingleInstance((commandLine, workingDirectory) => {
+  // Someone tried to run a second instance, we should focus our window.
+  if (backgroundWindow) {
+    if (backgroundWindow.isMinimized()) backgroundWindow.restore()
+  }
+})
+
+if (shouldQuit) app.quit()
+
 app.on('ready', () => {
   const { width, height } = electron.screen.getPrimaryDisplay().size
 
@@ -71,6 +80,10 @@ app.on('ready', () => {
   backgroundWindow.webContents.reloadIgnoringCache()
   backgroundWindow.once('ready-to-show', backgroundWindow.show)
   backgroundWindow.on('closed', () => { backgroundWindow = null })
+
+  backgroundWindow.on('resize', (...args) => {
+    backgroundWindow.maximize()
+  })
 
   initIPC()
 
