@@ -28,6 +28,7 @@ const update = newState => render(
 const onOnlineStatusChange = () => {
   if (navigator.onLine) {
     updateTimerId = -1
+    clearTimeout(updateTimerId)
     updateImage()
   } else {
     updateTimerId = -2
@@ -104,3 +105,7 @@ ipcRenderer.on('suspend', () => {
 ipcRenderer.on('resume', onOnlineStatusChange)
 
 onOnlineStatusChange()
+
+if (process.env.NODE_ENV === 'development') {
+  window.nextImage = onOnlineStatusChange
+}

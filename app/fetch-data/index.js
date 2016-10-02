@@ -1,58 +1,40 @@
 const config = require('application-config')('galeri_images')
-const { knuthShuffle } = require('knuth-shuffle')
-const { getImages } = require('./wikipedia')
-const getProps = require('./get-props')
 
-let isConfigRead = false
-let cache = []
-let unshuffledCache = []
-let defaultConfig = { timestamp: null, images: [] }
+const { provideWikipediaConfig, getNextWikipediaImage } = require('./wikipedia')
+const { provideRijksMuseumConfig, getNextRijksMuseumImage } = require('./rijksmuseum')
 
-// TODO set timeout to update image array
+let srcRotator = 0
 
-let queue
-
-// get stored images
-const getNextImage = callback => {
-  if (!isConfigRead || !unshuffledCache.length) {
-    queue = callback
-    return
+let defaultConfig = {
+  wikipedia: {
+    timestamp: null,
+    results: []
+  },
+  rijksMuseum: {
+    page: 1,
+    results: []
   }
-
-  if (!cache.length) {
-    cache = knuthShuffle(unshuffledCache.slice(0))
-  }
-
-  getProps(cache.pop(), callback)
 }
 
-config.read((err, data) => {
-  if (err) return queue(err)
-
-  isConfigRead = true
-
-  const { images, timestamp } = data.length ? data : defaultConfig
-
-  if (timestamp && Date.now() - timestamp < 1000 * 60 * 60 * 48) {
-    unshuffledCache = images
-    cache = knuthShuffle(unshuffledCache.slice(0))
-
-    if (queue && unshuffledCache.length) return getProps(cache.pop(), queue)
+// TODO set timeout to update image array
+const getNextImage = callback => {
+  switch (++srcRotator % 2) {
+    case 0:
+      return getNextWikipediaImage(callback)
+    case 1:
+      return getNextRijksMuseumImage(callback)
   }
+}
 
-  // if image array is older than 48 hours fetch new image data and store
-  getImages().then(images => {
-    images = images.filter(image => !image.href.includes('undefined'))
+config.trash(() => {
+  // get stored images
+  config.read((err, data) => {
+    if (err || Object.keys(data).length === 0) data = defaultConfig
 
-    config.write({
-      timestamp: Date.now(),
-      images
-    })
+    const write = config.write.bind(config)
 
-    unshuffledCache = images
-    cache = knuthShuffle(unshuffledCache.slice(0))
-
-    if (queue) getProps(cache.pop(), queue)
+    provideWikipediaConfig(data.wikipedia, write)
+    provideRijksMuseumConfig(data.rijksMuseum, write)
   })
 })
 

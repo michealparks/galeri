@@ -31,9 +31,7 @@ app.on('window-all-closed', () => {
 
 const setDevFeatures = winEl => {
   winEl.openDevTools({ mode: 'detach' })
-  winEl.webContents.on('context-menu', (e, props) => {
-    const { x, y } = props
-
+  winEl.webContents.on('context-menu', (e, { x, y }) => {
     Menu.buildFromTemplate([{
       label: 'Inspect element',
       click () { winEl.inspectElement(x, y) }
@@ -64,7 +62,9 @@ app.on('ready', () => {
     height: height + 50,
     title: 'Galeri',
     type: 'desktop',
-    partition: 'background',
+    resizable: false,
+    movable: false,
+    // partition: 'background',
     show: false,
     frame: false,
     transparent: true,
@@ -72,26 +72,22 @@ app.on('ready', () => {
   })
 
   // TODO: this doesn't work. memory leak persisting.
-  backgroundWindow.webContents.session = session.fromPartition('background', { cache: false })
+  // backgroundWindow.webContents.session = session.fromPartition('background', { cache: false })
 
   backgroundWindow.loadURL(`file://${__dirname}/app/background.html`, {
     'extraHeaders': 'pragma: no-cache\n'
   })
-  backgroundWindow.webContents.reloadIgnoringCache()
+  // backgroundWindow.webContents.reloadIgnoringCache()
   backgroundWindow.once('ready-to-show', backgroundWindow.show)
   backgroundWindow.on('closed', () => { backgroundWindow = null })
-
-  backgroundWindow.on('resize', (...args) => {
-    backgroundWindow.maximize()
-  })
 
   initIPC()
 
   // To keep app startup fast, some non-essential code is delayed.
-  // setTimeout(() => {
-  //   initAutoUpdate()
-  //   initAutoLaunch()
-  // }, delayedInitTime)
+  setTimeout(() => {
+    initAutoUpdate()
+    initAutoLaunch()
+  }, delayedInitTime)
 
   if (NODE_ENV === 'development') {
     require('electron-debug')()
