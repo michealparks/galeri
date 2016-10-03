@@ -16,4 +16,3 @@ const getImagesUrls = (page, callback) => get(`${metUrl}&page=${page}`, res => {
 }).on('error', callback)
 
 getImagesUrls(console.error.bind(console), console.log.bind(console))
-

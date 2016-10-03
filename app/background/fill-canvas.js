@@ -1,6 +1,15 @@
-let canvas = []
-let ctx = []
-let hasConfigured = false
+let canvas = [
+  document.querySelector('#canvas_0'),
+  document.querySelector('#canvas_1')
+]
+
+let ctx = [
+  canvas[0].getContext('2d'),
+  canvas[1].getContext('2d')
+]
+
+canvas[0].width = canvas[1].width = window.innerWidth * window.devicePixelRatio
+canvas[0].height = canvas[1].height = window.innerHeight * window.devicePixelRatio
 
 const headers = new window.Headers({
   'cache-control': 'no-cache, no-store',
@@ -9,18 +18,6 @@ const headers = new window.Headers({
   'pragma': 'no-cache',
   'expires': '0'
 })
-
-let initCanvas = () => {
-  canvas[0] = document.querySelector('#canvas_0')
-  canvas[1] = document.querySelector('#canvas_1')
-
-  ctx[0] = canvas[0].getContext('2d')
-  ctx[1] = canvas[1].getContext('2d')
-
-  canvas[0].width = canvas[1].width = window.innerWidth * window.devicePixelRatio
-  canvas[0].height = canvas[1].height = window.innerHeight * window.devicePixelRatio
-  hasConfigured = true
-}
 
 const fillCanvas = ({ img, naturalWidth, naturalHeight }, i, callback) =>
   window.fetch(img, { headers, cache: 'no-store' })
@@ -39,11 +36,9 @@ const fillCanvas = ({ img, naturalWidth, naturalHeight }, i, callback) =>
         ctx[i].drawImage(bitmap, -(scaledWidth - width) / 2, 0, scaledWidth, height)
       }
 
-      return callback()
+      bitmap = null
+      window.requestAnimationFrame(callback)
     })
     .catch(callback)
 
-module.exports = {
-  initCanvas: () => hasConfigured ? null : initCanvas(),
-  fillCanvas
-}
+module.exports = fillCanvas

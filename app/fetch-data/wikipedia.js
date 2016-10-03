@@ -72,13 +72,19 @@ const getFeaturedPaintingData = (callback) => {
     const $ = load(res)
     const $gallerytext = $('.gallerytext')
 
-    response = response.concat(Array.from($('img').map((i, tag) => {
+    response = response.concat(Array.from($('.gallery img').map((i, tag) => {
       const rawUrl = tag.attribs.src.split('/')
       const size = rawUrl.pop().replace(/^[0-9]{3,4}px/, '2000px')
-      const { title, href } = $($gallerytext[i]).find('a')[0].attribs
+      const a = $($gallerytext[i]).find('a')
+      const { title, href } = a[0].attribs
 
       return {
         title,
+        text: a[1] ? a[1].attribs.title : '',
+        content: `
+          <h3>${a[0].attribs.title.replace(/ *\([^)]*\) */g, '')}</h3>
+          <p>${a[1] ? a[1].attribs.title : ''}</p>
+        `,
         href: `https://wikipedia.org${href}`,
         img: `https:${rawUrl.join('/')}/${size}`
       }
@@ -111,20 +117,17 @@ const getNextWikipediaImage = callback => {
     return getFeaturedPaintingData(() => getNextWikipediaImage(callback))
   }
 
-  const { img, href, title } = cache.pop()
+  const { img, href, title, content } = cache.pop()
 
-  let count = 0
-  let content = ''
-
-  getDescription(href, (err, description) => {
+  validateImage(img, (err, { naturalWidth, naturalHeight }) => {
     if (err) return callback(err)
-    content = description
-    if (++count === 2) callback(null, { content, img, title })
-  })
-
-  validateImage(img, (err, url) => {
-    if (err) return callback(err)
-    if (++count === 2) callback(null, { content, img, title })
+    callback(null, {
+      content,
+      img,
+      title,
+      naturalHeight,
+      naturalWidth
+    })
   })
 }
 

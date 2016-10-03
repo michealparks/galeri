@@ -64,6 +64,7 @@ const getNextRijksMuseumImage = callback => {
   if (nextImage.webImage === null ||
       nextImage.webImage.width < window.innerWidth ||
       nextImage.webImage.height < window.innerHeight) {
+    if (!nextImage.webImage) console.error('rijks: too small!')
     return getNextRijksMuseumImage(callback)
   }
 
@@ -73,9 +74,11 @@ const getNextRijksMuseumImage = callback => {
     img: nextImage.webImage.url,
     naturalWidth: nextImage.webImage.width,
     naturalHeight: nextImage.webImage.height,
+    title: text[0],
+    text: text.slice(1).join(', '),
     content: `
-      <h3 style="margin:0">${text[0]}</h3>
-      <p style="margin:0">${text.slice(1).join(', ')}</p>
+      <h3>${text[0]}</h3>
+      <p>${text.slice(1).join(', ')}</p>
     `
   })
 }

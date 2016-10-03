@@ -26,20 +26,27 @@ const validateImage = (url, callback, { hostname, path } = parse(url), dimension
         }
       }
     })
-    .on('error', callback)
+    .on('error', err => callback(err, {}))
     .on('end', () => {
       if (!dimensions) {
-        return callback(imageTypeDetectionError)
+        return callback(imageTypeDetectionError, {})
       }
 
-      if (dimensions.width < 1000 || dimensions.height < 1000) {
-        return callback('Too small!')
+      const { width, height } = dimensions
+
+      if (width < window.innerWidth || height < window.innerHeight) {
+        return callback('Too small!', {})
       }
 
-      callback(null, url)
+      callback(null, {
+        url,
+        naturalWidth: width,
+        naturalHeight: height
+      })
+
       buffer = null
     })
-  }).on('error', callback)
+  }).on('error', err => callback(err, {}))
 }
 
 module.exports = validateImage

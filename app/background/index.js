@@ -1,15 +1,14 @@
-const React = require('react')
-const { render } = require('react-dom')
 const { ipcRenderer, remote } = require('electron')
 const App = require('./app')
-const { initCanvas, fillCanvas } = require('./fill-canvas')
+const fillCanvas = require('./fill-canvas')
 const getNextImage = require('../fetch-data')
-const root = document.querySelector('#root')
+const { assign } = Object
 
 let lastUpdateTime
 let refreshRate = 1000 * 20 // * 60 * 30
 let updateTimerId = -1
-let newDescription = ''
+let newTitle = ''
+let newText = ''
 
 const state = {
   activeIndex: null,
@@ -18,12 +17,7 @@ const state = {
   shouldComponentUpdate: true
 }
 
-render(<App {...state} />, root, initCanvas)
-
-const update = newState => render(
-  <App {...Object.assign(state, newState)} />,
-  root
-)
+const update = newState => App(assign(state, newState))
 
 const onOnlineStatusChange = () => {
   if (navigator.onLine) {
@@ -43,7 +37,8 @@ const onImageFetch = (err, data) => {
   }
 
   state.activeIndex = ((state.activeIndex || 0) + 1) % 2
-  newDescription = data.content
+  newTitle = data.title
+  newText = data.text
 
   fillCanvas(data, state.activeIndex, () => {
     update({
@@ -78,11 +73,11 @@ const updateImage = () => {
 
 const onDescriptionHide = () => {
   update({
-    description: newDescription,
+    title: newTitle,
+    text: newText,
     shouldDescriptionAnimate: false,
     descriptionPosition: 'left'
   })
-  newDescription = null
 }
 
 const onDescriptionReplace = () => {
@@ -97,7 +92,6 @@ window.addEventListener('offline', onOnlineStatusChange)
 
 // cancel any data fetching if the computer is suspended
 ipcRenderer.on('suspend', () => {
-  console.log('suspend')
   updateTimerId = -2
   clearTimeout(updateTimerId)
 })

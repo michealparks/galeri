@@ -23,8 +23,6 @@ const getNextImage = callback => {
       return getNextWikipediaImage(callback)
     case 1:
       return getNextRijksMuseumImage(callback)
-    default:
-      return getNextRijksMuseumImage(callback)
   }
 }
 
