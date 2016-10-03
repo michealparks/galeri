@@ -7,7 +7,7 @@ const getNextImage = require('../fetch-data')
 const root = document.querySelector('#root')
 
 let lastUpdateTime
-let refreshRate = 1000 * 60 * 30
+let refreshRate = 1000 * 20 // * 60 * 30
 let updateTimerId = -1
 let newDescription = ''
 
@@ -45,13 +45,13 @@ const onImageFetch = (err, data) => {
   state.activeIndex = ((state.activeIndex || 0) + 1) % 2
   newDescription = data.content
 
-  fillCanvas(data.img, state.activeIndex, () => {
+  fillCanvas(data, state.activeIndex, () => {
     update({
       descriptionPosition: 'bottom'
     })
 
     setTimeout(onDescriptionHide, 800)
-    setTimeout(onDescriptionReplace, 800 + 200)
+    setTimeout(onDescriptionReplace, 3510)
 
     if (updateTimerId === -2) {
       updateTimerId = -1

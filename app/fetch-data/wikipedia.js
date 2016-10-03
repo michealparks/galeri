@@ -18,6 +18,13 @@ const headers = {
   'expires': '0'
 }
 
+window.addEventListener('beforeunload', e => {
+  writeToConfig({
+    timestamp: Date.now(),
+    cache
+  })
+})
+
 const provideWikipediaConfig = ({ timestamp, results }, write) => {
   hasInit = true
   writeToConfig = write
@@ -33,8 +40,6 @@ const provideWikipediaConfig = ({ timestamp, results }, write) => {
     if (err) return queue ? queue(err) : null
 
     results = results.filter(image => !image.href.includes('undefined'))
-
-    writeToConfig({ timestamp: Date.now(), results })
 
     cache = knuthShuffle(results)
 
@@ -102,7 +107,9 @@ const getDescription = (url, callback, { hostname, path } = parse(url)) =>
 
 const getNextWikipediaImage = callback => {
   if (!hasInit) { queue = callback; return }
-  if (!cache.length) getNextPage(() => getNextRijksImage(callback))
+  if (!cache.length) {
+    return getFeaturedPaintingData(() => getNextWikipediaImage(callback))
+  }
 
   const { img, href, title } = cache.pop()
 

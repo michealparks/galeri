@@ -11,7 +11,7 @@ let defaultConfig = {
     results: []
   },
   rijksMuseum: {
-    page: 1,
+    page: 0,
     results: []
   }
 }
@@ -23,11 +23,12 @@ const getNextImage = callback => {
       return getNextWikipediaImage(callback)
     case 1:
       return getNextRijksMuseumImage(callback)
+    default:
+      return getNextRijksMuseumImage(callback)
   }
 }
 
-config.trash(() => {
-  // get stored images
+const init = () => {
   config.read((err, data) => {
     if (err || Object.keys(data).length === 0) data = defaultConfig
 
@@ -36,6 +37,12 @@ config.trash(() => {
     provideWikipediaConfig(data.wikipedia, write)
     provideRijksMuseumConfig(data.rijksMuseum, write)
   })
-})
+}
+
+if (process.env.NODE_ENV === 'development') {
+  config.trash(init)
+} else {
+  init()
+}
 
 module.exports = getNextImage

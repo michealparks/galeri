@@ -1,6 +1,9 @@
 const { get } = require('https')
 const { knuthShuffle } = require('knuth-shuffle')
-const rijksUrl = 'https://www.rijksmuseum.nl/api/en/collection?key=xPauC1vP&format=json&ps=100&type=painting&imgonly=True'
+const endpoint = 'https://www.rijksmuseum.nl/api/en/collection'
+const dataParameters = 'key=xPauC1vP&format=json&ps=100&imgonly=True'
+const artWorkParameters = 'type=painting'
+const rijksUrl = `${endpoint}?${dataParameters}&${artWorkParameters}`
 
 let hasInit = false
 let queue
@@ -8,6 +11,13 @@ let writeToConfig
 let currentPage = 0
 let totalPages
 let cache = []
+
+window.addEventListener('beforeunload', e => {
+  writeToConfig({
+    page: currentPage,
+    results: cache
+  })
+})
 
 const provideRijksMuseumConfig = ({ page, results }, write) => {
   hasInit = true
@@ -35,22 +45,39 @@ const getNextPageResults = callback => {
     totalPages = Math.ceil(count / 100)
     cache = knuthShuffle(artObjects)
 
-    writeToConfig({
-      page: currentPage,
-      results: cache
-    })
-    callback()
+    return callback()
   })
 }
 
 const getNextRijksMuseumImage = callback => {
   if (!hasInit) { queue = callback; return }
-  if (!cache.length) return getNextPageResults(() => getNextRijksMuseumImage(callback))
+  if (!cache.length) {
+    return getNextPageResults(err => {
+      if (err) return callback(err)
+
+      return getNextRijksMuseumImage(callback)
+    })
+  }
 
   const nextImage = cache.pop()
-  nextImage.img = nextImage.webImage.url
 
-  callback(null, nextImage)
+  if (nextImage.webImage === null ||
+      nextImage.webImage.width < window.innerWidth ||
+      nextImage.webImage.height < window.innerHeight) {
+    return getNextRijksMuseumImage(callback)
+  }
+
+  const text = nextImage.longTitle.split(',')
+
+  return callback(null, {
+    img: nextImage.webImage.url,
+    naturalWidth: nextImage.webImage.width,
+    naturalHeight: nextImage.webImage.height,
+    content: `
+      <h3 style="margin:0">${text[0]}</h3>
+      <p style="margin:0">${text.slice(1).join(', ')}</p>
+    `
+  })
 }
 
 module.exports = {
