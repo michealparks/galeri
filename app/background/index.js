@@ -68,11 +68,15 @@ const updateImage = () => {
     getNextImage(onImageFetch)
   }
 
-  const win = remote.getCurrentWindow().webContents
-
-  win.clearHistory()
-  win.session.clearCache(getImg)
-  win.session.clearStorageData(getImg)
+  try {
+    const win = remote.getCurrentWindow().webContents
+    win.clearHistory()
+    win.session.clearCache(getImg)
+    win.session.clearStorageData(getImg)
+  } catch (e) {
+    console.error('caught', e)
+    getImg()
+  }
 }
 
 const onDescriptionHide = () => update({

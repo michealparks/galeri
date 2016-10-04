@@ -56,7 +56,7 @@ const getFeaturedPaintingData = (callback) => {
 
     response = response.concat(Array.from($('.gallery img').map((i, tag) => {
       const rawUrl = tag.attribs.src.split('/')
-      const size = rawUrl.pop().replace(/^[0-9]{3,4}px/, '2000px')
+      const size = rawUrl.pop()
       const a = $($gallerytext[i]).find('a')
       const { title, href } = a[0].attribs
 
@@ -93,16 +93,18 @@ const getNextWikipediaImage = callback => {
 
   const { img, href, title, content } = cache.pop()
 
-  validateImage(img, (err, { naturalWidth, naturalHeight }) => {
-    if (err) return callback(err)
-    callback(null, {
-      content,
-      img,
-      title,
-      naturalHeight,
-      naturalWidth
+  validateImage(
+    img.replace(/[0-9]{3,4}px/, `${window.innerWidth}px`),
+    (err, { naturalWidth, naturalHeight, url }) => {
+      if (err) return callback(err)
+      callback(null, {
+        content,
+        img: url,
+        title,
+        naturalHeight,
+        naturalWidth
+      })
     })
-  })
 }
 
 module.exports = {
