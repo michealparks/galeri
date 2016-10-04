@@ -1,5 +1,6 @@
 const electron = require('electron')
-const updateCheckInterval = 1000 * 60 * 60 * 24
+const { days } = require('../util/time')
+const updateCheckInterval = days(1)
 
 const init = () => process.platform === 'linux'
   ? initLinux()

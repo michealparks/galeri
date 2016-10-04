@@ -2,13 +2,13 @@ const { ipcRenderer, remote } = require('electron')
 const App = require('./app')
 const fillCanvas = require('./fill-canvas')
 const getNextImage = require('../fetch-data')
-const { minutes } = require('../util/time')
+const { minutes, seconds } = require('../util/time')
 const { assign } = Object
 
 let lastUpdateTime = 0
 let startSuspendTime = 0
 let totalSuspendTime = 0
-let refreshRate = minutes(2)
+let refreshRate = seconds(20)
 let updateTimerId = -1
 
 const state = {

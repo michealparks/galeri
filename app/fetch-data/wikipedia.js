@@ -34,7 +34,7 @@ const provideWikipediaConfig = ({ timestamp, results }, write) => {
 
     cache = knuthShuffle(results)
 
-    if (queue) getNextWikipediaImage(cache.pop(), queue)
+    if (queue) getNextWikipediaImage(queue)
   })
 }
 
@@ -95,14 +95,14 @@ const getNextWikipediaImage = callback => {
 
   validateImage(
     img.replace(/[0-9]{3,4}px/, `${window.innerWidth}px`),
-    (err, { naturalWidth, naturalHeight, url }) => {
+    (err, data) => {
       if (err) return callback(err)
       callback(null, {
-        content,
-        img: url,
         title,
-        naturalHeight,
-        naturalWidth
+        content,
+        img: data.url,
+        naturalHeight: data.naturalHeight,
+        naturalWidth: data.naturalWidth
       })
     })
 }

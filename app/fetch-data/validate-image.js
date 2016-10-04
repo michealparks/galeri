@@ -3,7 +3,8 @@ const { headers } = require('../util/get')
 const { parse } = require('url')
 const sizeOf = require('image-size')
 
-const validateImage = (url, callback, { hostname, path } = parse(url), dimensions) => {
+const validateImage = (url, callback, dimensions) => {
+  const { hostname, path } = parse(url)
   const req = get({ headers, hostname, path }, res => {
     let buffer = Buffer.from([])
     let imageTypeDetectionError

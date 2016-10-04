@@ -2,12 +2,13 @@ const { assign, keys } = Object
 const config = require('application-config')('galeri_config')
 const { ipcMain } = require('electron')
 const { sendToWindows } = require('./ipc')
+const { hours } = require('../util/time')
 
 let isCacheLoaded = false
 let cacheRequests = []
 let cache = {}
 const baseConfig = {
-  refreshRate: 1,
+  refreshRate: hours(1),
   showDescriptionOnDesktop: false,
   autolaunch: true
 }

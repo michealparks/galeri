@@ -23,7 +23,7 @@ const bufferChunksToBlob = data => {
   }
 
   let offset = 0
-  const result = new Uint8ClampedArray(len)
+  const result = new Uint8Array(len)
 
   for (let i = 0, l = data.length; i < l; ++i) {
     result.set(data[i], offset)
@@ -43,9 +43,9 @@ const fillCanvas = ({ img, naturalWidth, naturalHeight }, i, callback) => {
     res.on('data', chunk => data.push(chunk))
     res.on('error', callback)
     res.on('end', () => {
-      let blob = new Blob([Buffer.concat(data)])
-      createImageBitmap(blob).then(bitmap => {
-        blob = null
+      // let blob = new Blob([Buffer.concat(data)])
+      createImageBitmap(bufferChunksToBlob(data)).then(bitmap => {
+        // blob = null
         const { width, height } = canvas[i]
         const imgRatio = naturalWidth / naturalHeight
         const canvasRatio = width / height
