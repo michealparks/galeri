@@ -1,13 +1,7 @@
 const { get } = require('https')
+const { headers } = require('../util/get')
 const { parse } = require('url')
 const sizeOf = require('image-size')
-const headers = {
-  'cache-control': 'no-cache, no-store',
-  'pragma-directive': 'no-cache',
-  'cache-directive': 'no-cache',
-  'pragma': 'no-cache',
-  'expires': '0'
-}
 
 const validateImage = (url, callback, { hostname, path } = parse(url), dimensions) => {
   const req = get({ headers, hostname, path }, res => {

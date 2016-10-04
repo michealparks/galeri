@@ -1,5 +1,4 @@
-const { get } = require('https')
-const { parse } = require('url')
+const get = require('../util/get')
 const { load } = require('cheerio')
 const { knuthShuffle } = require('knuth-shuffle')
 const validateImage = require('./validate-image')
@@ -9,14 +8,6 @@ let hasInit = false
 let cache = []
 let queue
 let writeToConfig
-
-const headers = {
-  'cache-control': 'no-cache, no-store',
-  'pragma-directive': 'no-cache',
-  'cache-directive': 'no-cache',
-  'pragma': 'no-cache',
-  'expires': '0'
-}
 
 window.addEventListener('beforeunload', e => {
   writeToConfig({
@@ -47,27 +38,18 @@ const provideWikipediaConfig = ({ timestamp, results }, write) => {
   })
 }
 
-const getCategory = (url, callback, { hostname, path } = parse(url)) =>
-  get({ headers, hostname, path: `${path}?${Date.now()}` }, res => {
-    if (res.statusCode === 301) {
-      return getCategory(res.headers.location, callback)
-    }
-    let body = ''
-
-    res.on('data', d => { body += d })
-    res.on('end', () => callback(null, body))
-  }).on('error', callback)
-
 const getFeaturedPaintingData = (callback) => {
   let hasErrorFired = false
   let count = 0
   let response = []
 
   const onResponse = (err, res) => {
-    if (err & !hasErrorFired) {
+    if (err && !hasErrorFired) {
       hasErrorFired = true
       return callback(err)
-    }
+    } else if (err && hasErrorFired) return
+
+    if (!res) return callback('No Wikipedia Content')
 
     const $ = load(res)
     const $gallerytext = $('.gallerytext')
@@ -93,23 +75,15 @@ const getFeaturedPaintingData = (callback) => {
     if (++count === 2) return callback(null, response)
   }
 
-  getCategory(`${wikiUrl}/Paintings`, onResponse)
-  getCategory(`${wikiUrl}/East_Asian_art`, onResponse)
+  get(`${wikiUrl}/Paintings?${Date.now()}`, onResponse)
+  get(`${wikiUrl}/East_Asian_art${Date.now()}`, onResponse)
 }
 
-const getDescription = (url, callback, { hostname, path } = parse(url)) =>
-  get({ headers, hostname, path: `${path}?${Date.now()}` }, res => {
-    if (res.statusCode === 301) {
-      return getDescription(res.headers.location, callback)
-    }
+const getDescription = (url, callback) => get(`${url}?${Date.now()}`, res => {
+  if (!res) return callback('No Wikipedia Content')
 
-    let body = ''
-
-    res.on('data', d => { body += d })
-    res.on('end', () =>
-      callback(null, load(body)('#mw-content-text').find('p').html())
-    )
-  }).on('error', callback)
+  return callback(null, load(res)('#mw-content-text').find('p').html())
+})
 
 const getNextWikipediaImage = callback => {
   if (!hasInit) { queue = callback; return }

@@ -50,7 +50,6 @@
     "express": "^4.14.0",
     "json-loader": "^0.5.4",
     "minimist": "^1.2.0",
-    "react-hot-loader": "^3.0.0-beta.5",
     "webpack": "^1.13.2",
     "webpack-dev-middleware": "^1.8.3",
     "webpack-hot-middleware": "^2.12.2",
@@ -62,13 +61,9 @@
     "auto-launch": "^5.0.1",
     "buffer": "^5.0.0",
     "cheerio": "^0.22.0",
-    "classnames": "^2.2.5",
     "image-size": "^0.5.0",
     "knuth-shuffle": "^1.0.1",
-    "menubar": "^5.1.0",
-    "react": "^15.3.2",
-    "react-addons-pure-render-mixin": "^15.3.2",
-    "react-dom": "^15.3.2"
+    "menubar": "^5.1.0"
   },
   "build": {
     "appId": "caboodle.by.micheal.parks",

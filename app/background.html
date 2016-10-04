@@ -18,15 +18,21 @@
       height: 100%;
       left: 0;
       top: 0;
+      transform: translate3d(0, 0, 0);
+    }
+
+    #canvas_0 {
+      z-index: 2;
       opacity: 0;
-      transition: opacity 3500ms;
-      transition-delay: 3510ms;
+      transition: 2500ms;
+    }
+
+    #canvas_1 {
+      opacity: 1;
     }
 
     .bg-image--active {
-      z-index: 20;
-      opacity: 1;
-      transition-delay: 10ms;
+      opacity: 1 !important;
     }
 
     .description {
@@ -80,9 +86,9 @@
   <body>
     <canvas id='canvas_0' class='bg-image'></canvas>
     <canvas id='canvas_1' class='bg-image'></canvas>
-    <div class='description'>
-      <h3 class='title'></h3>
-      <p class='author'></p>
+    <div class='description description--left' id='description'>
+      <h3 id='title'></h3>
+      <p id='author'></p>
     </div>
 
     <script>

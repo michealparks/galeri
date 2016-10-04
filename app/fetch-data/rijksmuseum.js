@@ -33,6 +33,7 @@ const getRijksMuseumData = (page, callback) =>
     let body = ''
 
     res.on('data', d => { body += d })
+    res.on('error', callback)
     res.on('end', () => callback(null, JSON.parse(body)))
   }).on('error', callback)
 
