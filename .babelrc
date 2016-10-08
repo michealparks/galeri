@@ -1,5 +1,5 @@
 {
-  "presets": ["react"],
+  "presets": [],
   "plugins": ["transform-es2015-modules-commonjs", "add-module-exports"],
   "env": {
     "development": {
@@ -7,7 +7,7 @@
       "plugins": []
     },
     "production": {
-      "presets": ["react-optimize"],
+      "presets": [],
       "plugins": ["babel-plugin-dev-expression"]
     }
   }

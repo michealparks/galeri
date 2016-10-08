@@ -1,68 +1,65 @@
-/* global Blob, createImageBitmap */
-const { get } = require('https')
-const { parse } = require('url')
-const { headers } = require('../util/get')
+/* global Worker */
+const worker = new Worker('./background/worker.js')
+const canvas = document.getElementById('canvas')
+const ctx = canvas.getContext('2d')
 
-let canvas = [
-  document.querySelector('#canvas_0'),
-  document.querySelector('#canvas_1')
-]
+let opacity, x, y, w, h, scaled
+let naturalWidth, naturalHeight
+let canvasRatio, imgRatio, bitmap
 
-let ctx = [
-  canvas[0].getContext('2d'),
-  canvas[1].getContext('2d')
-]
+worker.onmessage = onGetNewImage
 
-canvas[0].width = canvas[1].width = window.innerWidth * window.devicePixelRatio
-canvas[0].height = canvas[1].height = window.innerHeight * window.devicePixelRatio
+window.addEventListener('resize', onResize)
+onResize()
 
-const bufferChunksToBlob = data => {
-  let len = 0
-  for (let i = 0, l = data.length; i < l; ++i) {
-    len += data[i].length
-  }
-
-  let offset = 0
-  const result = new Uint8Array(len)
-
-  for (let i = 0, l = data.length; i < l; ++i) {
-    result.set(data[i], offset)
-    offset += data[i].length
-  }
-
-  return new Blob([result])
+function onResize () {
+  canvas.width = window.innerWidth * window.devicePixelRatio
+  canvas.height = window.innerHeight * window.devicePixelRatio
+  canvasRatio = canvas.width / canvas.height
 }
 
-const fillCanvas = ({ img, naturalWidth, naturalHeight }, i, callback) => {
-  ctx[i].clearRect(0, 0, canvas.width, canvas.height)
-  const { hostname, path } = parse(img)
+function tick (t) {
+  if (opacity > 400) {
+    bitmap = null
+    return
+  }
 
-  get({ hostname, path, headers }, res => {
-    const data = []
+  window.requestAnimationFrame(tick)
 
-    res.on('data', chunk => data.push(chunk))
-    res.on('error', callback)
-    res.on('end', () => {
-      // let blob = new Blob([Buffer.concat(data)])
-      createImageBitmap(bufferChunksToBlob(data)).then(bitmap => {
-        // blob = null
-        const { width, height } = canvas[i]
-        const imgRatio = naturalWidth / naturalHeight
-        const canvasRatio = width / height
+  ctx.globalAlpha = ++opacity / 400
+  ctx.drawImage(bitmap, x, y, w, h)
+}
 
-        if (imgRatio <= canvasRatio) {
-          const scaledHeight = Math.round(width / imgRatio)
-          ctx[i].drawImage(bitmap, 0, -(scaledHeight - height) / 2, width, scaledHeight)
-        } else {
-          const scaledWidth = Math.round(height * imgRatio)
-          ctx[i].drawImage(bitmap, -(scaledWidth - width) / 2, 0, scaledWidth, height)
-        }
+function onGetNewImage (msg) {
+  bitmap = msg.data
+  imgRatio = naturalWidth / naturalHeight
 
-        bitmap = null
-        window.requestAnimationFrame(callback)
-      })
-    })
-  }).on('err', callback)
+  if (imgRatio <= canvasRatio) {
+    scaled = Math.round(canvas.width / imgRatio)
+    x = 0
+    y = -(scaled - canvas.height) / 2
+    w = canvas.width
+    h = scaled
+  } else {
+    scaled = Math.round(canvas.height * imgRatio)
+    x = -(scaled - canvas.width) / 2
+    y = 0
+    w = scaled
+    h = canvas.height
+  }
+
+  opacity = 0
+
+  console.log(x, y, w, h)
+  window.requestAnimationFrame(tick)
+}
+
+function fillCanvas (config, callback) {
+  naturalWidth = config.naturalWidth
+  naturalHeight = config.naturalHeight
+
+  worker.postMessage(config.img)
+  callback()
 }
 
 module.exports = fillCanvas

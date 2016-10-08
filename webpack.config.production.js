@@ -12,11 +12,11 @@ module.exports = validate(merge(baseConfig, {
   output: { publicPath: '../dist/' },
 
   plugins: [
+    // new BabiliPlugin(),
     new webpack.optimize.OccurrenceOrderPlugin(),
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': JSON.stringify('production')
-    }),
-    new BabiliPlugin()
+    })
   ],
 
   target: 'electron-renderer'

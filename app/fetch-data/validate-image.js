@@ -3,13 +3,14 @@ const { headers } = require('../util/get')
 const { parse } = require('url')
 const sizeOf = require('image-size')
 
-const validateImage = (url, callback, dimensions) => {
+function validateImage (url, callback, dimensions) {
   const { hostname, path } = parse(url)
+
   const req = get({ headers, hostname, path }, res => {
     let buffer = Buffer.from([])
     let imageTypeDetectionError
 
-    res.on('data', chunk => {
+    res.on('data', function (chunk) {
       buffer = Buffer.concat([buffer, chunk])
 
       if (!dimensions) {
@@ -21,8 +22,10 @@ const validateImage = (url, callback, dimensions) => {
         }
       }
     })
-    .on('error', err => callback(err, {}))
-    .on('end', () => {
+    .on('error', function (err) {
+      callback(err, {})
+    })
+    .on('end', function () {
       if (!dimensions) {
         return callback(imageTypeDetectionError, {})
       }
@@ -41,7 +44,7 @@ const validateImage = (url, callback, dimensions) => {
 
       buffer = null
     })
-  }).on('error', err => callback(err, {}))
+  }).on('error', function (err) { callback(err, {}) })
 }
 
 module.exports = validateImage

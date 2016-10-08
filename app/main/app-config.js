@@ -1,5 +1,5 @@
 const { assign, keys } = Object
-const config = require('application-config')('galeri_config')
+const config = require('application-config')('Galeri')
 const { ipcMain } = require('electron')
 const { sendToWindows } = require('./ipc')
 const { hours } = require('../util/time')
@@ -19,28 +19,30 @@ config.read((err, data) => {
   cache = data
   isCacheLoaded = true
 
-  cacheRequests.forEach(req => req(cache))
-
   if (keys(cache).length === 0) {
     setConfig(baseConfig)
   }
 
+  cacheRequests.forEach(req => req(cache))
   sendToWindows('preferences', cache)
 })
 
-const setConfig = (...args) => {
-  const newConfig = args[0]
-  const optns = args.length === 3 ? args[1] : null
-  const callback = optns ? args[3] : args[2]
+let newConfig, optns, callback
+function setConfig (...args) {
+  newConfig = args[0]
+  optns = args.length === 3 ? args[1] : null
+  callback = optns ? args[3] : args[2]
 
   assign(cache, newConfig)
 
   if (optns && !optns.shallow) config.write(cache, callback)
 }
 
-const getConfig = callback => isCacheLoaded
-  ? callback(cache)
-  : cacheRequests.push(callback)
+function getConfig (callback) {
+  return isCacheLoaded
+    ? callback(cache)
+    : cacheRequests.push(callback)
+}
 
 // Trash the stored config
 // config.trash((err) => {})

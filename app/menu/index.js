@@ -1,22 +1,16 @@
 const { ipcRenderer, remote } = require('electron')
-const React = require('react')
-const { render } = require('react-dom')
 const App = require('./app')
-const root = document.querySelector('#root')
-
-let isDarkMode = remote.systemPreferences.isDarkMode()
 
 let state = {
-  pref_showOnDesktop: true
+  pref_showOnDesktop: true,
+  isDarkMode: remote.systemPreferences.isDarkMode()
 }
 
-const update = newState => render(
-  <App {...Object.assign(state, newState)} />,
-  root
-)
+const update = newState => {
+  return App(Object.assign(state, newState))
+}
 
 ipcRenderer.on('preferences', (e, config) => {
   update(config)
 })
 
-render(<App {...state} />, root)

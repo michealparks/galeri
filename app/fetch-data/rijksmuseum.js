@@ -1,90 +1,109 @@
 const { get } = require('https')
 const { knuthShuffle } = require('knuth-shuffle')
+const perPage = 100
 const endpoint = 'https://www.rijksmuseum.nl/api/en/collection'
-const dataParameters = 'key=xPauC1vP&format=json&ps=100&imgonly=True'
+const dataParameters = `key=xPauC1vP&format=json&ps=${perPage}&imgonly=True`
 const artWorkParameters = 'type=painting'
 const rijksUrl = `${endpoint}?${dataParameters}&${artWorkParameters}`
 
 let hasInit = false
-let queue
-let writeToConfig
-let currentPage = 0
-let totalPages
 let cache = []
+let queue, nextPage, viewedPages, totalPages
 
-window.addEventListener('beforeunload', e => {
-  writeToConfig({
-    page: currentPage,
+function getRijksConfig () {
+  return {
+    page: nextPage,
+    viewedPages: viewedPages,
+    totalPages: totalPages,
     results: cache
-  })
-})
-
-const provideRijksMuseumConfig = ({ page, results }, write) => {
-  hasInit = true
-  currentPage = page
-  cache = results
-  writeToConfig = write
-
-  if (queue) getNextRijksMuseumImage(queue)
+  }
 }
 
-const getRijksMuseumData = (page, callback) =>
-  get(`${rijksUrl}&p=${page}`, res => {
-    let body = ''
+function giveRijksConfig (config) {
+  hasInit = true
+  nextPage = config.page || Math.ceil(Math.random() * 19) + 1
+  cache = config.results
+  viewedPages = config.viewedPages
+  totalPages = config.totalPages
 
-    res.on('data', d => { body += d })
+  if (queue) getRijksImg(queue)
+}
+
+let responseBody
+function getRijksMuseumData (page, callback) {
+  responseBody = ''
+  return get(`${rijksUrl}&p=${page}`, function (res) {
+    res.on('data', function (d) { responseBody += d })
     res.on('error', callback)
-    res.on('end', () => callback(null, JSON.parse(body)))
+    res.on('end', () => callback(null, JSON.parse(responseBody)))
   }).on('error', callback)
+}
 
-const getNextPageResults = callback => {
-  currentPage = currentPage + 1 > totalPages ? 0 : ++currentPage
-
-  getRijksMuseumData(currentPage, (err, { count, artObjects }) => {
+function getNextPageResults (callback) {
+  getRijksMuseumData(nextPage, function (err, data) {
     if (err) return callback(err)
 
-    totalPages = Math.ceil(count / 100)
-    cache = knuthShuffle(artObjects)
+    cache = knuthShuffle(data.artObjects)
+
+    if (!viewedPages || !viewedPages.length) {
+      totalPages = Math.ceil(data.count / perPage)
+      viewedPages = []
+
+      for (let i = 0; i < totalPages; ++i) {
+        if (i !== nextPage) viewedPages.push(i)
+      }
+
+      knuthShuffle(viewedPages)
+    }
+
+    while (viewedPages[nextPage]) {
+      nextPage = viewedPages.pop()
+    }
+
+    console.log(viewedPages)
 
     return callback()
   })
 }
 
-const getNextRijksMuseumImage = callback => {
-  if (!hasInit) { queue = callback; return }
-  if (!cache.length) {
-    return getNextPageResults(err => {
-      if (err) return callback(err)
-
-      return getNextRijksMuseumImage(callback)
-    })
+function getRijksImg (callback) {
+  if (!hasInit) {
+    queue = callback
+    return
   }
 
-  const nextImage = cache.pop()
+  let nextImage
+  do {
+    if (!cache.length) {
+      return getNextPageResults(function (err) {
+        if (err) return callback(err)
 
-  if (nextImage.webImage === null ||
-      nextImage.webImage.width < window.innerWidth ||
-      nextImage.webImage.height < window.innerHeight) {
-    if (!nextImage.webImage) console.error('rijks: too small!')
-    return getNextRijksMuseumImage(callback)
-  }
+        return getRijksImg(callback)
+      })
+    }
+
+    console.log('tick')
+
+    nextImage = cache.pop()
+  } while (nextImage.webImage === null ||
+           nextImage.webImage.width < window.innerWidth * (window.devicePixelRatio * 0.75) ||
+           nextImage.webImage.height < window.innerHeight * (window.devicePixelRatio * 0.75))
 
   const text = nextImage.longTitle.split(',')
+
+  console.log(nextImage)
 
   return callback(null, {
     img: nextImage.webImage.url,
     naturalWidth: nextImage.webImage.width,
     naturalHeight: nextImage.webImage.height,
     title: text[0],
-    text: text.slice(1).join(', '),
-    content: `
-      <h3>${text[0]}</h3>
-      <p>${text.slice(1).join(', ')}</p>
-    `
+    text: text.slice(1).join(', ')
   })
 }
 
 module.exports = {
-  provideRijksMuseumConfig,
-  getNextRijksMuseumImage
+  getRijksConfig,
+  giveRijksConfig,
+  getRijksImg
 }

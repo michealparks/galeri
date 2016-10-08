@@ -1,49 +1,48 @@
-const get = require('../util/get')
 const { load } = require('cheerio')
 const { knuthShuffle } = require('knuth-shuffle')
 const validateImage = require('./validate-image')
+const get = require('../util/get')
+const { days } = require('../util/time')
 const wikiUrl = 'https://en.wikipedia.org/wiki/Wikipedia:Featured_pictures/Artwork'
 
 let hasInit = false
 let cache = []
 let queue
-let writeToConfig
 
-window.addEventListener('beforeunload', e => {
-  writeToConfig({
-    timestamp: Date.now(),
-    cache
-  })
-})
+function getWikiConfig () {
+  return {
+    cache,
+    timestamp: Date.now()
+  }
+}
 
-const provideWikipediaConfig = ({ timestamp, results }, write) => {
+function giveWikiConfig (config) {
   hasInit = true
-  writeToConfig = write
 
-  if (timestamp && Date.now() - timestamp < 1000 * 60 * 60 * 48) {
-    cache = results
+  if (Date.now() - (config.timestamp || days(3)) < days(2)) {
+    cache = config.results
 
-    if (queue) return getNextWikipediaImage(queue)
+    if (queue) return getWikiImg(queue)
   }
 
   // if image array is older than 48 hours fetch new image data and store
-  getFeaturedPaintingData((err, results) => {
+  getFeaturedPaintingData(function (err, results) {
     if (err) return queue ? queue(err) : null
 
     results = results.filter(image => !image.href.includes('undefined'))
 
     cache = knuthShuffle(results)
 
-    if (queue) getNextWikipediaImage(queue)
+    if (queue) getWikiImg(queue)
   })
 }
 
-const getFeaturedPaintingData = (callback) => {
+function getFeaturedPaintingData (callback) {
   let hasErrorFired = false
   let count = 0
   let response = []
 
-  const onResponse = (err, res) => {
+  function onResponse (err, res) {
     if (err && !hasErrorFired) {
       hasErrorFired = true
       return callback(err)
@@ -55,20 +54,13 @@ const getFeaturedPaintingData = (callback) => {
     const $gallerytext = $('.gallerytext')
 
     response = response.concat(Array.from($('.gallery img').map((i, tag) => {
-      const rawUrl = tag.attribs.src.split('/')
-      const size = rawUrl.pop()
       const a = $($gallerytext[i]).find('a')
-      const { title, href } = a[0].attribs
 
       return {
-        title,
+        title: a[0].attribs.title,
         text: a[1] ? a[1].attribs.title : '',
-        content: `
-          <h3>${a[0].attribs.title.replace(/ *\([^)]*\) */g, '')}</h3>
-          <p>${a[1] ? a[1].attribs.title : ''}</p>
-        `,
-        href: `https://wikipedia.org${href}`,
-        img: `https:${rawUrl.join('/')}/${size}`
+        href: `https://wikipedia.org${a[0].attribs.href}`,
+        img: `https:${tag.attribs.src}`
       }
     })))
 
@@ -79,27 +71,39 @@ const getFeaturedPaintingData = (callback) => {
   get(`${wikiUrl}/East_Asian_art${Date.now()}`, onResponse)
 }
 
-const getDescription = (url, callback) => get(`${url}?${Date.now()}`, res => {
-  if (!res) return callback('No Wikipedia Content')
+function getDescription (url, callback) {
+  return get(`${url}?${Date.now()}`, res => {
+    if (!res) return callback('No Wikipedia Content')
 
-  return callback(null, load(res)('#mw-content-text').find('p').html())
-})
+    return callback(null, load(res)('#mw-content-text').find('p').html())
+  })
+}
 
-const getNextWikipediaImage = callback => {
-  if (!hasInit) { queue = callback; return }
-  if (!cache.length) {
-    return getFeaturedPaintingData(() => getNextWikipediaImage(callback))
+const pixelRegex = /[0-9]{3,4}px/
+const parenRegex = / *\([^)]*\) */g
+function getWikiImg (callback) {
+  if (!hasInit) {
+    queue = callback
+    return
   }
 
-  const { img, href, title, content } = cache.pop()
+  if (!cache.length) {
+    return getFeaturedPaintingData(function () {
+      getWikiImg(callback)
+    })
+  }
+
+  const nextImage = cache.pop()
 
   validateImage(
-    img.replace(/[0-9]{3,4}px/, `${window.innerWidth}px`),
-    (err, data) => {
+    nextImage.img.replace(pixelRegex, `${window.innerWidth * window.devicePixelRatio}px`),
+    function (err, data) {
+      console.log(window.innerWidth, data.naturalWidth)
       if (err) return callback(err)
+
       callback(null, {
-        title,
-        content,
+        title: nextImage.title.replace(parenRegex, ''),
+        text: nextImage.text.replace(parenRegex, ''),
         img: data.url,
         naturalHeight: data.naturalHeight,
         naturalWidth: data.naturalWidth
@@ -108,6 +112,7 @@ const getNextWikipediaImage = callback => {
 }
 
 module.exports = {
-  provideWikipediaConfig,
-  getNextWikipediaImage
+  getWikiConfig,
+  giveWikiConfig,
+  getWikiImg
 }

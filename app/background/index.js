@@ -1,25 +1,58 @@
-const { ipcRenderer, remote } = require('electron')
-const App = require('./app')
+const { ipcRenderer } = require('electron')
 const fillCanvas = require('./fill-canvas')
-const getNextImage = require('../fetch-data')
+const fillBG = require('./fill-bg')
+const { getNextImage, saveConfig } = require('../fetch-data')
 const { minutes, seconds } = require('../util/time')
-const { assign } = Object
+const updateImage = getNextImage.bind(null, onImageFetch)
 
+const descriptionEl = document.getElementById('description')
+const descriptionCL = descriptionEl.classList
+const titleEl = descriptionEl.children[0]
+const textEl = descriptionEl.children[1]
+
+let refreshRate = seconds(10)
+let imagesUntilRestart = 20
+
+let imageCount = 0
 let lastUpdateTime = 0
 let startSuspendTime = 0
 let totalSuspendTime = 0
-let refreshRate = seconds(20)
 let updateTimerId = -1
+let title, text
 
-const state = {
-  activeIndex: -1,
-  description: '',
-  descriptionPosition: 'left'
+window.addEventListener('error', function (e) {
+  console.log(e)
+})
+
+window.addEventListener('online', function () {
+  const t = refreshRate - (Date.now() - lastUpdateTime) + totalSuspendTime
+  updateTimerId = setTimeout(onOnlineStatusChange, t > 0 ? t : 0)
+})
+
+window.addEventListener('offline', function () {
+  onOnlineStatusChange()
+})
+
+// cancel any data fetching if the computer is suspended
+ipcRenderer.on('suspend', function () {
+  startSuspendTime = Date.now()
+  clearTimeout(updateTimerId)
+  updateTimerId = -2
+})
+
+ipcRenderer.on('resume', function () {
+  totalSuspendTime += (Date.now() - startSuspendTime)
+  const t = refreshRate - (Date.now() - lastUpdateTime) + totalSuspendTime
+  updateTimerId = setTimeout(onOnlineStatusChange, t > 0 ? t : 0)
+})
+
+onOnlineStatusChange()
+
+if (process.env.NODE_ENV === 'development') {
+  window.nextImage = onOnlineStatusChange
 }
 
-const update = newState => App(assign(state, newState))
-
-const onOnlineStatusChange = () => {
+function onOnlineStatusChange () {
   if (navigator.onLine) {
     // this is just for safeguarding when doing funny testing things
     clearTimeout(updateTimerId)
@@ -31,87 +64,57 @@ const onOnlineStatusChange = () => {
   }
 }
 
-const onImageFetch = (err, data) => {
+function onImageFetch (err, data) {
   if (err) {
     console.error(err)
     return onOnlineStatusChange()
   }
 
-  let newIndex = (state.activeIndex + 1) % 2
-
-  fillCanvas(data, newIndex, () => {
-    update({
-      title: data.title,
-      text: data.text,
-      activeIndex: newIndex,
-      descriptionPosition: 'bottom'
-    })
-
-    setTimeout(onDescriptionHide, 800)
-    setTimeout(onDescriptionReplace, 2500)
-
-    if (updateTimerId === -2) {
-      updateTimerId = -1
-    } else {
-      totalSuspendTime = 0
-      lastUpdateTime = Date.now()
-      updateTimerId = setTimeout(updateImage, refreshRate)
-    }
-  })
+  title = data.title
+  text = data.text
+  fillBG(data, onFillCanvas)
+  // fillCanvas(data, onFillCanvas)
 }
 
-const updateImage = () => {
-  let count = 0
-  const getImg = () => {
-    if (++count !== 2) return
+function onFillCanvas () {
+  setTimeout(onDescriptionHide)
+  setTimeout(onDescriptionReplace, 800)
+  setTimeout(onDescriptionShow, 2500)
 
-    getNextImage(onImageFetch)
+  if (imageCount === 0) {
+    ipcRenderer.send('browser-rendered')
   }
 
-  try {
-    const win = remote.getCurrentWindow().webContents
-    win.clearHistory()
-    win.session.clearCache(getImg)
-    win.session.clearStorageData(getImg)
-  } catch (e) {
-    console.error('caught', e)
-    getImg()
+  if (++imageCount === imagesUntilRestart) {
+    updateTimerId = setTimeout(function () {
+      setTimeout(onDescriptionHide)
+      saveConfig(function () { ipcRenderer.send('browser-reset') })
+    }, refreshRate)
+    return
   }
+
+  if (updateTimerId === -2) {
+    updateTimerId = -1
+    return
+  }
+
+  totalSuspendTime = 0
+  lastUpdateTime = Date.now()
+  updateTimerId = setTimeout(updateImage, refreshRate)
 }
 
-const onDescriptionHide = () => update({
-  descriptionPosition: 'left'
-})
-
-const onDescriptionReplace = () => update({
-  descriptionPosition: ''
-})
-
-window.addEventListener('online', () => {
-  const t = refreshRate - (Date.now() - lastUpdateTime) + totalSuspendTime
-  updateTimerId = setTimeout(onOnlineStatusChange, t > 0 ? t : 0)
-})
-
-window.addEventListener('offline', () => {
-  onOnlineStatusChange()
-})
-
-// cancel any data fetching if the computer is suspended
-ipcRenderer.on('suspend', () => {
-  startSuspendTime = Date.now()
-  console.log('suspend', updateTimerId)
-  clearTimeout(updateTimerId)
-  updateTimerId = -2
-})
-
-ipcRenderer.on('resume', () => {
-  totalSuspendTime += (Date.now() - startSuspendTime)
-  const t = refreshRate - (Date.now() - lastUpdateTime) + totalSuspendTime
-  updateTimerId = setTimeout(onOnlineStatusChange, t > 0 ? t : 0)
-})
-
-onOnlineStatusChange()
-
-if (process.env.NODE_ENV === 'development') {
-  window.nextImage = onOnlineStatusChange
+function onDescriptionHide () {
+  descriptionCL.add('description--bottom')
 }
+
+function onDescriptionReplace () {
+  titleEl.textContent = title
+  textEl.textContent = text
+  descriptionCL.add('no-transition', 'description--left')
+  descriptionCL.remove('description--bottom')
+}
+
+function onDescriptionShow () {
+  descriptionCL.remove('no-transition', 'description--left')
+}
+
