@@ -19,7 +19,7 @@ function getWaltersMuseumConfig () {
 function giveWaltersMuseumConfig (config) {
   hasInit = true
   nextPage = config.page || 1
-  cache = config.results
+  cache = config.results || cache
 
   if (queue) getWaltersMuseumImg(queue)
 }

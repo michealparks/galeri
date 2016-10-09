@@ -19,7 +19,7 @@ function getWikiConfig () {
 function giveWikiConfig (config) {
   hasInit = true
 
-  if (Date.now() - (config.timestamp || days(3)) < days(2)) {
+  if (config.timestamp && (Date.now() - (config.timestamp || days(3)) < days(2))) {
     cache = config.results
 
     if (queue) return getWikiImg(queue)

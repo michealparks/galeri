@@ -1,28 +1,36 @@
 /* global XMLHttpRequest */
 const { knuthShuffle } = require('knuth-shuffle')
 const validateImage = require('./validate-image')
-const endpoint = 'https://www.brooklynmuseum.org/api/v2'
-const apiKey = 'I12CaDlDkZXczvBro5tPQZpv0X2ZRHAQ'
-const apiInterface = require('./api-interface')({
-  headers: [{ key: 'api_key', val: apiKey }],
-  endpoint,
-  endpointParams: '/object?limit=35&has_images=1&rights_type_permissive=1',
-  nextPage: 1,
-  pageParam: '&offset=0'
-})
+const ApiTemplate = require('./api-template')
 
-const xhr = new XMLHttpRequest()
-xhr.open('GET', `${endpoint}/object/?total_count_only=1`, true)
-xhr.setRequestHeader('api_key', apiKey)
-xhr.responseType = 'json'
-xhr.onload = () => console.log(xhr.response.data)
-xhr.send()
+// TODO get total pages from this request
+// const xhr = new XMLHttpRequest()
+// xhr.open('GET', `${endpoint}/object/?total_count_only=1`, true)
+// xhr.setRequestHeader('api_key', apiKey)
+// xhr.responseType = 'json'
+// xhr.onload = () => console.log(xhr.response.data)
+// xhr.send()
 
-apiInterface.onCollectionResponse = function onCollectionResponse (response, next) {
+function BrooklynMuseum () {
+  ApiTemplate.call(this, {
+    headers: [{ key: 'api_key', val: 'I12CaDlDkZXczvBro5tPQZpv0X2ZRHAQ' }],
+    endpoint: 'https://www.brooklynmuseum.org/api/v2',
+    endpointParams: '/object?limit=35&has_images=1&rights_type_permissive=1',
+    nextPage: 1,
+    pageParam: '&offset=0'
+  })
+
+  this.onCollectionResponse = this.onCollectionResponse.bind(this)
+}
+
+BrooklynMuseum.prototype = Object.create(ApiTemplate.prototype)
+BrooklynMuseum.prototype.constructor = ApiTemplate
+
+BrooklynMuseum.prototype.onCollectionResponse = function () {
   this.cache = []
 
-  for (let i = 0, l = response.data.length, r; i < l; i++) {
-    r = response.data[i]
+  for (let i = 0, l = this.req.response.data.length, r; i < l; i++) {
+    r = this.req.response.data[i]
     if (r.classification === 'Painting' ||
         r.classification === 'Work on Paper' ||
         r.classification === 'Drawing') this.cache.push(r)
@@ -31,10 +39,10 @@ apiInterface.onCollectionResponse = function onCollectionResponse (response, nex
   knuthShuffle(this.cache)
 
   this.nextPage = this.nextPage + 1
-  return next()
-}.bind(apiInterface)
+  return this.next()
+}
 
-apiInterface.handleItemTransform = function handleItemTransform (next) {
+BrooklynMuseum.prototype.handleItemTransform = function handleItemTransform (next) {
   const obj = this.cache.pop()
 
   return validateImage({
@@ -54,6 +62,6 @@ apiInterface.handleItemTransform = function handleItemTransform (next) {
       naturalWidth: data.naturalWidth
     })
   })
-}.bind(apiInterface)
+}
 
-module.exports = apiInterface
+module.exports = new BrooklynMuseum()

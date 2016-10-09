@@ -1,4 +1,5 @@
-if(require('electron-squirrel-startup')) return
+// Handle restart due to windows updates
+if (require('electron-squirrel-startup')) return
 
 const electron = require('electron')
 const { sendToWindows } = require('./app/main/ipc')
@@ -10,8 +11,10 @@ const delayedInitTime = 3000
 let backgroundWindow = []
 let i = 0
 
+// not sure if this actually does anything :/
 app.commandLine.appendSwitch('disable-http-cache')
 
+// TODO restart app and send crash report
 process.on('uncaughtException', function (e) {
   console.error(e)
 })
@@ -29,7 +32,7 @@ app.on('ready', function () {
   }, delayedInitTime)
 })
 
-ipcMain.on('browser-reset', reloadBrowser)
+ipcMain.on('browser-reset', init)
 ipcMain.on('browser-rendered', onBrowserRender)
 
 if (process.platform !== 'darwin') {
@@ -42,12 +45,7 @@ if (process.env.NODE_ENV === 'development') {
   })
 }
 
-function reloadBrowser () {
-  init()
-}
-
 function onBrowserRender () {
-  console.log('onBrowserRender')
   if (backgroundWindow.length === 1) return
 
   setTimeout(function () {

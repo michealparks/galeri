@@ -1,21 +1,30 @@
 const { knuthShuffle } = require('knuth-shuffle')
 const validateImage = require('./validate-image')
-const perPage = 20
-const endpoint = 'http://metmuseum.org/api/collection/search'
-const randSeed = Math.ceil(Math.random() * perPage)
-const apiInterface = require('./api-interface')({
-  endpoint,
-  endpointParams: `?q=oil%20on%20canvas&perPage=${perPage}`,
-  nextPage: randSeed,
-  pageParam: `&page=${randSeed}`
-})
+const ApiTemplate = require('./api-template')
 
-apiInterface.onCollectionResponse = function onCollectionResponse (response, next) {
-  console.log(response, this.nextPage)
-  this.cache = knuthShuffle(response.results)
+function MetMuseum () {
+  const perPage = 20
+  const randSeed = Math.ceil(Math.random() * 20)
+
+  ApiTemplate.call(this, {
+    perPage,
+    endpoint: 'http://metmuseum.org/api/collection/search',
+    endpointParams: `?q=oil%20on%20canvas&perPage=${perPage}`,
+    nextPage: randSeed,
+    pageParam: `&page=${randSeed}`
+  })
+
+  this.onCollectionResponse = this.onCollectionResponse.bind(this)
+}
+
+MetMuseum.prototype = Object.create(ApiTemplate.prototype)
+MetMuseum.prototype.constructor = ApiTemplate
+
+MetMuseum.prototype.onCollectionResponse = function () {
+  this.cache = knuthShuffle(this.req.response.results)
 
   if (!this.viewedPages || !this.viewedPages.length) {
-    this.totalPages = Math.ceil(response.totalResults / perPage)
+    this.totalPages = Math.ceil(this.req.response.totalResults / this.perPage)
     this.viewedPages = []
 
     for (let i = 0, l = this.totalPages; i < l; ++i) {
@@ -28,16 +37,16 @@ apiInterface.onCollectionResponse = function onCollectionResponse (response, nex
   this.nextPage = this.viewedPages.pop()
 
   this.pageParam = `&page=${this.nextPage}`
-  return next()
-}.bind(apiInterface)
+  return this.next()
+}
 
-apiInterface.handleItemTransform = function handleItemTransform (next) {
+MetMuseum.prototype.handleItemTransform = function (next) {
   const obj = this.cache.pop()
 
   return validateImage({
     url: obj.image.replace('web-thumb', 'original'),
-    minHeight: window.innerHeight * window.devicePixelRatio * 0.7,
-    minWidth: window.innerWidth * window.devicePixelRatio * 0.7
+    minHeight: window.innerHeight * window.devicePixelRatio * 0.73,
+    minWidth: window.innerWidth * window.devicePixelRatio * 0.73
   }, function (err, data) {
     if (err) return next(err)
 
@@ -49,6 +58,6 @@ apiInterface.handleItemTransform = function handleItemTransform (next) {
       naturalWidth: data.naturalWidth
     })
   })
-}.bind(apiInterface)
+}
 
-module.exports = apiInterface
+module.exports = new MetMuseum()

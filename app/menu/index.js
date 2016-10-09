@@ -6,11 +6,11 @@ let state = {
   isDarkMode: remote.systemPreferences.isDarkMode()
 }
 
-const update = newState => {
+function update (newState) {
   return App(Object.assign(state, newState))
 }
 
-ipcRenderer.on('preferences', (e, config) => {
+ipcRenderer.on('preferences', function (e, config) {
   update(config)
 })
 

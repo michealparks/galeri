@@ -1,7 +1,10 @@
-const BGstyle = [
-  document.getElementById('bg_0').style,
-  document.getElementById('bg_1').style
+const BG = [
+  document.getElementById('bg_0'),
+  document.getElementById('bg_1')
 ]
+
+const BGstyle = [BG[0].style, BG[1].style]
+const BG_CL = [BG[0].classList, BG[1].classList]
 
 const CL = document.getElementById('bg_1').classList
 
@@ -14,7 +17,9 @@ preload.onerror = onError
 
 function onPreload () {
   i = (i + 1) % 2
+  BG_CL[i].toggle('bg--top', naturalHeight > naturalWidth)
   BGstyle[i].backgroundImage = `url("${preload.src}?${Date.now()}")`
+
   // Give a ms per pixel for rendering time
   setTimeout(onRender, naturalWidth > naturalHeight ? naturalWidth : naturalHeight)
 }

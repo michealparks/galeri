@@ -37,7 +37,7 @@ function validateImage (input, callback, dimensions) {
     })
     .on('end', function () {
       if (!dimensions) {
-        return callback(imageTypeDetectionError, {})
+        return callback(imageTypeDetectionError)
       }
 
       const { width, height } = dimensions
