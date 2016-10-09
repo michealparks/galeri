@@ -11,7 +11,7 @@
     "start": "cross-env NODE_ENV=production electron ./",
     "start:hot": "cross-env HOT=1 NODE_ENV=development electron ./main.development",
     "server": "cross-env NODE_ENV=development node server",
-    "dev": "concurrently --kill-others \"npm run server\" \"npm run start:hot\"",
+    "dev": "concurrently --kill-others \"npm run start:hot\" \"npm run server\"",
     "dev:prod": "concurrently --kill-others \"cross-env HOT=1 NODE_ENV=production electron ./main.development\" \"cross-env NODE_ENV=production node server\"",
     "build:main": "cross-env NODE_ENV=production webpack --config webpack.config.electron.js --progress --profile --colors",
     "build:renderers": "cross-env NODE_ENV=production webpack --config webpack.config.production.js --progress --profile --colors",
@@ -42,8 +42,8 @@
     "cross-env": "^3.1.1",
     "del": "^2.2.2",
     "depcheck": "^0.6.4",
-    "devtron": "^1.3.0",
-    "electron": "^1.4.2",
+    "devtron": "^1.4.0",
+    "electron": "^1.4.3",
     "electron-debug": "^1.0.1",
     "electron-devtools-installer": "^2.0.1",
     "electron-packager": "^8.1.0",
@@ -54,7 +54,7 @@
     "webpack-dev-middleware": "^1.8.3",
     "webpack-hot-middleware": "^2.12.2",
     "webpack-merge": "^0.14.1",
-    "webpack-validator": "^2.2.8"
+    "webpack-validator": "^2.2.9"
   },
   "dependencies": {
     "application-config": "^1.0.1",

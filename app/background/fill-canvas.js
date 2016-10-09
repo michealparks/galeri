@@ -50,7 +50,6 @@ function onGetNewImage (msg) {
 
   opacity = 0
 
-  console.log(x, y, w, h)
   window.requestAnimationFrame(tick)
 }
 

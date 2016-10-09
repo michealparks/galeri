@@ -1,9 +1,13 @@
 const config = require('application-config')('Galeri Images')
 const { getWikiConfig, giveWikiConfig, getWikiImg } = require('./wikipedia')
 const { getRijksConfig, giveRijksConfig, getRijksImg } = require('./rijksmuseum')
-const { getCooperHewittConfig, giveCooperHewittConfig, getCooperHewittImg } = require('./cooperhewitt')
+const { getWaltersMuseumConfig, giveWaltersMuseumConfig, getWaltersMuseumImg } = require('./waltersmuseum')
+const CooperHewitt = require('./cooperhewitt')
+const BrooklynMuseum = require('./brooklynmuseum')
+const MetMuseum = require('./metmuseum')
 
 let srcRotator = 0
+let rareSrcRotator = 0
 let defaultConfig = {
   wikipedia: {
     timestamp: null,
@@ -20,6 +24,18 @@ let defaultConfig = {
     viewedPages: null,
     totalPage: null,
     results: []
+  },
+  waltersMuseum: {
+    page: null,
+    results: []
+  },
+  brooklynMuseum: {
+    page: null,
+    results: []
+  },
+  metMuseum: {
+    page: null,
+    results: []
   }
 }
 
@@ -31,19 +47,28 @@ function saveConfig (callback) {
   config.write({
     wikipedia: getWikiConfig(),
     rijksMuseum: getRijksConfig(),
-    cooperHewitt: getCooperHewittConfig()
+    waltersmuseum: getWaltersMuseumConfig(),
+    cooperHewitt: CooperHewitt.getConfig(),
+    metMuseum: MetMuseum.getConfig()
   }, callback)
 }
 
 // TODO set timeout to update image array
 function getNextImage (callback) {
-  switch (++srcRotator % 3) {
-    case 0:
-      return getWikiImg(callback)
-    case 1:
-      return getCooperHewittImg(callback)
-    case 2:
-      return getRijksImg(callback)
+  return MetMuseum.getItemData(callback)
+
+  // This is where we'll put the images we want to rarely display
+  if (Math.floor(Math.random() * 30) === 5) {
+    switch (rareSrcRotator) {
+      case 0: return CooperHewitt.getItemData(callback)
+    }
+  }
+
+  switch (++srcRotator % 4) {
+    case 0: return getWikiImg(callback)
+    case 1: return getWaltersMuseumImg(callback)
+    case 2: return getRijksImg(callback)
+    case 3: return BrooklynMuseum.getItemData(callback)
   }
 }
 
@@ -54,7 +79,10 @@ function onReadConfig (err, data) {
 
   giveWikiConfig(data.wikipedia)
   giveRijksConfig(data.rijksMuseum)
-  giveCooperHewittConfig(data.cooperHewitt)
+  giveWaltersMuseumConfig(data.waltersMuseum)
+  CooperHewitt.giveConfig(data.cooperHewitt)
+  BrooklynMuseum.giveConfig(data.brooklynMuseum)
+  MetMuseum.giveConfig(data.metMuseum)
 }
 
 config.trash(() => {

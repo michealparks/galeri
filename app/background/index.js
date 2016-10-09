@@ -1,5 +1,5 @@
 const { ipcRenderer } = require('electron')
-const fillCanvas = require('./fill-canvas')
+// const fillCanvas = require('./fill-canvas')
 const fillBG = require('./fill-bg')
 const { getNextImage, saveConfig } = require('../fetch-data')
 const { minutes, seconds } = require('../util/time')

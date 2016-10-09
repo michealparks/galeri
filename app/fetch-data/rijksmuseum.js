@@ -60,8 +60,6 @@ function getNextPageResults (callback) {
       nextPage = viewedPages.pop()
     }
 
-    console.log(viewedPages)
-
     return callback()
   })
 }
@@ -82,16 +80,12 @@ function getRijksImg (callback) {
       })
     }
 
-    console.log('tick')
-
     nextImage = cache.pop()
   } while (nextImage.webImage === null ||
            nextImage.webImage.width < window.innerWidth * (window.devicePixelRatio * 0.75) ||
            nextImage.webImage.height < window.innerHeight * (window.devicePixelRatio * 0.75))
 
   const text = nextImage.longTitle.split(',')
-
-  console.log(nextImage)
 
   return callback(null, {
     img: nextImage.webImage.url,

@@ -16,8 +16,6 @@ process.on('uncaughtException', function (e) {
   console.error(e)
 })
 
-
-
 app.on('ready', function () {
   init()
 
@@ -32,7 +30,7 @@ app.on('ready', function () {
 })
 
 ipcMain.on('browser-reset', reloadBrowser)
-ipcMain.on('browser-render', onBrowserRender)
+ipcMain.on('browser-rendered', onBrowserRender)
 
 if (process.platform !== 'darwin') {
   app.on('window-all-closed', app.quit)
@@ -49,6 +47,7 @@ function reloadBrowser () {
 }
 
 function onBrowserRender () {
+  console.log('onBrowserRender')
   if (backgroundWindow.length === 1) return
 
   setTimeout(function () {

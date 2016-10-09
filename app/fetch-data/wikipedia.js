@@ -98,7 +98,6 @@ function getWikiImg (callback) {
   validateImage(
     nextImage.img.replace(pixelRegex, `${window.innerWidth * window.devicePixelRatio}px`),
     function (err, data) {
-      console.log(window.innerWidth, data.naturalWidth)
       if (err) return callback(err)
 
       callback(null, {

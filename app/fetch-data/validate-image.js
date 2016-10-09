@@ -1,12 +1,22 @@
-const { get } = require('https')
+/**
+ * Some sources don't provide image dimensions from their api, so before fetching
+ * an image with unknown dimensions, we quickly stream the image until we can pick
+ * out dimensions from the metadata, abort the request, and analyze the result
+ */
+
+const https = require('https')
+const http = require('http')
 const { headers } = require('../util/get')
 const { parse } = require('url')
 const sizeOf = require('image-size')
 
-function validateImage (url, callback, dimensions) {
-  const { hostname, path } = parse(url)
+function validateImage (input, callback, dimensions) {
+  let url = typeof input === 'string' ? input : input.url
+  let options = parse(url)
 
-  const req = get({ headers, hostname, path }, res => {
+  options.headers = headers
+
+  const req = (options.protocol === 'http:' ? http : https).get(options, function (res) {
     let buffer = Buffer.from([])
     let imageTypeDetectionError
 
@@ -32,8 +42,9 @@ function validateImage (url, callback, dimensions) {
 
       const { width, height } = dimensions
 
-      if (width < window.innerWidth || height < window.innerHeight) {
-        return callback('Too small!', {})
+      if (width < (input.minWidth || (window.innerWidth * window.devicePixelRatio * 0.75)) ||
+          height < (input.minHeight || (window.innerHeight * window.devicePixelRatio * 0.75))) {
+        return callback('Too small!')
       }
 
       callback(null, {
