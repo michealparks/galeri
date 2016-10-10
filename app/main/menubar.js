@@ -1,7 +1,9 @@
 module.exports = require('menubar')({
-  index: `file://${__dirname}/app/menubar.html`,
-  icon: `${__dirname}/assets/icon_32x32.png`,
+  index: `file://${__dirname}/../../app/menubar.html`,
+  icon: `${__dirname}/../../assets/icon_32x32.png`,
   preloadWindow: true,
+  resizable: false,
+  alwaysOnTop: true,
   showDockIcon: process.env.NODE_ENV === 'development',
   transparent: true,
   show: false,

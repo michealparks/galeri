@@ -21,7 +21,12 @@ let updateTimerId = -1
 let title, text
 
 window.addEventListener('error', function (e) {
-  console.log(e)
+  console.error(`Error propagated to window. This should not happen. Message: ${e}`)
+
+  if (process.env.NODE_ENV === 'production') {
+    // TODO: crash report
+    return ipcRenderer.send('browser-reset')
+  }
 })
 
 window.addEventListener('online', function () {
@@ -66,14 +71,29 @@ function onOnlineStatusChange () {
 
 function onImageFetch (err, data) {
   if (err) {
-    console.error(err)
+    try {
+      const { file, fn, errType, msg } = err
+
+      if (errType === 'fatal' && process.env.NODE_ENV === 'production') {
+        // TODO crash report
+        return ipcRenderer.send('browser-reset')
+      }
+
+      if (process.env.NODE_ENV === 'development') {
+        console[errType](`${file}, ${fn}: ${msg}`)
+      }
+    } catch (e) {
+      if (process.env.NODE_ENV === 'development') {
+        console.error(`ISSUE WITH ERR MSG: ${e}, ${err}`)
+      }
+    }
+
     return onOnlineStatusChange()
   }
 
   title = data.title
   text = data.text
   fillBG(data, onFillCanvas)
-  // fillCanvas(data, onFillCanvas)
 }
 
 function onFillCanvas () {

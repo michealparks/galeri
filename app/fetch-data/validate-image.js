@@ -32,8 +32,13 @@ function validateImage (input, callback, dimensions) {
         }
       }
     })
-    .on('error', function (err) {
-      callback(err, {})
+    .on('error', function (msg) {
+      callback({
+        errType: 'error',
+        file: 'fetch-data/validate-image.js',
+        fn: 'validateImage()',
+        msg
+      })
     })
     .on('end', function () {
       if (!dimensions) {
@@ -44,7 +49,12 @@ function validateImage (input, callback, dimensions) {
 
       if (width < (input.minWidth || (window.innerWidth * window.devicePixelRatio * 0.75)) ||
           height < (input.minHeight || (window.innerHeight * window.devicePixelRatio * 0.75))) {
-        return callback('Too small!')
+        return callback({
+          errType: 'warn',
+          file: 'fetch-data/validate-image.js',
+          fn: 'validateImage()',
+          msg: 'Requested image is too small.'
+        })
       }
 
       callback(null, {
@@ -55,7 +65,14 @@ function validateImage (input, callback, dimensions) {
 
       buffer = null
     })
-  }).on('error', function (err) { callback(err, {}) })
+  }).on('error', function (msg) {
+    callback({
+      errType: 'error',
+      file: 'fetch-data/validate-image.js',
+      fn: 'validateImage()',
+      msg
+    })
+  })
 }
 
 module.exports = validateImage

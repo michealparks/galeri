@@ -1,16 +1,21 @@
-const { ipcRenderer, remote } = require('electron')
-const App = require('./app')
+const { remote, shell } = require('electron')
+const isDarkMode = remote.systemPreferences.isDarkMode()
 
-let state = {
-  pref_showOnDesktop: true,
-  isDarkMode: remote.systemPreferences.isDarkMode()
+require('./tabs')
+require('./toggle-play')
+require('./artwork')
+require('./prefs')
+
+function onLinkClick (e) {
+  e.preventDefault()
+  shell.openExternal(this.href)
 }
 
-function update (newState) {
-  return App(Object.assign(state, newState))
+Array.from(document.querySelectorAll('a[href]'))
+  .forEach(function (el) { el.onclick = onLinkClick })
+
+document.getElementById('version').textContent = require('../../package.json').version
+
+document.getElementById('quit').onclick = function () {
+  remote.app.quit()
 }
-
-ipcRenderer.on('preferences', function (e, config) {
-  update(config)
-})
-

@@ -9,7 +9,7 @@ const BG_CL = [BG[0].classList, BG[1].classList]
 const CL = document.getElementById('bg_1').classList
 
 let i = 0
-let cb, naturalWidth, naturalHeight
+let _next, naturalWidth, naturalHeight
 
 const preload = new window.Image()
 preload.onload = onPreload
@@ -26,17 +26,22 @@ function onPreload () {
 
 function onRender () {
   CL.toggle('bg--active', i === 1)
-  cb()
+  _next()
 }
 
-function onError (e) {
-  cb(e)
+function onError (msg) {
+  _next({
+    errType: 'warn',
+    file: 'background/fill-bg.js',
+    fn: 'fillBG()',
+    msg
+  })
 }
 
-function fillBG (config, callback) {
+function fillBG (config, next) {
   naturalWidth = config.naturalWidth
   naturalHeight = config.naturalHeight
-  cb = callback
+  _next = next
   preload.src = `${config.img}?${Date.now()}`
 }
 

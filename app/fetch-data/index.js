@@ -18,12 +18,21 @@ window.addEventListener('beforeunload', function () {
 function saveConfig (callback) {
   config.write({
     wikipedia: getWikiConfig(),
-    rijksMuseum: RijksMuseum.getConfig(), // getRijksConfig(),
+    rijksMuseum: RijksMuseum.getConfig(),
     waltersmuseum: getWaltersMuseumConfig(),
     cooperHewitt: CooperHewitt.getConfig(),
     metMuseum: MetMuseum.getConfig(),
     brooklynMuseum: BrooklynMuseum.getConfig()
-  }, callback)
+  }, function (err) {
+    return err
+      ? callback({
+        file: 'fetch-data/index.js',
+        fn: 'saveConfig()',
+        errType: 'error',
+        msg: err
+      })
+      : callback()
+  })
 }
 
 // TODO set timeout to update image array
@@ -39,7 +48,7 @@ function getNextImage (callback) {
   switch (++srcRotator % 6) {
     case 0: console.log('wiki'); return getWikiImg(callback)
     case 2: console.log('walters'); return getWaltersMuseumImg(callback)
-    case 3: console.log('rijks'); return RijksMuseum.getNextItem(callback) // getRijksImg(callback)
+    case 3: console.log('rijks'); return RijksMuseum.getNextItem(callback)
     case 4: console.log('brooklyn'); return BrooklynMuseum.getNextItem(callback)
     // we like Met so, so much.
     case 1:
@@ -51,7 +60,7 @@ function onReadConfig (err, data) {
   if (err) console.warn(err)
 
   giveWikiConfig(data.wikipedia || {})
-  RijksMuseum.giveConfig(data.rijksMuseum) // giveRijksConfig(data.rijksMuseum || {})
+  RijksMuseum.giveConfig(data.rijksMuseum)
   giveWaltersMuseumConfig(data.waltersMuseum || {})
   CooperHewitt.giveConfig(data.cooperHewitt)
   BrooklynMuseum.giveConfig(data.brooklynMuseum)

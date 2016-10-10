@@ -4,12 +4,13 @@ if (require('electron-squirrel-startup')) return
 const electron = require('electron')
 const { sendToWindows } = require('./app/main/ipc')
 const initAutoUpdate = require('./app/main/autoupdate')
-const initAutoLaunch = require('./app/main/autolaunch')
 const menubarWindow = require('./app/main/menubar')
 const { app, BrowserWindow, ipcMain } = electron
 const delayedInitTime = 3000
 let backgroundWindow = []
 let i = 0
+
+require('./app/main/autolaunch')
 
 // not sure if this actually does anything :/
 app.commandLine.appendSwitch('disable-http-cache')
@@ -27,8 +28,8 @@ app.on('ready', function () {
 
   // To keep app startup fast, some non-essential code is delayed.
   setTimeout(() => {
+    require('./app/main/app-config')
     initAutoUpdate()
-    initAutoLaunch()
   }, delayedInitTime)
 })
 
@@ -41,7 +42,7 @@ if (process.platform !== 'darwin') {
 
 if (process.env.NODE_ENV === 'development') {
   menubarWindow.on('after-create-window', function () {
-    // menubarWindow.window.openDevTools({ mode: 'detach' })
+    menubarWindow.window.openDevTools({ mode: 'detach' })
   })
 }
 

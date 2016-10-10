@@ -37,6 +37,7 @@
     "babel-plugin-add-module-exports": "^0.2.1",
     "babel-plugin-dev-expression": "^0.2.1",
     "babel-plugin-transform-es2015-modules-commonjs": "^6.16.0",
+    "babel-plugin-transform-strict-mode": "^6.11.3",
     "babili-webpack-plugin": "0.0.5",
     "concurrently": "^3.1.0",
     "cross-env": "^3.1.1",
