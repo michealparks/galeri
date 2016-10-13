@@ -8,10 +8,6 @@ require('./artwork')
 require('./prefs')
 
 Array.from(document.querySelectorAll('a[href]'))
-  .forEach(function (el) { el.onclick = onLinkClick })
-
+  .forEach(el => { el.onclick = onLinkClick })
 document.getElementById('version').textContent = require('../../package.json').version
-
-document.getElementById('quit').onclick = function () {
-  remote.app.quit()
-}
+document.getElementById('quit').onclick = () => remote.app.quit()

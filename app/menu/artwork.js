@@ -3,7 +3,7 @@ const { ipcRenderer } = require('electron')
 const ArtSource = document.getElementById('artwork-source')
 const ArtLink = document.getElementById('artwork-link')
 
-ipcRenderer.on('artwork', function (e, data) {
+ipcRenderer.on('artwork', (e, data) => {
   // ArtBlurb.innerHTML = data.blurb
   ArtSource.textContent = data.source
   ArtLink.href = data.href

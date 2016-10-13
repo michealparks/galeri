@@ -50,7 +50,8 @@ function initDarwinWin32 () {
     ? `https://galeri.io/updates/latest/mac?v=${version}`
     : `https://galeri.io/releases/latest/win`)
   autoUpdater.checkForUpdates()
-  setInterval(autoUpdater.checkForUpdates, updateCheckInterval)
+
+  return setInterval(autoUpdater.checkForUpdates, updateCheckInterval)
 }
 
 module.exports = init

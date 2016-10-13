@@ -1,16 +1,16 @@
 const { ipcMain, BrowserWindow } = require('electron')
 
 function sendToWindows (msg, arg) {
-  BrowserWindow.getAllWindows().forEach(win =>
+  return BrowserWindow.getAllWindows().forEach(win =>
     win.webContents.send(msg, arg))
 }
 
 function sendToBackground (msg, arg) {
-  BrowserWindow.getAllWindows()[0].webContents.send(msg, arg)
+  return BrowserWindow.getAllWindows()[0].webContents.send(msg, arg)
 }
 
 function sendToMenubar (msg, arg) {
-  BrowserWindow.getAllWindows()[1].webContents.send(msg, arg)
+  return BrowserWindow.getAllWindows()[1].webContents.send(msg, arg)
 }
 
 // preferences can only be toggled from menubar, so send to background

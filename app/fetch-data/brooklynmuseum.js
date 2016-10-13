@@ -50,21 +50,17 @@ BrooklynMuseum.prototype
     url: `https://d1lfxha3ugu3d4.cloudfront.net/images/opencollection/objects/size4/${obj.primary_image}`,
     minHeight: window.innerHeight * window.devicePixelRatio * 0.6,
     minWidth: window.innerWidth * window.devicePixelRatio * 0.6
-  }, function (err, data) {
-    if (err) return next(err)
-
-    next(null, {
-      source: 'Brooklyn Museum',
-      href: `https://www.brooklynmuseum.org/opencollection/objects/${obj.id}`,
-      title: obj.title,
-      text: obj.artists.reduce(function (str, artist, i) {
-        return str + (i === 0 ? artist.name : `, ${artist.name}`)
-      }, '') + `, ${obj.object_date}.`,
-      img: data.url,
-      naturalHeight: data.naturalHeight,
-      naturalWidth: data.naturalWidth
-    })
-  })
+  }, (err, data) => err ? next(err) : next(null, {
+    source: 'Brooklyn Museum',
+    href: `https://www.brooklynmuseum.org/opencollection/objects/${obj.id}`,
+    title: obj.title,
+    text: obj.artists.reduce(function (str, artist, i) {
+      return str + (i === 0 ? artist.name : `, ${artist.name}`)
+    }, '') + `, ${obj.object_date}.`,
+    img: data.url,
+    naturalHeight: data.naturalHeight,
+    naturalWidth: data.naturalWidth
+  }))
 }
 
 module.exports = new BrooklynMuseum()

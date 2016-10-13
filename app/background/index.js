@@ -37,7 +37,8 @@ window.addEventListener('offline', () =>
 ipcRenderer.on('pause', () => {
   console.log('pause')
   isPaused = true
-  clearTimeout(updateTimerId)
+
+  return clearTimeout(updateTimerId)
 })
 
 ipcRenderer.on('play', () => {
@@ -68,8 +69,9 @@ ipcRenderer.on('preferences', (e, data) => {
     clearTimeout(updateTimerId)
     refreshRate = data.refreshRate
 
-    if (isPaused) return
-    setTimeout(onOnlineStatusChange, getRemainingTime())
+    return isPaused
+      ? null
+      : setTimeout(onOnlineStatusChange, getRemainingTime())
   }
 })
 
@@ -94,14 +96,14 @@ function isOnline (next) {
 }
 
 function pollOnlineStatus (next) {
-  isOnline(online => online
+  return isOnline(online => online
     ? next()
     : setTimeout(() => pollOnlineStatus(next), seconds(1))
   )
 }
 
 function onOnlineStatusChange (forceReset) {
-  isOnline(online => {
+  return isOnline(online => {
     if (online) {
       clearTimeout(updateTimerId)
       updateTimerId = -1
@@ -140,7 +142,7 @@ function onImageFetch (err, data) {
     href: data.href
   })
 
-  fillBG(data, onImageRender)
+  return fillBG(data, onImageRender)
 }
 
 function onImageRender (data) {

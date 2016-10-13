@@ -21,16 +21,16 @@ function onPreload () {
   BGstyle[i].backgroundImage = `url("${preload.src}?${Date.now()}")`
 
   // Give a ms per pixel for rendering time
-  setTimeout(onRender, _naturalWidth > _naturalHeight ? _naturalWidth : _naturalHeight)
+  return setTimeout(onRender, _naturalWidth > _naturalHeight ? _naturalWidth : _naturalHeight)
 }
 
 function onRender () {
   CL.toggle('bg--active', i === 1)
-  _next(_data)
+  return _next(_data)
 }
 
 function onError (msg) {
-  _next({
+  return _next({
     errType: 'warn',
     file: 'background/fill-bg.js',
     fn: 'fillBG()',

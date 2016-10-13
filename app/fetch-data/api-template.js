@@ -46,7 +46,7 @@ ApiTemplate.prototype
     this.totalPages = config.totalPages
   }
 
-  if (this.queue) this.getNextItem(this.queue)
+  if (this.queue) return this.getNextItem(this.queue)
 }
 
 ApiTemplate.prototype

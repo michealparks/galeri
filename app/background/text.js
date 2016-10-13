@@ -6,18 +6,18 @@ const textEl = descriptionEl.children[1]
 let title, text
 
 function onTextHide () {
-  descriptionCL.add('description--bottom')
+  return descriptionCL.add('description--bottom')
 }
 
 function onTextReplace () {
   titleEl.textContent = title
   textEl.textContent = text
   descriptionCL.add('no-transition', 'description--left')
-  descriptionCL.remove('description--bottom')
+  return descriptionCL.remove('description--bottom')
 }
 
 function onTextShow () {
-  descriptionCL.remove('no-transition', 'description--left')
+  return descriptionCL.remove('no-transition', 'description--left')
 }
 
 function startTextLifecycle (data) {
@@ -32,7 +32,7 @@ function startTextLifecycle (data) {
 }
 
 function toggleTextVisibility (isVisible) {
-  descriptionCL.toggle('description--invisible', !isVisible)
+  return descriptionCL.toggle('description--invisible', !isVisible)
 }
 
 module.exports = {

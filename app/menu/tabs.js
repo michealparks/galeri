@@ -10,5 +10,5 @@ PrefsTabBtn.onclick = toggleTabs.bind(null, 1)
 
 function toggleTabs (activeIndex) {
   CL[activeIndex].remove('tab--hidden')
-  CL[activeIndex ^ 1].add('tab--hidden')
+  return CL[activeIndex ^ 1].add('tab--hidden')
 }

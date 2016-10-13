@@ -13,12 +13,12 @@ const appLauncher = new AutoLaunch({
 
 let isEnabled
 
-appLauncher.isEnabled().then(function (data) {
+appLauncher.isEnabled().then(data => {
   console.log(data)
   isEnabled = data
 })
 
-ipcMain.on('preferences', function (e, data) {
+ipcMain.on('preferences', (e, data) => {
   if (data.enabled && !isEnabled) appLauncher.enable()
   if (!data.enabled && isEnabled) appLauncher.disable()
 

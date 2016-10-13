@@ -9,67 +9,73 @@ const http = require('http')
 const { parse } = require('url')
 const sizeOf = require('image-size')
 
-function validateImg (input, callback, dimensions) {
-  let url = typeof input === 'string' ? input : input.url
-  let options = parse(url)
+let req, url, next, buffer, dimensions, err, input
 
-  const req = (options.protocol === 'http:' ? http : https).get(options, function (res) {
-    let buffer = Buffer.from([])
-    let imageTypeDetectionError
+function onError (msg) {
+  return next({
+    errType: 'warn',
+    file: 'util/validate-image.js',
+    fn: 'validateImg()',
+    msg
+  })
+}
 
-    res.on('data', function (chunk) {
-      buffer = Buffer.concat([buffer, chunk])
+function onData (chunk) {
+  buffer = Buffer.concat([buffer, chunk])
 
-      if (!dimensions) {
-        try {
-          dimensions = sizeOf(buffer)
-          req.abort()
-        } catch (e) {
-          imageTypeDetectionError = e
-        }
-      }
-    })
-    .on('error', function (msg) {
-      callback({
-        errType: 'error',
-        file: 'util/validate-image.js',
-        fn: 'validateImg()',
-        msg
-      })
-    })
-    .on('end', function () {
-      if (!dimensions) {
-        return callback(imageTypeDetectionError)
-      }
+  if (!dimensions) {
+    try {
+      dimensions = sizeOf(buffer)
+      return req.abort()
+    } catch (e) { err = e }
+  }
+}
 
-      const { width, height } = dimensions
+function onEnd () {
+  if (!dimensions) return next(err)
 
-      if (width < (input.minWidth || (window.innerWidth * window.devicePixelRatio * 0.75)) ||
-          height < (input.minHeight || (window.innerHeight * window.devicePixelRatio * 0.75))) {
-        return callback({
-          errType: 'warn',
-          file: 'util/validate-image.js',
-          fn: 'validateImg()',
-          msg: 'Requested image is too small.'
-        })
-      }
+  const { width, height } = dimensions
 
-      callback(null, {
-        url,
-        naturalWidth: width,
-        naturalHeight: height
-      })
-
-      buffer = null
-    })
-  }).on('error', function (msg) {
-    callback({
-      errType: 'error',
+  if (width < (input.minWidth || (window.innerWidth * window.devicePixelRatio * 0.75)) ||
+      height < (input.minHeight || (window.innerHeight * window.devicePixelRatio * 0.75))) {
+    return next({
+      errType: 'warn',
       file: 'util/validate-image.js',
       fn: 'validateImg()',
-      msg
+      msg: 'Requested image is too small.'
     })
+  }
+
+  buffer = null
+
+  return next(null, {
+    url,
+    naturalWidth: width,
+    naturalHeight: height
   })
+}
+
+function onResponse (res) {
+  buffer = Buffer.from([])
+  dimensions = null
+
+  return res
+    .on('data', onData)
+    .on('error', onError)
+    .on('end', onEnd)
+}
+
+function validateImg (_input, _next) {
+  err = null
+  input = _input
+  next = _next
+  url = typeof input === 'string' ? input : input.url
+
+  let options = parse(url)
+
+  req = (options.protocol === 'http:' ? http : https)
+    .get(options, onResponse)
+    .on('error', onError)
 }
 
 module.exports = validateImg

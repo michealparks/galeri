@@ -51,19 +51,15 @@ MetMuseum.prototype
     url: obj.image.replace('web-thumb', 'original'),
     minHeight: window.innerHeight * window.devicePixelRatio * 0.1, // 0.73,
     minWidth: window.innerWidth * window.devicePixelRatio * 0.1 // 0.73
-  }, function (err, data) {
-    if (err) return next(err)
-
-    next(null, {
-      source: 'The Metropolitan Museum of Art',
-      href: `https://metmuseum.org${obj.url}`,
-      title: obj.title,
-      text: obj.subTitle,
-      img: data.url,
-      naturalHeight: data.naturalHeight,
-      naturalWidth: data.naturalWidth
-    })
-  })
+  }, (err, data) => err ? next(err) : next(null, {
+    source: 'The Metropolitan Museum of Art',
+    href: `https://metmuseum.org${obj.url}`,
+    title: obj.title,
+    text: obj.subTitle,
+    img: data.url,
+    naturalHeight: data.naturalHeight,
+    naturalWidth: data.naturalWidth
+  }))
 }
 
 module.exports = new MetMuseum()

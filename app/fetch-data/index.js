@@ -11,7 +11,7 @@ let rareSrcRotator = 0
 
 window.addEventListener('beforeunload', () => saveConfig())
 
-function saveConfig (callback) {
+function saveConfig (next) {
   config.write({
     wikipedia: Wikipedia.getConfig(),
     rijksMuseum: RijksMuseum.getConfig(),
@@ -19,38 +19,34 @@ function saveConfig (callback) {
     cooperHewitt: CooperHewitt.getConfig(),
     metMuseum: MetMuseum.getConfig(),
     brooklynMuseum: BrooklynMuseum.getConfig()
-  }, function (err) {
-    return err
-      ? callback({
-        file: 'fetch-data/index.js',
-        fn: 'saveConfig()',
-        errType: 'error',
-        msg: err
-      })
-      : callback()
-  })
+  }, err => !err ? next() : next({
+    file: 'fetch-data/index.js',
+    fn: 'saveConfig()',
+    errType: 'error',
+    msg: err
+  }))
 }
 
 // TODO set timeout to update image array
-function getNextImage (callback) {
+function getNextImage (next) {
   // This is where we'll put the images we want to rarely display,
   // like weird stuff.
   if (Math.floor(Math.random() * 75) === 5) {
     switch (++rareSrcRotator % 2) {
-      case 0: console.log('cooper'); return CooperHewitt.getNextItem(callback)
-      case 1: console.log('walters'); return WaltersMuseum.getNextItem(callback)
+      case 0: console.log('cooper'); return CooperHewitt.getNextItem(next)
+      case 1: console.log('walters'); return WaltersMuseum.getNextItem(next)
     }
   }
 
   switch (++srcRotator % 6) {
-    case 0: console.log('wiki'); return Wikipedia.getNextItem(callback)
-    case 2: console.log('walters'); return WaltersMuseum.getNextItem(callback)
-    case 3: console.log('rijks'); return RijksMuseum.getNextItem(callback)
-    case 4: console.log('brooklyn'); return BrooklynMuseum.getNextItem(callback)
+    case 0: console.log('wiki'); return Wikipedia.getNextItem(next)
+    case 2: console.log('walters'); return WaltersMuseum.getNextItem(next)
+    case 3: console.log('rijks'); return RijksMuseum.getNextItem(next)
+    case 4: console.log('brooklyn'); return BrooklynMuseum.getNextItem(next)
     // we like Met so, so much.
     // so we give it TWO slots.
     case 1:
-    case 5: console.log('met'); return MetMuseum.getNextItem(callback)
+    case 5: console.log('met'); return MetMuseum.getNextItem(next)
   }
 }
 
@@ -65,9 +61,9 @@ function onReadConfig (err, data) {
   MetMuseum.giveConfig(data.metMuseum)
 }
 
-config.trash(() => {
+config.trash(() =>
   config.read(onReadConfig)
-})
+)
 
 module.exports = {
   saveConfig,

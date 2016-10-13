@@ -35,27 +35,22 @@ WaltersMuseum.prototype
 .handleItemTransform = function (next) {
   let obj
 
-  do {
-    obj = this.cache.pop()
-  } while (!obj.PrimaryImage || !obj.PrimaryImage.Raw)
+  do { obj = this.cache.pop() }
+  while (!obj.PrimaryImage || !obj.PrimaryImage.Raw)
 
   validateImg({
     url: obj.PrimaryImage.Raw,
     minHeight: window.innerHeight * window.devicePixelRatio * 0.55,
     minWidth: window.innerWidth * window.devicePixelRatio * 0.55
-  }, (err, data) => {
-    if (err) return next(err)
-
-    next(null, {
-      source: 'The Walters Art Museum',
-      href: obj.ResourceURL,
-      title: obj.Title,
-      text: obj.Creator,
-      img: `${data.url}?quality=100&format=jpg`,
-      naturalHeight: data.naturalHeight,
-      naturalWidth: data.naturalWidth
-    })
-  })
+  }, (err, data) => err ? next(err) : next(null, {
+    source: 'The Walters Art Museum',
+    href: obj.ResourceURL,
+    title: obj.Title,
+    text: obj.Creator,
+    img: `${data.url}?quality=100&format=jpg`,
+    naturalHeight: data.naturalHeight,
+    naturalWidth: data.naturalWidth
+  }))
 }
 
 module.exports = new WaltersMuseum()

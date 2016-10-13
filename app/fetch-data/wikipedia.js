@@ -61,6 +61,7 @@ Wikipedia.prototype
   return validateImg(
     this.nextImage.img.replace(this.pixelRegex, `${window.innerWidth * window.devicePixelRatio * 0.8}px`),
     (err, data) => {
+      console.log(err)
       if (err) return next(err)
 
       next(null, {
