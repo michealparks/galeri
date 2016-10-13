@@ -41,15 +41,14 @@ if (process.platform !== 'darwin') {
 }
 
 if (process.env.NODE_ENV === 'development') {
-  menubarWindow.on('after-create-window', function () {
-    menubarWindow.window.openDevTools({ mode: 'detach' })
-  })
+  menubarWindow.on('after-create-window', () =>
+    menubarWindow.window.openDevTools({ mode: 'detach' }))
 }
 
 function onBrowserRender () {
   if (backgroundWindow.length === 1) return
 
-  setTimeout(function () {
+  setTimeout(() => {
     backgroundWindow[0].destroy()
     backgroundWindow[0] = null
     backgroundWindow.shift()
@@ -79,7 +78,7 @@ function init () {
   })
 
   win.once('ready-to-show', win.showInactive)
-  win.on('closed', function () { win = null })
+  win.on('closed', () => { win = null })
   win.loadURL(`file://${__dirname}/app/background.html`)
 
   if (process.env.NODE_ENV === 'development') {

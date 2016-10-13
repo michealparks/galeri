@@ -1,5 +1,5 @@
 const ApiTemplate = require('./api-template')
-const { knuthShuffle } = require('knuth-shuffle')
+const shuffle = require('../util/shuffle')
 
 function RijksMuseum () {
   const perPage = 100
@@ -19,8 +19,11 @@ function RijksMuseum () {
 RijksMuseum.prototype = Object.create(ApiTemplate.prototype)
 RijksMuseum.prototype.constructor = ApiTemplate
 
-RijksMuseum.prototype.onCollectionResponse = function () {
-  this.cache = knuthShuffle(this.req.response.artObjects)
+RijksMuseum.prototype
+.onCollectionResponse = function () {
+  this.cache = this.req.response.artObjects
+
+  shuffle(this.cache)
 
   if (!this.viewedPages || !this.viewedPages.length) {
     this.totalPages = Math.ceil(this.req.response.count / this.perPage)
@@ -30,7 +33,7 @@ RijksMuseum.prototype.onCollectionResponse = function () {
       if (i !== this.nextPage) this.viewedPages.push(i)
     }
 
-    knuthShuffle(this.viewedPages)
+    shuffle(this.viewedPages)
   }
 
   this.nextPage = this.viewedPages.pop()
@@ -39,7 +42,8 @@ RijksMuseum.prototype.onCollectionResponse = function () {
   return this.next()
 }
 
-RijksMuseum.prototype.handleItemTransform = function (next) {
+RijksMuseum.prototype
+.handleItemTransform = function (next) {
   let obj
 
   do {
@@ -52,6 +56,8 @@ RijksMuseum.prototype.handleItemTransform = function (next) {
   const text = obj.longTitle.split(',')
 
   return next(null, {
+    source: 'Rijksmuseum',
+    href: (obj.links || {}).web,
     img: obj.webImage.url,
     naturalWidth: obj.webImage.width,
     naturalHeight: obj.webImage.height,

@@ -30,6 +30,9 @@
   "bin": {
     "electron": "./node_modules/.bin/electron"
   },
+  "engines": {
+    "node": ">=6.0.0"
+  },
   "devDependencies": {
     "asar": "^0.12.3",
     "babel-core": "^6.17.0",
@@ -40,7 +43,7 @@
     "babel-plugin-transform-strict-mode": "^6.11.3",
     "babili-webpack-plugin": "0.0.5",
     "concurrently": "^3.1.0",
-    "cross-env": "^3.1.1",
+    "cross-env": "^3.1.2",
     "del": "^2.2.2",
     "depcheck": "^0.6.4",
     "devtron": "^1.4.0",
@@ -52,19 +55,19 @@
     "json-loader": "^0.5.4",
     "minimist": "^1.2.0",
     "webpack": "^1.13.2",
-    "webpack-dev-middleware": "^1.8.3",
-    "webpack-hot-middleware": "^2.12.2",
+    "webpack-dev-middleware": "^1.8.4",
+    "webpack-hot-middleware": "^2.13.0",
     "webpack-merge": "^0.14.1",
     "webpack-validator": "^2.2.9"
   },
   "dependencies": {
-    "application-config": "^1.0.1",
-    "auto-launch": "^5.0.1",
-    "cheerio": "^0.22.0",
-    "electron-squirrel-startup": "^1.0.0",
-    "image-size": "^0.5.0",
-    "knuth-shuffle": "^1.0.1",
-    "menubar": "^5.1.0"
+    "application-config": "1.0.1",
+    "auto-launch": "5.0.1",
+    "buffer": "^5.0.0",
+    "electron-squirrel-startup": "1.0.0",
+    "image-size": "0.5.0",
+    "menubar": "5.1.0",
+    "vanilla-js-dom": "^5.2.28"
   },
   "build": {
     "appId": "caboodle.by.micheal.parks",

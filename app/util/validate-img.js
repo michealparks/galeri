@@ -6,15 +6,12 @@
 
 const https = require('https')
 const http = require('http')
-const { headers } = require('../util/get')
 const { parse } = require('url')
 const sizeOf = require('image-size')
 
-function validateImage (input, callback, dimensions) {
+function validateImg (input, callback, dimensions) {
   let url = typeof input === 'string' ? input : input.url
   let options = parse(url)
-
-  options.headers = headers
 
   const req = (options.protocol === 'http:' ? http : https).get(options, function (res) {
     let buffer = Buffer.from([])
@@ -35,8 +32,8 @@ function validateImage (input, callback, dimensions) {
     .on('error', function (msg) {
       callback({
         errType: 'error',
-        file: 'fetch-data/validate-image.js',
-        fn: 'validateImage()',
+        file: 'util/validate-image.js',
+        fn: 'validateImg()',
         msg
       })
     })
@@ -51,8 +48,8 @@ function validateImage (input, callback, dimensions) {
           height < (input.minHeight || (window.innerHeight * window.devicePixelRatio * 0.75))) {
         return callback({
           errType: 'warn',
-          file: 'fetch-data/validate-image.js',
-          fn: 'validateImage()',
+          file: 'util/validate-image.js',
+          fn: 'validateImg()',
           msg: 'Requested image is too small.'
         })
       }
@@ -68,11 +65,11 @@ function validateImage (input, callback, dimensions) {
   }).on('error', function (msg) {
     callback({
       errType: 'error',
-      file: 'fetch-data/validate-image.js',
-      fn: 'validateImage()',
+      file: 'util/validate-image.js',
+      fn: 'validateImg()',
       msg
     })
   })
 }
 
-module.exports = validateImage
+module.exports = validateImg

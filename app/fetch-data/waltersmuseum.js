@@ -1,83 +1,56 @@
-/* global XMLHttpRequest */
-const { knuthShuffle } = require('knuth-shuffle')
-const validateImage = require('./validate-image')
-const perPage = 100
-const endpoint = 'http://api.thewalters.org/v1/objects?apikey=ar9kcanGaRe3Wk4b5wyNdcqZJgYS7VQoQihXukTZPGwtHrxG78hfCZJx1aQv1K95'
-const classification = 'Painting%20&%20Drawing'
+const ApiTemplate = require('./api-template')
+const validateImg = require('../util/validate-img')
+const shuffle = require('../util/shuffle')
 
-let hasInit = false
-let cache = []
-let queue, nextPage
+function WaltersMuseum () {
+  const perPage = 100
 
-function getWaltersMuseumConfig () {
-  return {
-    page: nextPage,
-    results: cache
-  }
-}
-
-function giveWaltersMuseumConfig (config) {
-  hasInit = true
-  nextPage = config.page || 1
-  cache = config.results || cache
-
-  if (queue) getWaltersMuseumImg(queue)
-}
-
-let req
-
-function getWaltersMuseumMuseumData (callback) {
-  req = new XMLHttpRequest()
-  req.open('GET', `${endpoint}&Classification=${classification}&page=${nextPage}&pageSize=${perPage}`, true)
-  req.responseType = 'json'
-  req.addEventListener('load', function () {
-    onWaltersMuseumResponse(null, callback)
+  ApiTemplate.call(this, {
+    perPage,
+    endpoint: 'http://api.thewalters.org/v1/objects',
+    endpointParams: '?apikey=ar9kcanGaRe3Wk4b5wyNdcqZJgYS7VQoQihXukTZPGwtHrxG78hfCZJx1aQv1K95',
+    nextPage: 1,
+    pageParam: '&page=1'
   })
-  req.addEventListener('error', callback)
-  req.send()
+
+  this.onCollectionResponse = this.onCollectionResponse.bind(this)
 }
 
-function onWaltersMuseumResponse (err, callback) {
-  if (err) return callback(err)
+WaltersMuseum.prototype = Object.assign(ApiTemplate.prototype)
+WaltersMuseum.prototype.constructor = ApiTemplate
 
-  if (req.response.NextPage) ++nextPage
-  else nextPage = 0
+WaltersMuseum.prototype
+.onCollectionResponse = function () {
+  this.cache = this.req.response.Items
 
-  cache = knuthShuffle(req.response.Items)
+  shuffle(this.cache)
 
-  return callback()
+  if (this.req.response.NextPage) ++this.nextPage
+  else this.nextPage = 0
+
+  return this.next()
 }
 
-function getWaltersMuseumImg (callback) {
-  if (!hasInit) {
-    queue = callback
-    return
-  }
-
-  if (!cache.length) {
-    return getWaltersMuseumMuseumData(function (err) {
-      if (err) return callback(err)
-
-      return getWaltersMuseumImg(callback)
-    })
-  }
-
-  let nextImage
+WaltersMuseum.prototype
+.handleItemTransform = function (next) {
+  let obj
 
   do {
-    nextImage = cache.pop()
-  } while (!nextImage.PrimaryImage || !nextImage.PrimaryImage.Raw)
+    obj = this.cache.pop()
+  } while (!obj.PrimaryImage || !obj.PrimaryImage.Raw)
 
-  validateImage({
-    url: nextImage.PrimaryImage.Raw,
-    minHeight: window.innerHeight * window.devicePixelRatio * 0.7,
-    minWidth: window.innerWidth * window.devicePixelRatio * 0.7
-  }, function (err, data) {
-    if (err) return callback(err)
+  validateImg({
+    url: obj.PrimaryImage.Raw,
+    minHeight: window.innerHeight * window.devicePixelRatio * 0.55,
+    minWidth: window.innerWidth * window.devicePixelRatio * 0.55
+  }, (err, data) => {
+    if (err) return next(err)
 
-    callback(null, {
-      title: nextImage.Title,
-      text: nextImage.Creator,
+    next(null, {
+      source: 'The Walters Art Museum',
+      href: obj.ResourceURL,
+      title: obj.Title,
+      text: obj.Creator,
       img: `${data.url}?quality=100&format=jpg`,
       naturalHeight: data.naturalHeight,
       naturalWidth: data.naturalWidth
@@ -85,8 +58,4 @@ function getWaltersMuseumImg (callback) {
   })
 }
 
-module.exports = {
-  getWaltersMuseumConfig,
-  giveWaltersMuseumConfig,
-  getWaltersMuseumImg
-}
+module.exports = new WaltersMuseum()

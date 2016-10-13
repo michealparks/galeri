@@ -18,12 +18,15 @@ function ApiTemplate (config = {}) {
   this.perPage = config.perPage || 20
   this.nextPage = config.nextPage || 1
   this.headers = config.headers || []
-  this.endpoint = config.endpoint
+  this.endpoint = config.endpoint || this.endpoint || ''
   this.endpointParams = config.endpointParams || ''
   this.pageParam = config.pageParam || ''
+
+  this.onError = this.onError.bind(this)
 }
 
-ApiTemplate.prototype.getConfig = function getConfig () {
+ApiTemplate.prototype
+.getConfig = function getConfig () {
   return {
     page: this.nextPage,
     results: this.cache,
@@ -32,7 +35,8 @@ ApiTemplate.prototype.getConfig = function getConfig () {
   }
 }
 
-ApiTemplate.prototype.giveConfig = function giveConfig (config) {
+ApiTemplate.prototype
+.giveConfig = function giveConfig (config) {
   this.didInit = true
 
   if (config) {
@@ -45,18 +49,35 @@ ApiTemplate.prototype.giveConfig = function giveConfig (config) {
   if (this.queue) this.getNextItem(this.queue)
 }
 
-ApiTemplate.prototype.getCollectionData = function getCollectionData (next) {
+ApiTemplate.prototype
+.getCollectionData = function getCollectionData (next) {
   this.next = next
   this.req = new XMLHttpRequest()
   this.req.open('GET', `${this.endpoint}${this.endpointParams}${this.pageParam}`, true)
   this.req.responseType = 'json'
-  this.headers.forEach(h => this.req.setRequestHeader(h.key, h.val))
-  this.req.addEventListener('load', this.onCollectionResponse)
-  this.req.addEventListener('error', next)
+
+  for (let i = 0, h, l = this.headers.length; i < l; ++i) {
+    h = this.headers[i]
+    this.req.setRequestHeader(h.key, h.val)
+  }
+
+  this.req.onload = this.onCollectionResponse
+  this.req.onerror = this.onError
   return this.req.send()
 }
 
-ApiTemplate.prototype.getNextItem = function getNextItem (next) {
+ApiTemplate.prototype
+.onError = function onError (e) {
+  this.next({
+    errType: 'warn',
+    file: 'fetch-data/api-template.js',
+    fn: 'getCollectionData()',
+    msg: e
+  })
+}
+
+ApiTemplate.prototype
+.getNextItem = function getNextItem (next) {
   if (!this.didInit) {
     this.queue = next
     return
@@ -66,7 +87,7 @@ ApiTemplate.prototype.getNextItem = function getNextItem (next) {
     return this.getCollectionData(err => {
       if (err) return next(err)
 
-      return this.getNextItem(next)
+      return this.handleItemTransform(next)
     })
   }
 

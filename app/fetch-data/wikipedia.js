@@ -1,108 +1,73 @@
-const { load } = require('cheerio')
-const { knuthShuffle } = require('knuth-shuffle')
-const validateImage = require('./validate-image')
-const get = require('../util/get')
-const { days } = require('../util/time')
-const wikiUrl = 'https://en.wikipedia.org/wiki/Wikipedia:Featured_pictures/Artwork'
+/* global XMLHttpRequest */
+const ApiTemplate = require('./api-template')
+const validateImg = require('../util/validate-img')
+const shuffle = require('../util/shuffle')
 
-let hasInit = false
-let cache = []
-let queue
-
-function getWikiConfig () {
-  return {
-    cache,
-    timestamp: Date.now()
-  }
-}
-
-function giveWikiConfig (config) {
-  hasInit = true
-
-  if (config.timestamp && (Date.now() - (config.timestamp || days(3)) < days(2))) {
-    cache = config.results
-
-    if (queue) return getWikiImg(queue)
-  }
-
-  // if image array is older than 48 hours fetch new image data and store
-  getFeaturedPaintingData(function (err, results) {
-    if (err) return queue ? queue(err) : null
-
-    results = results.filter(image => !image.href.includes('undefined'))
-
-    cache = knuthShuffle(results)
-
-    if (queue) getWikiImg(queue)
+function Wikipedia (type) {
+  ApiTemplate.call(this, {
+    endpointParams: `?action=parse&prop=text&page=Wikipedia:Featured%20pictures/Artwork/${type}&format=json&origin=*`
   })
+
+  this.onCollectionResponse = this.onCollectionResponse.bind(this)
+  this.onDescriptionLoad = this.onDescriptionLoad.bind(this)
 }
 
-function getFeaturedPaintingData (callback) {
-  let hasErrorFired = false
-  let count = 0
-  let response = []
+Wikipedia.prototype = Object.create(ApiTemplate.prototype)
+Wikipedia.prototype.constructor = ApiTemplate
 
-  function onResponse (err, res) {
-    if (err && !hasErrorFired) {
-      hasErrorFired = true
-      return callback(err)
-    } else if (err && hasErrorFired) return
+Wikipedia.prototype.template = document.createElement('template')
+Wikipedia.prototype.endpoint = 'https://en.wikipedia.org/w/api.php'
+Wikipedia.prototype.pixelRegex = /[0-9]{3,4}px/
+Wikipedia.prototype.parenRegex = / *\([^)]*\) */g
 
-    if (!res) return callback('No Wikipedia Content')
-
-    const $ = load(res)
-    const $gallerytext = $('.gallerytext')
-
-    response = response.concat(Array.from($('.gallery img').map((i, tag) => {
-      const a = $($gallerytext[i]).find('a')
-
-      return {
-        title: a[0].attribs.title,
-        text: a[1] ? a[1].attribs.title : '',
-        href: `https://wikipedia.org${a[0].attribs.href}`,
-        img: `https:${tag.attribs.src}`
-      }
-    })))
-
-    if (++count === 2) return callback(null, response)
-  }
-
-  get(`${wikiUrl}/Paintings?${Date.now()}`, onResponse)
-  get(`${wikiUrl}/East_Asian_art${Date.now()}`, onResponse)
-}
-
-function getDescription (url, callback) {
-  return get(`${url}?${Date.now()}`, res => {
-    if (!res) return callback('No Wikipedia Content')
-
-    return callback(null, load(res)('#mw-content-text').find('p').html())
-  })
-}
-
-const pixelRegex = /[0-9]{3,4}px/
-const parenRegex = / *\([^)]*\) */g
-function getWikiImg (callback) {
-  if (!hasInit) {
-    queue = callback
-    return
-  }
-
-  if (!cache.length) {
-    return getFeaturedPaintingData(function () {
-      getWikiImg(callback)
+Wikipedia.prototype
+.onCollectionResponse = function () {
+  if (!this.req.response) {
+    return this.next({
+      errType: 'error',
+      file: 'fetch-data/wikipedia.js',
+      fn: 'onCollectionResponse()',
+      msg: 'No Wikipedia Content.'
     })
   }
 
-  const nextImage = cache.pop()
+  this.template.innerHTML = this.req.response.parse.text['*']
 
-  validateImage(
-    nextImage.img.replace(pixelRegex, `${window.innerWidth * window.devicePixelRatio}px`),
-    function (err, data) {
-      if (err) return callback(err)
+  const gallerytext = this.template.content.querySelectorAll('.gallerytext')
 
-      callback(null, {
-        title: nextImage.title.replace(parenRegex, ''),
-        text: nextImage.text.replace(parenRegex, ''),
+  this.cache = [].slice
+    .call(this.template.content.querySelectorAll('.gallery img'))
+    .map((tag, i) => {
+      const a = gallerytext[i].querySelectorAll('a')
+
+      return {
+        title: a[0].getAttribute('title'),
+        text: a[1] ? a[1].getAttribute('title') : '',
+        href: `https://wikipedia.org${a[0].getAttribute('href')}`,
+        img: `https:${tag.getAttribute('src')}`
+      }
+    })
+
+  shuffle(this.cache)
+
+  return this.next()
+}
+
+Wikipedia.prototype
+.handleItemTransform = function (next) {
+  this.nextImage = this.cache.pop()
+  // this.getDescription(this.nextImage.href.replace('https://wikipedia.org/wiki/', ''))
+
+  return validateImg(
+    this.nextImage.img.replace(this.pixelRegex, `${window.innerWidth * window.devicePixelRatio * 0.8}px`),
+    (err, data) => {
+      if (err) return next(err)
+
+      next(null, {
+        source: 'Wikipedia',
+        href: this.nextImage.href,
+        title: this.nextImage.title.replace(this.parenRegex, ''),
+        text: this.nextImage.text.replace(this.parenRegex, ''),
         img: data.url,
         naturalHeight: data.naturalHeight,
         naturalWidth: data.naturalWidth
@@ -110,8 +75,24 @@ function getWikiImg (callback) {
     })
 }
 
-module.exports = {
-  getWikiConfig,
-  giveWikiConfig,
-  getWikiImg
+Wikipedia.prototype
+.getDescription = function (title) {
+  this.desReq = new XMLHttpRequest()
+  this.desReq.open('GET', `${this.endpoint}?action=parse&prop=text&page=${title}&format=json&origin=*`, true)
+  this.desReq.responseType = 'json'
+  this.desReq.onload = this.onDescriptionLoad
+  this.desReq.send()
 }
+
+Wikipedia.prototype
+.onDescriptionLoad = function () {
+  this.template.innerHTML = this.desReq.response.parse.text['*']
+
+  this.description = this.template.content
+    .querySelector('p').innerHTML
+
+  const text = this.template.content.querySelector('p').innerHTML.split('. ')
+}
+
+module.exports = new Wikipedia('Paintings')
+

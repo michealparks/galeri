@@ -1,26 +1,23 @@
+require('buffer/')
+
 const { ipcRenderer } = require('electron')
-// const fillCanvas = require('./fill-canvas')
 const fillBG = require('./fill-bg')
+const { startTextLifecycle, toggleTextVisibility } = require('./text')
 const { getNextImage, saveConfig } = require('../fetch-data')
-const { minutes, seconds } = require('../util/time')
+const { seconds, minutes } = require('../util/time')
 const updateImage = getNextImage.bind(null, onImageFetch)
 
-const descriptionEl = document.getElementById('description')
-const descriptionCL = descriptionEl.classList
-const titleEl = descriptionEl.children[0]
-const textEl = descriptionEl.children[1]
-
-let refreshRate = seconds(10)
+let refreshRate = minutes(30)
+let showTextOnDesktop = false
 let imagesUntilRestart = 20
-
+let isPaused = false
 let imageCount = 0
-let lastUpdateTime = 0
+let lastUpdateTime = Date.now()
 let startSuspendTime = 0
 let totalSuspendTime = 0
 let updateTimerId = -1
-let title, text
 
-window.addEventListener('error', function (e) {
+window.addEventListener('error', e => {
   console.error(`Error propagated to window. This should not happen. Message: ${e}`)
 
   if (process.env.NODE_ENV === 'production') {
@@ -29,27 +26,54 @@ window.addEventListener('error', function (e) {
   }
 })
 
-window.addEventListener('online', function () {
-  const t = refreshRate - (Date.now() - lastUpdateTime) + totalSuspendTime
-  updateTimerId = setTimeout(onOnlineStatusChange, t > 0 ? t : 0)
+window.addEventListener('online', () =>
+  isOnline(online => online
+    ? onConnectionRestored()
+    : pollOnlineStatus(onConnectionRestored)))
+
+window.addEventListener('offline', () =>
+  onOnlineStatusChange())
+
+ipcRenderer.on('pause', () => {
+  console.log('pause')
+  isPaused = true
+  clearTimeout(updateTimerId)
 })
 
-window.addEventListener('offline', function () {
-  onOnlineStatusChange()
+ipcRenderer.on('play', () => {
+  console.log('play')
+  isPaused = false
+  updateTimerId = setTimeout(onOnlineStatusChange, getRemainingTime())
 })
 
 // cancel any data fetching if the computer is suspended
-ipcRenderer.on('suspend', function () {
+ipcRenderer.on('suspend', () => {
   startSuspendTime = Date.now()
   clearTimeout(updateTimerId)
   updateTimerId = -2
 })
 
-ipcRenderer.on('resume', function () {
+ipcRenderer.on('resume', () => {
   totalSuspendTime += (Date.now() - startSuspendTime)
-  const t = refreshRate - (Date.now() - lastUpdateTime) + totalSuspendTime
-  updateTimerId = setTimeout(onOnlineStatusChange, t > 0 ? t : 0)
+
+  if (isPaused) return
+  updateTimerId = setTimeout(onOnlineStatusChange, getRemainingTime())
 })
+
+ipcRenderer.on('preferences', (e, data) => {
+  showTextOnDesktop = data.showTextOnDesktop
+  toggleTextVisibility(showTextOnDesktop)
+
+  if (data.refreshRate !== refreshRate) {
+    clearTimeout(updateTimerId)
+    refreshRate = data.refreshRate
+
+    if (isPaused) return
+    setTimeout(onOnlineStatusChange, getRemainingTime())
+  }
+})
+
+ipcRenderer.send('request:preferences')
 
 onOnlineStatusChange()
 
@@ -57,16 +81,36 @@ if (process.env.NODE_ENV === 'development') {
   window.nextImage = onOnlineStatusChange
 }
 
-function onOnlineStatusChange () {
-  if (navigator.onLine) {
-    // this is just for safeguarding when doing funny testing things
-    clearTimeout(updateTimerId)
-    updateTimerId = -1
-    updateImage()
-  } else {
-    clearTimeout(updateTimerId)
-    updateTimerId = -2
-  }
+function getRemainingTime () {
+  return refreshRate - (Date.now() - lastUpdateTime) + totalSuspendTime
+}
+
+function onConnectionRestored () {
+  updateTimerId = setTimeout(onOnlineStatusChange, getRemainingTime())
+}
+
+function isOnline (next) {
+  return next(navigator.onLine)
+}
+
+function pollOnlineStatus (next) {
+  isOnline(online => online
+    ? next()
+    : setTimeout(() => pollOnlineStatus(next), seconds(1))
+  )
+}
+
+function onOnlineStatusChange (forceReset) {
+  isOnline(online => {
+    if (online) {
+      clearTimeout(updateTimerId)
+      updateTimerId = -1
+      updateImage()
+    } else {
+      clearTimeout(updateTimerId)
+      updateTimerId = -2
+    }
+  })
 }
 
 function onImageFetch (err, data) {
@@ -84,31 +128,32 @@ function onImageFetch (err, data) {
       }
     } catch (e) {
       if (process.env.NODE_ENV === 'development') {
-        console.error(`ISSUE WITH ERR MSG: ${e}, ${err}`)
+        console.error(`ISSUE WITH ERR MSG: ${e}, ${JSON.stringify(err)}`)
       }
     }
 
     return onOnlineStatusChange()
   }
 
-  title = data.title
-  text = data.text
-  fillBG(data, onFillCanvas)
+  ipcRenderer.send('artwork', {
+    source: data.source,
+    href: data.href
+  })
+
+  fillBG(data, onImageRender)
 }
 
-function onFillCanvas () {
-  setTimeout(onDescriptionHide)
-  setTimeout(onDescriptionReplace, 800)
-  setTimeout(onDescriptionShow, 2500)
+function onImageRender (data) {
+  startTextLifecycle(data)
 
   if (imageCount === 0) {
     ipcRenderer.send('browser-rendered')
   }
 
   if (++imageCount === imagesUntilRestart) {
-    updateTimerId = setTimeout(function () {
-      setTimeout(onDescriptionHide)
-      saveConfig(function () { ipcRenderer.send('browser-reset') })
+    updateTimerId = setTimeout(() => {
+      startTextLifecycle()
+      saveConfig(() => ipcRenderer.send('browser-reset'))
     }, refreshRate)
     return
   }
@@ -121,20 +166,5 @@ function onFillCanvas () {
   totalSuspendTime = 0
   lastUpdateTime = Date.now()
   updateTimerId = setTimeout(updateImage, refreshRate)
-}
-
-function onDescriptionHide () {
-  descriptionCL.add('description--bottom')
-}
-
-function onDescriptionReplace () {
-  titleEl.textContent = title
-  textEl.textContent = text
-  descriptionCL.add('no-transition', 'description--left')
-  descriptionCL.remove('description--bottom')
-}
-
-function onDescriptionShow () {
-  descriptionCL.remove('no-transition', 'description--left')
 }
 

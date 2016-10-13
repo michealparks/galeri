@@ -9,7 +9,7 @@ document.getElementById('btn-toggle').onclick = function (e) {
   isPaused = !isPaused
   this.classList.toggle('btn-toggle--paused', isPaused)
   setTimeout(onToggleAnimationEnd, 500)
-  ipcRenderer.send(isPaused ? 'pause' : 'resume')
+  ipcRenderer.send(isPaused ? 'pause' : 'play')
 }
 
 function onToggleAnimationEnd () {

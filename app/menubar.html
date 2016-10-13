@@ -4,8 +4,6 @@
 <meta charset='utf-8'>
 
 <style>
-/* @import 'https://fonts.googleapis.com/css?family=Open+Sans|Reem+Kufi'; */
-
 @font-face {
   font-family: 'Reem Kufi';
   font-style: normal;
@@ -16,26 +14,12 @@
 }
 
 @font-face {
-  font-family: 'Open Sans';
-  font-style: normal;
-  src: local('Open Sans'),
-       local('OpenSans'),
-       url('../assets/open-sans.woff2') format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2212, U+2215, U+E0FF, U+EFFD, U+F000;
-}
-
-@font-face {
   font-family: 'Roboto Slab';
   font-style: normal;
   font-weight: 300;
-  src: local('Roboto Slab Light'), local('RobotoSlab-Light'), url(https://fonts.gstatic.com/s/robotoslab/v6/dazS1PrQQuCxC3iOAJFEJfR_54zmj3SbGZQh3vCOwvY.woff) format('woff');
-}
-
-@font-face {
-  font-family: 'Arimo';
-  font-style: normal;
-  font-weight: 400;
-  src: local('Arimo'), url(https://fonts.gstatic.com/s/arimo/v9/ZS0wkeOZuckNE3boyLYNt6CWcynf_cDxXwCLxiixG1c.woff) format('woff');
+  src: local('Roboto Slab Light'),
+       local('RobotoSlab-Light'),
+       url(https://fonts.gstatic.com/s/robotoslab/v6/dazS1PrQQuCxC3iOAJFEJfR_54zmj3SbGZQh3vCOwvY.woff) format('woff');
 }
 
 @font-face {
@@ -230,23 +214,29 @@ select {
   transform-origin: center;
 }
 
+.artwork-blurb a {
+  color: #666 !important;
+  text-decoration: none;
+}
+
+.artwork-source {
+  margin: 0;
+}
+
 #btn-prefs-tab {
   left: 35px;
 }
 
 .btn-toggle .icon-play {
   left: 8px;
-}
-
-.btn-toggle .icon-pause {
-  transform: rotate3d(0, 1, 0, 180deg);
-}
-
-.btn-toggle--paused .icon-play {
   transform: rotate3d(0, 1, 0, 180deg);
 }
 
 .btn-toggle--paused .icon-pause {
+  transform: rotate3d(0, 1, 0, 180deg);
+}
+
+.btn-toggle--paused .icon-play {
   transform: rotate3d(0, 0, 0, 0);
 }
 
@@ -323,10 +313,10 @@ select {
     </nav>
     
     <div class='tab' id='description'>
-      <div id='artwork-blurb'></div>
-      <small>This work was provided by</small>
-      <p id='artwork-source'></p>
-      <a id='artwork-link' target='_tab' href=''>
+      <div id='artwork-blurb' class='artwork-blurb'></div>
+      <small style='margin-top:10px'>This work was provided by</small>
+      <p id='artwork-source' class='artwork-source'></p>
+      <a id='artwork-link' class='artwork-link' target='_tab' href=''>
         <p>Learn more about it.</p>
       </a>
     </div>

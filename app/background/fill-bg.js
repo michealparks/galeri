@@ -9,7 +9,7 @@ const BG_CL = [BG[0].classList, BG[1].classList]
 const CL = document.getElementById('bg_1').classList
 
 let i = 0
-let _next, naturalWidth, naturalHeight
+let _next, _data, _naturalWidth, _naturalHeight
 
 const preload = new window.Image()
 preload.onload = onPreload
@@ -17,16 +17,16 @@ preload.onerror = onError
 
 function onPreload () {
   i = (i + 1) % 2
-  BG_CL[i].toggle('bg--top', naturalHeight > naturalWidth)
+  BG_CL[i].toggle('bg--top', _naturalHeight > _naturalWidth)
   BGstyle[i].backgroundImage = `url("${preload.src}?${Date.now()}")`
 
   // Give a ms per pixel for rendering time
-  setTimeout(onRender, naturalWidth > naturalHeight ? naturalWidth : naturalHeight)
+  setTimeout(onRender, _naturalWidth > _naturalHeight ? _naturalWidth : _naturalHeight)
 }
 
 function onRender () {
   CL.toggle('bg--active', i === 1)
-  _next()
+  _next(_data)
 }
 
 function onError (msg) {
@@ -38,11 +38,12 @@ function onError (msg) {
   })
 }
 
-function fillBG (config, next) {
-  naturalWidth = config.naturalWidth
-  naturalHeight = config.naturalHeight
+function fillBG (data, next) {
+  _naturalWidth = data.naturalWidth
+  _naturalHeight = data.naturalHeight
   _next = next
-  preload.src = `${config.img}?${Date.now()}`
+  _data = data
+  preload.src = `${data.img}?${Date.now()}`
 }
 
 module.exports = fillBG
