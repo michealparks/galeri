@@ -18,7 +18,7 @@ RefreshRateBtn.onchange = function () {
 }
 
 AutolaunchBtn.onclick = function () {
-  preferences.autolaunch = this.value
+  preferences.autolaunch = this.checked
 
   return ipcRenderer.send('preferences', preferences)
 }

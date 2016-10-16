@@ -112,15 +112,15 @@ body {
       function init () {
         const script = document.createElement('script')
         script.src = HOT
-          ? `http://localhost:${PORT}/dist/background.js`
-          : '../dist/background.js'
+          ? `http://localhost:${PORT}/build/background.js`
+          : '../build/background.js'
         document.head.appendChild(script)
       }
 
       if (HOT) {
         const script = document.createElement('script')
         script.onload = init
-        script.src = `http://localhost:${PORT}/dist/hmr.js`
+        script.src = `http://localhost:${PORT}/build/hmr.js`
         document.head.insertBefore(script, document.head.children[0])
       } else init()
     }

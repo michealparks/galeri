@@ -5,7 +5,7 @@ const BabiliPlugin = require('babili-webpack-plugin')
 const baseConfig = require('./webpack.config.base')
 
 module.exports = validate(merge(baseConfig, {
-  entry: ['./main.development'],
+  entry: __dirname + '/main.development',
 
   output: {
     path: __dirname,

@@ -9,7 +9,7 @@ module.exports = validate(merge(baseConfig, {
     background: ['./app/background'],
     menu: ['./app/menu']
   },
-  output: { publicPath: '../dist/' },
+  output: { publicPath: '../build/' },
 
   plugins: [
     // new BabiliPlugin(),
