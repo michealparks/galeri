@@ -34,6 +34,12 @@ window.addEventListener('online', () =>
 window.addEventListener('offline', () =>
   onOnlineStatusChange())
 
+ipcRenderer.on('log', (e, data) => {
+  data.args.forEach(arg => {
+    console[data.type]('main process: ', arg)
+  })
+})
+
 ipcRenderer.on('pause', () => {
   isPaused = true
 

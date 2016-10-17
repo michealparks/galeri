@@ -15,7 +15,7 @@ module.exports = validate(merge(baseConfig, {
 
   plugins: [
     new webpack.optimize.OccurrenceOrderPlugin(),
-    new BabiliPlugin(),
+    // new BabiliPlugin(),
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': JSON.stringify('production')
     })

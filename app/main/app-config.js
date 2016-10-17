@@ -13,6 +13,7 @@ let queue = []
 let didInit = false
 let cache = {}
 
+config.trash(() =>
 config.read((err, data) => {
   didInit = true
   cache = data
@@ -24,6 +25,7 @@ config.read((err, data) => {
 
   if (queue.length) return queue.forEach(fn => fn(cache))
 })
+)
 
 ipcMain.on('preferences', (e, data) =>
   config.write(data))
@@ -31,6 +33,7 @@ ipcMain.on('preferences', (e, data) =>
 ipcMain.on('request:preferences', (e, data) => {
   if (didInit) return onReqPrefs()
 
+  console.log('request')
   return queue.push(onReqPrefs)
 })
 

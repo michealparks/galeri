@@ -1,3 +1,4 @@
+const { remote } = require('electron')
 const config = require('application-config')('Galeri Images')
 const WaltersMuseum = require('./waltersmuseum')
 const Wikipedia = require('./wikipedia')
@@ -10,10 +11,13 @@ const { log, warn } = require('../util/log')
 let srcRotator = -1
 let rareSrcRotator = 0
 
-window.addEventListener('beforeunload', () => saveConfig())
+window.addEventListener('beforeunload', () => {
+  saveConfig(() => { remote.app.exit() })
+  return false
+})
 
 function saveConfig (next) {
-  config.write({
+  return config.write({
     wikipedia: Wikipedia.getConfig(),
     rijksMuseum: RijksMuseum.getConfig(),
     waltersmuseum: WaltersMuseum.getConfig(),

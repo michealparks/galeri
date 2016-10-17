@@ -1,10 +1,14 @@
+const { parse } = require('url')
 const { get } = require('https')
 const electron = require('electron')
 const semver = require('semver')
 const config = require('./config')
-const { log, error } = require('../util/log')
+const { log, error } = require('./log')
 const WIN32 = (process.platform === 'win32')
 const REGEX_ZIP_URL = /\/(v)?(\d+\.\d+\.\d+)\/.*\.zip/
+const reqObj = Object.assign(parse(config.GITHUB_RELEASE_API), {
+  headers: { 'User-Agent': 'michealparks' }
+})
 
 function init () {
   return process.platform === 'linux'
@@ -17,10 +21,14 @@ function initLinux () {
 }
 
 function getLatestTag (next) {
-  return get(config.GITHUB_RELEASE_API, res => {
+  return get(reqObj, res => {
     let body = ''
     res.on('data', d => body += d)
-    res.on('end', () => next(null, JSON.parse(body).tag_name))
+    res.on('end', () => {
+      console.log(JSON.parse(body).tag_name)
+      console.log(semver.clean(JSON.parse(body).tag_name))
+      next(null, JSON.parse(body).tag_name)
+    })
     res.on('error', next)
   }).on('error', next)
 }
@@ -41,13 +49,13 @@ function getFeedURL (tag, next) {
 
         let zipUrl
         try {
-          zipUrl = JSON.parse(res.body).url
+          zipUrl = JSON.parse(body).url
         } catch (err) {
           return next(`Unable to parse the updater.json: ${err.message}, body: ${res.body}`)
         }
 
         const matchReleaseUrl = zipUrl.match(REGEX_ZIP_URL)
-        if (matchReleaseUrl) return next(`The zipUrl (${zipUrl}) is a invalid release URL`)
+        if (!matchReleaseUrl) return next(`The zipUrl (${zipUrl}) is a invalid release URL`)
 
         const versionInZipUrl = matchReleaseUrl[matchReleaseUrl.length - 1]
         const latestVersion = semver.clean(tag)
@@ -61,7 +69,9 @@ function getFeedURL (tag, next) {
 }
 
 function check (next) {
-  return getLatestTag(tag => {
+  return getLatestTag((err, tag) => {
+    if (err) return next(err)
+
     if (!tag || !semver.valid(semver.clean(tag))) {
       return next('Could not find a valid release tag.')
     }
@@ -69,6 +79,8 @@ function check (next) {
     if (!isNewVersion(tag)) {
       return next('There is no newer version.')
     }
+
+    log(`${config.GITHUB_URL_RAW}/updater.json`)
 
     return getFeedURL(tag, (err, feedUrl) => err
       ? next(err)
@@ -95,7 +107,10 @@ function initDarwinWin32 () {
     return autoUpdater.quitAndInstall()
   })
 
-  function onCheck (feedUrl) {
+  function onCheck (err, feedUrl) {
+    if (err) return error(err)
+
+    log('feed-url', feedUrl)
     autoUpdater.setFeedURL(feedUrl)
     autoUpdater.checkForUpdates()
   }

@@ -1,17 +1,13 @@
 // Handle restart due to windows updates
-
 if (!require('electron-squirrel-startup')) {
   const electron = require('electron')
   const { sendToWindows } = require('./app/main/ipc')
   const updater = require('./app/main/updater')
-  const crashReporter = require('./app/main/crash-reporter')
   const menubarWindow = require('./app/main/menubar')
   const { app, BrowserWindow, ipcMain } = electron
   const delayedInitTime = 3000
   let backgroundWindow = []
   let i = 0
-
-  require('./app/main/autolaunch')
 
   // not sure if this actually does anything :/
   app.commandLine.appendSwitch('disable-http-cache')
@@ -19,8 +15,6 @@ if (!require('electron-squirrel-startup')) {
   // TODO restart app and send crash report
   process.on('uncaughtException', function (e) {
     console.error(e)
-
-    if (process.env.NODE_ENV === 'production') app.relaunch()
   })
 
   app.on('ready', function () {
@@ -29,11 +23,10 @@ if (!require('electron-squirrel-startup')) {
     electron.powerMonitor.on('suspend', sendToWindows.bind(null, 'suspend'))
     electron.powerMonitor.on('resume', sendToWindows.bind(null, 'resume'))
 
-    app.once('will-finish-launching', () => crashReporter.init())
-
     // To keep app startup fast, some non-essential code is delayed.
     setTimeout(() => {
       require('./app/main/app-config')
+      require('./app/main/autolaunch')
       updater.init()
     }, delayedInitTime)
   })
@@ -86,7 +79,7 @@ if (!require('electron-squirrel-startup')) {
     win.on('closed', () => { win = null })
     win.loadURL(`file://${__dirname}/app/background.html`)
 
-    if (true || process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === 'development') {
       require('electron-debug')()
       win.openDevTools({ mode: 'detach' })
     }

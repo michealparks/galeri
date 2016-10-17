@@ -1,5 +1,7 @@
 const { ipcMain, app } = require('electron')
 const AutoLaunch = require('auto-launch')
+const { log } = require('./log')
+const { getConfig } = require('./app-config')
 
 const appLauncher = new AutoLaunch({
   name: 'Galeri',
@@ -13,9 +15,11 @@ let isEnabled
 
 appLauncher.isEnabled().then(data => { isEnabled = data })
 
-ipcMain.on('preferences', (e, data) => {
-  if (data.enabled && !isEnabled) appLauncher.enable()
-  if (!data.enabled && isEnabled) appLauncher.disable()
+getConfig(config => {
+  log('AUTOLAUNCH')
+  log(config)
+  if (config.enabled && !isEnabled) appLauncher.enable()
+  if (!config.enabled && isEnabled) appLauncher.disable()
 
-  isEnabled = data.enabled
+  isEnabled = config.enabled
 })

@@ -25,10 +25,11 @@ AutolaunchBtn.onclick = function () {
 
 ipcRenderer.on('preferences', (e, data) => {
   preferences = data
+  console.log(data)
 
   ShowTextOnDesktopBtn.checked = preferences.showTextOnDesktop
   RefreshRateBtn.value = preferences.refreshRate
   AutolaunchBtn.checked = preferences.autolaunch
 })
 
-ipcRenderer.send('request:preferences')
+setTimeout(() => ipcRenderer.send('request:preferences'), 3000)
