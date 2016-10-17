@@ -58,23 +58,18 @@ function webpackBuild (c) {
 function build () {
   console.log('Starting build...')
 
-  // return console.log(argv._[0])
-
-  // const platform = argv._[0]
-  if (true || platform === 'darwin') {
-    buildDarwin(printDone)
-  } else if (platform === 'win32') {
-    buildWin32(printDone)
-  } else if (platform === 'linux') {
-    buildLinux(printDone)
-  } else {
-    buildDarwin(err => {
-      printDone(err)
-      buildWin32(err => {
+  switch (argv._[0]) {
+    case 'darwin': return buildDarwin(printDone)
+    case 'win32' : return buildWin32(printDone)
+    case 'linux' : return buildLinux(printDone)
+    default:
+      buildDarwin(err => {
         printDone(err)
-        buildLinux(printDone)
+        buildWin32(err => {
+          printDone(err)
+          buildLinux(printDone)
+        })
       })
-    })
   }
 }
 
@@ -359,7 +354,7 @@ function buildWin32 (cb) {
         authors: config.APP_TEAM,
         description: config.APP_NAME,
         exe: config.APP_NAME + '.exe',
-        iconUrl: config.GITHUB_URL_RAW + '/static/' + config.APP_NAME + '.ico',
+        iconUrl: config.GITHUB_URL_RAW + '/assets/' + config.APP_NAME + '.ico',
         loadingGif: path.join(config.STATIC_PATH, 'loading.gif'),
         name: config.APP_NAME,
         noMsi: true,

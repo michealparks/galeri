@@ -35,14 +35,12 @@ window.addEventListener('offline', () =>
   onOnlineStatusChange())
 
 ipcRenderer.on('pause', () => {
-  console.log('pause')
   isPaused = true
 
   return clearTimeout(updateTimerId)
 })
 
 ipcRenderer.on('play', () => {
-  console.log('play')
   isPaused = false
   updateTimerId = setTimeout(onOnlineStatusChange, getRemainingTime())
 })
@@ -169,4 +167,3 @@ function onImageRender (data) {
   lastUpdateTime = Date.now()
   updateTimerId = setTimeout(updateImage, refreshRate)
 }
-

@@ -201,7 +201,7 @@ select {
   right: -5px;
   perspective: 40px;
   perspective-origin: center;
-  
+
 }
 
 .btn__icon {
@@ -297,7 +297,7 @@ select {
       <p class='title__version'>v<span id='version'></span></p>
     </div>
   </div>
-  
+
   <div class='panel'>
     <nav class='nav'>
       <div id='btn-artwork-tab' class='btn'>
@@ -311,7 +311,7 @@ select {
         <span class='btn__icon icon icon-pause'></span>
       </div>
     </nav>
-    
+
     <div class='tab' id='description'>
       <div id='artwork-blurb' class='artwork-blurb'></div>
       <small style='margin-top:10px'>This work was provided by</small>
@@ -320,7 +320,7 @@ select {
         <p>Learn more about it.</p>
       </a>
     </div>
-    
+
     <div class='tab tab--hidden' id='preferences'>
       <div>
         <label>
@@ -359,7 +359,7 @@ select {
         </div>
       </div>
     </div>
-    
+
     <div class='copyright'>
       <small>Copyright © 2016 Space Egg, LLC</small>
     </div>
@@ -368,27 +368,7 @@ select {
       <small>Quit</small>
     </div>
   </div>
-  <script>
-  {
-    const { PORT = 3000, HOT } = process.env
 
-    function init () {
-      const script = document.createElement('script')
-      script.defer = true
-      script.src = HOT
-        ? `http://localhost:${PORT}/build/menu.js`
-        : '../build/menu.js'
-      document.head.appendChild(script)
-    }
-
-    if (HOT) {
-      const script = document.createElement('script')
-      script.onload = init
-      script.defer = true
-      script.src = `http://localhost:${PORT}/build/hmr.js`
-      document.head.insertBefore(script, document.head.children[0])
-    } else init()
-  }
-  </script>
+  <script src='../build/menu.js'></script>
 </body>
 </html>

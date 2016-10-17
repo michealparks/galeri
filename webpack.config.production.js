@@ -9,10 +9,9 @@ module.exports = validate(merge(baseConfig, {
     background: ['./app/background'],
     menu: ['./app/menu']
   },
-  output: { publicPath: '../build/' },
 
   plugins: [
-    // new BabiliPlugin(),
+    new BabiliPlugin(),
     new webpack.optimize.OccurrenceOrderPlugin(),
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': JSON.stringify('production')

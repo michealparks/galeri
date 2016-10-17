@@ -1,8 +1,10 @@
 // Handle restart due to windows updates
+
 if (!require('electron-squirrel-startup')) {
   const electron = require('electron')
   const { sendToWindows } = require('./app/main/ipc')
-  const initAutoUpdate = require('./app/main/autoupdate')
+  const updater = require('./app/main/updater')
+  const crashReporter = require('./app/main/crash-reporter')
   const menubarWindow = require('./app/main/menubar')
   const { app, BrowserWindow, ipcMain } = electron
   const delayedInitTime = 3000
@@ -17,6 +19,8 @@ if (!require('electron-squirrel-startup')) {
   // TODO restart app and send crash report
   process.on('uncaughtException', function (e) {
     console.error(e)
+
+    if (process.env.NODE_ENV === 'production') app.relaunch()
   })
 
   app.on('ready', function () {
@@ -25,10 +29,12 @@ if (!require('electron-squirrel-startup')) {
     electron.powerMonitor.on('suspend', sendToWindows.bind(null, 'suspend'))
     electron.powerMonitor.on('resume', sendToWindows.bind(null, 'resume'))
 
+    app.once('will-finish-launching', () => crashReporter.init())
+
     // To keep app startup fast, some non-essential code is delayed.
     setTimeout(() => {
       require('./app/main/app-config')
-      initAutoUpdate()
+      updater.init()
     }, delayedInitTime)
   })
 

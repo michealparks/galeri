@@ -9,7 +9,7 @@ const baseConfig = {
   autolaunch: true
 }
 
-let queue
+let queue = []
 let didInit = false
 let cache = {}
 
@@ -22,19 +22,26 @@ config.read((err, data) => {
     config.write(baseConfig)
   }
 
-  if (queue) return queue(cache)
+  if (queue.length) return queue.forEach(fn => fn(cache))
 })
 
 ipcMain.on('preferences', (e, data) =>
   config.write(data))
 
-ipcMain.on('request:preferences', (e, data) =>
-  sendToWindows('preferences', cache))
+ipcMain.on('request:preferences', (e, data) => {
+  if (didInit) return onReqPrefs()
+
+  return queue.push(onReqPrefs)
+})
+
+function onReqPrefs () {
+  return sendToWindows('preferences', cache)
+}
 
 function getConfig (next) {
   if (didInit) return next(cache)
 
-  queue = next
+  return queue.push(next)
 }
 
 module.exports = { getConfig }

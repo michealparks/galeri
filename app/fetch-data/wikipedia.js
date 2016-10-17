@@ -60,20 +60,15 @@ Wikipedia.prototype
 
   return validateImg(
     this.nextImage.img.replace(this.pixelRegex, `${window.innerWidth * window.devicePixelRatio * 0.8}px`),
-    (err, data) => {
-      console.log(err)
-      if (err) return next(err)
-
-      next(null, {
-        source: 'Wikipedia',
-        href: this.nextImage.href,
-        title: this.nextImage.title.replace(this.parenRegex, ''),
-        text: this.nextImage.text.replace(this.parenRegex, ''),
-        img: data.url,
-        naturalHeight: data.naturalHeight,
-        naturalWidth: data.naturalWidth
-      })
-    })
+    (err, data) => err ? next(err) : next(null, {
+      source: 'Wikipedia',
+      href: this.nextImage.href,
+      title: this.nextImage.title.replace(this.parenRegex, ''),
+      text: this.nextImage.text.replace(this.parenRegex, ''),
+      img: data.url,
+      naturalHeight: data.naturalHeight,
+      naturalWidth: data.naturalWidth
+    }))
 }
 
 Wikipedia.prototype
@@ -96,4 +91,3 @@ Wikipedia.prototype
 }
 
 module.exports = new Wikipedia('Paintings')
-

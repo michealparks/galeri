@@ -105,25 +105,6 @@ body {
     <p id='author'></p>
   </div>
 
-  <script>
-    {
-      const { PORT = 3000, HOT } = process.env
-
-      function init () {
-        const script = document.createElement('script')
-        script.src = HOT
-          ? `http://localhost:${PORT}/build/background.js`
-          : '../build/background.js'
-        document.head.appendChild(script)
-      }
-
-      if (HOT) {
-        const script = document.createElement('script')
-        script.onload = init
-        script.src = `http://localhost:${PORT}/build/hmr.js`
-        document.head.insertBefore(script, document.head.children[0])
-      } else init()
-    }
-  </script>
+  <script src='../build/background.js'></script>
 </body>
 </html>

@@ -5,6 +5,7 @@ const RijksMuseum = require('./rijksmuseum')
 const CooperHewitt = require('./cooperhewitt')
 const BrooklynMuseum = require('./brooklynmuseum')
 const MetMuseum = require('./metmuseum')
+const { log, warn } = require('../util/log')
 
 let srcRotator = -1
 let rareSrcRotator = 0
@@ -33,25 +34,25 @@ function getNextImage (next) {
   // like weird stuff.
   if (Math.floor(Math.random() * 75) === 5) {
     switch (++rareSrcRotator % 2) {
-      case 0: console.log('cooper'); return CooperHewitt.getNextItem(next)
-      case 1: console.log('walters'); return WaltersMuseum.getNextItem(next)
+      case 0: log('Cooper'); return CooperHewitt.getNextItem(next)
+      case 1: log('Walters'); return WaltersMuseum.getNextItem(next)
     }
   }
 
   switch (++srcRotator % 6) {
-    case 0: console.log('wiki'); return Wikipedia.getNextItem(next)
-    case 2: console.log('walters'); return WaltersMuseum.getNextItem(next)
-    case 3: console.log('rijks'); return RijksMuseum.getNextItem(next)
-    case 4: console.log('brooklyn'); return BrooklynMuseum.getNextItem(next)
+    case 0: log('Wiki'); return Wikipedia.getNextItem(next)
+    case 2: log('Walters'); return WaltersMuseum.getNextItem(next)
+    case 3: log('Rijks'); return RijksMuseum.getNextItem(next)
+    case 4: log('Brooklyn'); return BrooklynMuseum.getNextItem(next)
     // we like Met so, so much.
     // so we give it TWO slots.
     case 1:
-    case 5: console.log('met'); return MetMuseum.getNextItem(next)
+    case 5: log('Met'); return MetMuseum.getNextItem(next)
   }
 }
 
-function onReadConfig (err, data) {
-  if (err) console.warn(err)
+config.read(function onReadConfig (err, data) {
+  if (err) warn(err)
 
   Wikipedia.giveConfig(data.wikipedia)
   RijksMuseum.giveConfig(data.rijksMuseum)
@@ -59,11 +60,7 @@ function onReadConfig (err, data) {
   CooperHewitt.giveConfig(data.cooperHewitt)
   BrooklynMuseum.giveConfig(data.brooklynMuseum)
   MetMuseum.giveConfig(data.metMuseum)
-}
-
-config.trash(() =>
-  config.read(onReadConfig)
-)
+})
 
 module.exports = {
   saveConfig,
