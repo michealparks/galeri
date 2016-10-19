@@ -1,4 +1,4 @@
-const { ipcMain, app } = require('electron')
+const { app } = require('electron')
 const AutoLaunch = require('auto-launch')
 const { log } = require('./log')
 const { getConfig } = require('./app-config')

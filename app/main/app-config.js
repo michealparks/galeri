@@ -4,6 +4,7 @@ const { sendToWindows } = require('./ipc')
 const { minutes } = require('../util/time')
 
 const baseConfig = {
+  version: 'v0.0.3',
   refreshRate: minutes(30),
   showTextOnDesktop: true,
   autolaunch: true
@@ -13,19 +14,20 @@ let queue = []
 let didInit = false
 let cache = {}
 
-config.trash(() =>
 config.read((err, data) => {
   didInit = true
   cache = data
 
-  if (err || !cache || Object.keys(cache).length === 0) {
+  if (err ||
+     !cache ||
+     Object.keys(cache).length === 0 ||
+     !cache.version) {
     cache = baseConfig
     config.write(baseConfig)
   }
 
   if (queue.length) return queue.forEach(fn => fn(cache))
 })
-)
 
 ipcMain.on('preferences', (e, data) =>
   config.write(data))

@@ -1,14 +1,12 @@
-const path = require('path')
+const { resolve } = require('path')
 const events = require('events')
-const fs = require('fs')
 const electron = require('electron')
-const app = electron.app
-const Tray = electron.Tray
-const BrowserWindow = electron.BrowserWindow
 const Positioner = require('electron-positioner')
-
-module.exports = create({
-  dir: app.getAppPath(),
+const { app } = electron
+const menubar = new events.EventEmitter()
+const opts = {
+  dir: resolve(app.getAppPath()),
+  tooltip: '',
   index: process.env.NODE_ENV === 'production'
     ? `file://${__dirname}/app/menubar.html`
     : `file://${__dirname}/../../app/menubar.html`,
@@ -22,141 +20,103 @@ module.exports = create({
   windowPosition: (process.platform === 'win32') ? 'trayBottomCenter' : 'trayCenter',
   transparent: true,
   show: false,
+  frame: false,
   width: 250,
   height: 320,
   y: 30
-})
-
-function create (opts) {
-  if (!(path.isAbsolute(opts.dir))) opts.dir = path.resolve(opts.dir)
-
-  opts.tooltip = opts.tooltip || ''
-
-  app.on('ready', appReady)
-
-  var menubar = new events.EventEmitter()
-  menubar.app = app
-
-  // Set / get options
-  menubar.setOption = function (opt, val) {
-    opts[opt] = val
-  }
-
-  menubar.getOption = function (opt) {
-    return opts[opt]
-  }
-
-  return menubar
-
-  function appReady () {
-    if (app.dock && !opts.showDockIcon) app.dock.hide()
-
-    var iconPath = opts.icon || path.join(opts.dir, 'IconTemplate.png')
-    if (!fs.existsSync(iconPath)) iconPath = path.join(__dirname, 'example', 'IconTemplate.png') // default cat icon
-
-    var cachedBounds // cachedBounds are needed for double-clicked event
-    var defaultClickEvent = opts.showOnRightClick ? 'right-click' : 'click'
-
-    menubar.tray = opts.tray || new Tray(iconPath)
-    menubar.tray.on(defaultClickEvent, clicked)
-    menubar.tray.on('double-click', clicked)
-    menubar.tray.setToolTip(opts.tooltip)
-
-    var supportsTrayHighlightState = false
-    try {
-      menubar.tray.setHighlightMode('never')
-      supportsTrayHighlightState = true
-    } catch (e) {}
-
-    if (opts.preloadWindow) {
-      createWindow()
-    }
-
-    menubar.showWindow = showWindow
-    menubar.hideWindow = hideWindow
-    menubar.emit('ready')
-
-    function clicked (e, bounds) {
-      if (e.altKey || e.shiftKey || e.ctrlKey || e.metaKey) return hideWindow()
-      if (menubar.window && menubar.window.isVisible()) return hideWindow()
-      cachedBounds = bounds || cachedBounds
-      showWindow(cachedBounds)
-    }
-
-    function createWindow () {
-      menubar.emit('create-window')
-
-      menubar.window = new BrowserWindow(Object.assign({
-        show: false,
-        frame: false
-      }, opts))
-
-      menubar.positioner = new Positioner(menubar.window)
-
-      menubar.window.on('blur', function () {
-        opts.alwaysOnTop ? emitBlur() : hideWindow()
-      })
-
-      if (opts.showOnAllWorkspaces !== false) {
-        menubar.window.setVisibleOnAllWorkspaces(true)
-      }
-
-      menubar.window.on('close', windowClear)
-      menubar.window.loadURL(opts.index)
-      menubar.emit('after-create-window')
-    }
-
-    function showWindow (trayPos) {
-      if (supportsTrayHighlightState) menubar.tray.setHighlightMode('always')
-      if (!menubar.window) {
-        createWindow()
-      }
-
-      menubar.emit('show')
-
-      if (trayPos && trayPos.x !== 0) {
-        // Cache the bounds
-        cachedBounds = trayPos
-      } else if (cachedBounds) {
-        // Cached value will be used if showWindow is called without bounds data
-        trayPos = cachedBounds
-      } else if (menubar.tray.getBounds) {
-        // Get the current tray bounds
-        trayPos = menubar.tray.getBounds()
-      }
-
-      // Default the window to the right if `trayPos` bounds are undefined or null.
-      var noBoundsPosition = null
-      if ((trayPos === undefined || trayPos.x === 0) && opts.windowPosition.substr(0, 4) === 'tray') {
-        noBoundsPosition = (process.platform === 'win32') ? 'bottomRight' : 'topRight'
-      }
-
-      var position = menubar.positioner.calculate(noBoundsPosition || opts.windowPosition, trayPos)
-
-      var x = (opts.x !== undefined) ? opts.x : position.x
-      var y = (opts.y !== undefined) ? opts.y : position.y
-
-      menubar.window.setPosition(x, y)
-      menubar.window.show()
-      menubar.emit('after-show')
-      return
-    }
-
-    function hideWindow () {
-      if (supportsTrayHighlightState) menubar.tray.setHighlightMode('never')
-      if (!menubar.window) return
-      menubar.emit('hide')
-      menubar.window.hide()
-      menubar.emit('after-hide')
-    }
-
-    function windowClear () {
-      delete menubar.window
-      menubar.emit('after-close')
-    }
-
-    function emitBlur () {
-      menubar.emit('focus-lost')
-    }
-  }
 }
+
+let cachedBounds // cachedBounds are needed for double-clicked event
+let supportsTrayHighlightState = false
+
+app.on('ready', appReady)
+
+function appReady () {
+  if (app.dock && !opts.showDockIcon) app.dock.hide()
+
+  menubar.tray = new electron.Tray(opts.icon)
+  menubar.tray.on('click', clicked)
+  menubar.tray.on('double-click', clicked)
+  menubar.tray.setToolTip(opts.tooltip)
+
+  try {
+    menubar.tray.setHighlightMode('never')
+    supportsTrayHighlightState = true
+  } catch (e) {}
+
+  createWindow()
+
+  return menubar.emit('ready')
+}
+
+function createWindow () {
+  menubar.emit('create-window')
+
+  menubar.window = new electron.BrowserWindow(opts)
+  menubar.positioner = new Positioner(menubar.window)
+
+  menubar.window.on('blur', () => opts.alwaysOnTop
+    ? menubar.emit('focus-lost')
+    : hideWindow())
+
+  if (opts.showOnAllWorkspaces !== false) {
+    menubar.window.setVisibleOnAllWorkspaces(true)
+  }
+
+  menubar.window.on('close', () => {
+    delete menubar.window
+    return menubar.emit('after-close')
+  })
+  menubar.window.loadURL(opts.index)
+  menubar.emit('after-create-window')
+}
+
+function clicked (e, bounds) {
+  if (e.altKey || e.shiftKey || e.ctrlKey || e.metaKey) return hideWindow()
+  if (menubar.window && menubar.window.isVisible()) return hideWindow()
+  cachedBounds = bounds || cachedBounds
+  showWindow(cachedBounds)
+}
+
+function showWindow (trayPos) {
+  if (supportsTrayHighlightState) menubar.tray.setHighlightMode('always')
+  if (!menubar.window) createWindow()
+
+  menubar.emit('show')
+
+  if (trayPos && trayPos.x !== 0) {
+    // Cache the bounds
+    cachedBounds = trayPos
+  } else if (cachedBounds) {
+    // Cached value will be used if showWindow is called without bounds data
+    trayPos = cachedBounds
+  } else if (menubar.tray.getBounds) {
+    // Get the current tray bounds
+    trayPos = menubar.tray.getBounds()
+  }
+
+  // Default the window to the right if `trayPos` bounds are undefined or null.
+  var noBoundsPosition = null
+  if ((trayPos === undefined || trayPos.x === 0) && opts.windowPosition.substr(0, 4) === 'tray') {
+    noBoundsPosition = (process.platform === 'win32') ? 'bottomRight' : 'topRight'
+  }
+
+  var position = menubar.positioner.calculate(noBoundsPosition || opts.windowPosition, trayPos)
+
+  var x = (opts.x !== undefined) ? opts.x : position.x
+  var y = (opts.y !== undefined) ? opts.y : position.y
+
+  menubar.window.setPosition(x, y)
+  menubar.window.show()
+  return menubar.emit('after-show')
+}
+
+function hideWindow () {
+  if (supportsTrayHighlightState) menubar.tray.setHighlightMode('never')
+  if (!menubar.window) return
+  menubar.emit('hide')
+  menubar.window.hide()
+  return menubar.emit('after-hide')
+}
+
+module.exports = menubar

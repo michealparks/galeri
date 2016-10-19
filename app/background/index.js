@@ -1,17 +1,17 @@
 require('buffer/')
-
 const { ipcRenderer } = require('electron')
 const fillBG = require('./fill-bg')
 const { startTextLifecycle, toggleTextVisibility } = require('./text')
 const { getNextImage, saveConfig } = require('../fetch-data')
-const { seconds, minutes } = require('../util/time')
+const { minutes } = require('../util/time')
+const { clamp } = require('../util/math')
 const updateImage = getNextImage.bind(null, onImageFetch)
 
 let refreshRate = minutes(30)
-let showTextOnDesktop = false
+let imageCount = 0
 let imagesUntilRestart = 20
 let isPaused = false
-let imageCount = 0
+
 let lastUpdateTime = Date.now()
 let startSuspendTime = 0
 let totalSuspendTime = 0
@@ -26,23 +26,14 @@ window.addEventListener('error', e => {
   }
 })
 
-window.addEventListener('online', () =>
-  isOnline(online => online
-    ? onConnectionRestored()
-    : pollOnlineStatus(onConnectionRestored)))
+window.addEventListener('online', onOnlineStatusChange)
+window.addEventListener('offline', onOnlineStatusChange)
 
-window.addEventListener('offline', () =>
-  onOnlineStatusChange())
-
-ipcRenderer.on('log', (e, data) => {
-  data.args.forEach(arg => {
-    console[data.type]('main process: ', arg)
-  })
-})
+ipcRenderer.on('log', (e, data) =>
+  data.args.forEach(arg => console[data.type]('main process: ', arg)))
 
 ipcRenderer.on('pause', () => {
   isPaused = true
-
   return clearTimeout(updateTimerId)
 })
 
@@ -59,25 +50,14 @@ ipcRenderer.on('suspend', () => {
 })
 
 ipcRenderer.on('resume', () => {
+  console.log(isPaused, totalSuspendTime)
   totalSuspendTime += (Date.now() - startSuspendTime)
 
   if (isPaused) return
   updateTimerId = setTimeout(onOnlineStatusChange, getRemainingTime())
 })
 
-ipcRenderer.on('preferences', (e, data) => {
-  showTextOnDesktop = data.showTextOnDesktop
-  toggleTextVisibility(showTextOnDesktop)
-
-  if (data.refreshRate !== refreshRate) {
-    clearTimeout(updateTimerId)
-    refreshRate = data.refreshRate
-
-    return isPaused
-      ? null
-      : setTimeout(onOnlineStatusChange, getRemainingTime())
-  }
-})
+ipcRenderer.on('preferences', onGetPreferences)
 
 ipcRenderer.send('request:preferences')
 
@@ -87,50 +67,54 @@ if (process.env.NODE_ENV === 'development') {
   window.nextImage = onOnlineStatusChange
 }
 
+function onOnlineStatusChange () {
+  if (navigator.onLine && !isPaused) {
+    // First clear any lingering fetches
+    clearTimeout(updateTimerId)
+
+    // Allow the lifecycle to complete a full round
+    updateTimerId = -1
+
+    // Kick off the lifecycle
+    updateImage()
+  } else {
+    // Kill any future fetches
+    clearTimeout(updateTimerId)
+
+    // If we're in mid-lifecycle, don't allow it to finish
+    updateTimerId = -2
+  }
+}
+
+function onGetPreferences (e, data) {
+  // we don't need to persist this data to memory since it's just a toggle
+  toggleTextVisibility(data.showTextOnDesktop)
+
+  if (data.refreshRate === refreshRate) return
+  clearTimeout(updateTimerId)
+  refreshRate = data.refreshRate
+
+  if (!isPaused) {
+    updateTimerId = setTimeout(onOnlineStatusChange, getRemainingTime())
+  }
+}
+
 function getRemainingTime () {
-  return refreshRate - (Date.now() - lastUpdateTime) + totalSuspendTime
-}
-
-function onConnectionRestored () {
-  updateTimerId = setTimeout(onOnlineStatusChange, getRemainingTime())
-}
-
-function isOnline (next) {
-  return next(navigator.onLine)
-}
-
-function pollOnlineStatus (next) {
-  return isOnline(online => online
-    ? next()
-    : setTimeout(() => pollOnlineStatus(next), seconds(1))
-  )
-}
-
-function onOnlineStatusChange (forceReset) {
-  return isOnline(online => {
-    if (online) {
-      clearTimeout(updateTimerId)
-      updateTimerId = -1
-      updateImage()
-    } else {
-      clearTimeout(updateTimerId)
-      updateTimerId = -2
-    }
-  })
+  // time until next fetch minus the amount of time elapsed since last fetch
+  // time while suspended is given back to the time until next fetch
+  return refreshRate - (Date.now() - lastUpdateTime) + clamp(totalSuspendTime, 0, Date.now() - lastUpdateTime)
 }
 
 function onImageFetch (err, data) {
   if (err) {
     try {
-      const { file, fn, errType, msg } = err
-
-      if (errType === 'fatal' && process.env.NODE_ENV === 'production') {
+      if (err.errType === 'fatal' && process.env.NODE_ENV === 'production') {
         // TODO crash report
         return ipcRenderer.send('browser-reset')
       }
 
       if (process.env.NODE_ENV === 'development') {
-        console[errType](`${file}, ${fn}: ${msg}`)
+        console[err.errType](`${err.file}, ${err.fn}: ${err.msg}`)
       }
     } catch (e) {
       if (process.env.NODE_ENV === 'development') {
@@ -152,16 +136,13 @@ function onImageFetch (err, data) {
 function onImageRender (data) {
   startTextLifecycle(data)
 
-  if (imageCount === 0) {
-    ipcRenderer.send('browser-rendered')
-  }
+  if (imageCount === 0) ipcRenderer.send('browser-rendered')
 
-  if (++imageCount === imagesUntilRestart) {
-    updateTimerId = setTimeout(() => {
+  if (++imageCount >= imagesUntilRestart) {
+    return setTimeout(() => {
       startTextLifecycle()
       saveConfig(() => ipcRenderer.send('browser-reset'))
     }, refreshRate)
-    return
   }
 
   if (updateTimerId === -2) {

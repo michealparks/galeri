@@ -28,5 +28,5 @@ module.exports = {
   ROOT_PATH: path.join(__dirname, '../..'),
   STATIC_PATH: path.join(__dirname, '../..', 'assets'),
 
-  CHECK_UPDATE_INTERVAL: days(2)
+  CHECK_UPDATE_INTERVAL: days(1)
 }
