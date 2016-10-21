@@ -22,6 +22,8 @@ MetMuseum.prototype.constructor = ApiTemplate
 
 MetMuseum.prototype
 .onCollectionResponse = function () {
+  if (this.req.status !== 200) return this.onError(this.req.status)
+
   this.cache = this.req.response.results
 
   shuffle(this.cache)

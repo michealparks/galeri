@@ -21,6 +21,8 @@ RijksMuseum.prototype.constructor = ApiTemplate
 
 RijksMuseum.prototype
 .onCollectionResponse = function () {
+  if (this.req.status !== 200) return this.onError(this.req.status)
+
   this.cache = this.req.response.artObjects
 
   shuffle(this.cache)

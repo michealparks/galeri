@@ -27,6 +27,8 @@ BrooklynMuseum.prototype.constructor = ApiTemplate
 
 BrooklynMuseum.prototype
 .onCollectionResponse = function () {
+  if (this.req.status !== 200) return this.onError(this.req.status)
+
   this.cache = []
 
   for (let i = 0, l = this.req.response.data.length, r; i < l; i++) {

@@ -39,6 +39,7 @@ function getFeedURL (tag, next) {
     : get(`${config.GITHUB_URL_RAW}/updater.json`, res => {
       let body = ''
       res.on('data', d => body += d)
+      res.on('error', next)
       res.on('end', () => {
         if (res.statusCode === 404) return next('updater.json does not exist.')
         if (res.statusCode !== 200) return next(`Unable to fetch updater.json: ${res.body}`)
@@ -61,7 +62,7 @@ function getFeedURL (tag, next) {
 
         return next(null, `${config.GITHUB_URL_RAW}/updater.json`)
       })
-    })
+    }).on('error', next)
 }
 
 function check (next) {

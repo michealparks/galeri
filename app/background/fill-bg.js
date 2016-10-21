@@ -4,7 +4,7 @@ const BGstyle = [BG[0].style, BG[1].style]
 const BG_CL = [BG[0].classList, BG[1].classList]
 
 let i = 0
-let req, objectURL
+let req, objectURL, restoreIndex
 let _next, _data, _naturalWidth, _naturalHeight
 
 function fillBG (data, next) {
@@ -41,14 +41,17 @@ function onError (msg) {
 
 function onPreload () {
   if (this.status !== 200) return onError(`HTTP status code: ${this.status}`)
+  restoreIndex = i
+  i = (i + 1) % 2
+  BG_CL[i].toggle('bg--top', _naturalHeight > _naturalWidth)
 
   try {
     objectURL = URL.createObjectURL(this.response)
     BGstyle[i].backgroundImage = `url("${objectURL}")`
-  } catch (e) { return onError(e) }
-
-  i = (i + 1) % 2
-  BG_CL[i].toggle('bg--top', _naturalHeight > _naturalWidth)
+  } catch (e) {
+    i = restoreIndex
+    return onError(e)
+  }
 
   // Give a ms per pixel for rendering time
   return setTimeout(onRender, _naturalWidth > _naturalHeight ? _naturalWidth : _naturalHeight)

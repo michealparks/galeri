@@ -36,7 +36,7 @@ function init () {
 
   app.on('ready', onReady)
 
-  ipcMain.on('browser-reset', init)
+  ipcMain.on('browser-reset', makeBackgroundWindow)
   ipcMain.on('browser-rendered', onBrowserRender)
 
   if (process.platform !== 'darwin') {

@@ -1,6 +1,6 @@
 // const appConfig = require('application-config')('Galeri')
 const path = require('path')
-const { days } = require('../util/time')
+const { hours } = require('../util/time')
 // const electron = require('electron')
 // const arch = require('arch')
 
@@ -28,5 +28,5 @@ module.exports = {
   ROOT_PATH: path.join(__dirname, '../..'),
   STATIC_PATH: path.join(__dirname, '../..', 'assets'),
 
-  CHECK_UPDATE_INTERVAL: days(1)
+  CHECK_UPDATE_INTERVAL: hours(24)
 }

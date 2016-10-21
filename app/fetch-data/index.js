@@ -1,4 +1,3 @@
-const { remote } = require('electron')
 const config = require('application-config')('Galeri Images')
 const WaltersMuseum = require('./waltersmuseum')
 const Wikipedia = require('./wikipedia')
@@ -12,7 +11,7 @@ let srcRotator = -1
 let rareSrcRotator = 0
 
 window.addEventListener('beforeunload', () => {
-  saveConfig(() => { remote.app.exit() })
+  saveConfig(() => require('electron').remote.app.exit())
   return false
 })
 
@@ -32,7 +31,6 @@ function saveConfig (next) {
   }))
 }
 
-// TODO set timeout to update image array
 function getNextImage (next) {
   // This is where we'll put the images we want to rarely display,
   // like weird stuff.
