@@ -1,4 +1,8 @@
-const {sendToBackground} = require('./ipc')
+const { BrowserWindow } = require('electron')
+
+function sendToBackground (msg, arg) {
+  return BrowserWindow.getAllWindows()[0].webContents.send(msg, arg)
+}
 
 function noop () {}
 

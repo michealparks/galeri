@@ -1,3 +1,4 @@
+const { parseHTML } = require('../util/string')
 const descriptionEl = document.getElementById('description')
 const descriptionCL = descriptionEl.classList
 const titleEl = descriptionEl.children[0]
@@ -10,7 +11,8 @@ function onTextHide () {
 }
 
 function onTextReplace () {
-  titleEl.textContent = title
+  // Sometimes titles have ugly HTML entities. * Cough Cough Met Museum *
+  titleEl.textContent = parseHTML(title).textContent
   textEl.textContent = text
   descriptionCL.add('no-transition', 'description--left')
   return descriptionCL.remove('description--bottom')

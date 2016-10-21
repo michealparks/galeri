@@ -24,11 +24,7 @@ function getLatestTag (next) {
   return get(reqObj, res => {
     let body = ''
     res.on('data', d => body += d)
-    res.on('end', () => {
-      console.log(JSON.parse(body).tag_name)
-      console.log(semver.clean(JSON.parse(body).tag_name))
-      next(null, JSON.parse(body).tag_name)
-    })
+    res.on('end', () => next(null, JSON.parse(body).tag_name))
     res.on('error', next)
   }).on('error', next)
 }

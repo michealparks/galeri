@@ -34,8 +34,10 @@
   "engines": {
     "node": ">=6.0.0"
   },
+  "optionalDependencies": {
+    "appdmg": "^0.4.5"
+  },
   "devDependencies": {
-    "appdmg": "^0.4.5",
     "asar": "^0.12.3",
     "babel-core": "^6.17.0",
     "babel-loader": "^6.2.5",
@@ -70,7 +72,6 @@
     "application-config": "1.0.1",
     "auto-launch": "4.0.1",
     "buffer": "5.0.0",
-    "electron-positioner": "^3.0.0",
     "electron-squirrel-startup": "1.0.0",
     "image-size": "0.5.0",
     "semver": "5.3.0"

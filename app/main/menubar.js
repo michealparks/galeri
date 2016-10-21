@@ -1,7 +1,7 @@
 const { resolve } = require('path')
 const events = require('events')
 const electron = require('electron')
-const Positioner = require('electron-positioner')
+const Positioner = require('./positioner')
 const { app } = electron
 const menubar = new events.EventEmitter()
 const opts = {

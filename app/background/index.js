@@ -50,7 +50,6 @@ ipcRenderer.on('suspend', () => {
 })
 
 ipcRenderer.on('resume', () => {
-  console.log(isPaused, totalSuspendTime)
   totalSuspendTime += (Date.now() - startSuspendTime)
 
   if (isPaused) return
@@ -105,25 +104,28 @@ function getRemainingTime () {
   return refreshRate - (Date.now() - lastUpdateTime) + clamp(totalSuspendTime, 0, Date.now() - lastUpdateTime)
 }
 
-function onImageFetch (err, data) {
-  if (err) {
-    try {
-      if (err.errType === 'fatal' && process.env.NODE_ENV === 'production') {
-        // TODO crash report
-        return ipcRenderer.send('browser-reset')
-      }
-
-      if (process.env.NODE_ENV === 'development') {
-        console[err.errType](`${err.file}, ${err.fn}: ${err.msg}`)
-      }
-    } catch (e) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error(`ISSUE WITH ERR MSG: ${e}, ${JSON.stringify(err)}`)
-      }
+function interpretErrorAndRestart (err) {
+  try {
+    // An unrecoverable whoopsie-daisy
+    if (err.errType === 'fatal' && process.env.NODE_ENV === 'production') {
+      // TODO crash report
+      return ipcRenderer.send('browser-reset')
     }
 
-    return onOnlineStatusChange()
+    if (process.env.NODE_ENV === 'development') {
+      console[err.errType](`${err.file}, ${err.fn}: ${err.msg}`)
+    }
+  } catch (e) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error(`ISSUE WITH ERR MSG: ${e}, ${JSON.stringify(err)}`)
+    }
   }
+
+  return onOnlineStatusChange()
+}
+
+function onImageFetch (err, data) {
+  if (err) return interpretErrorAndRestart(err)
 
   ipcRenderer.send('artwork', {
     source: data.source,
@@ -133,7 +135,9 @@ function onImageFetch (err, data) {
   return fillBG(data, onImageRender)
 }
 
-function onImageRender (data) {
+function onImageRender (err, data) {
+  if (err) return interpretErrorAndRestart(err)
+
   startTextLifecycle(data)
 
   if (imageCount === 0) ipcRenderer.send('browser-rendered')

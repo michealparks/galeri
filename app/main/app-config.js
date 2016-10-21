@@ -35,7 +35,6 @@ ipcMain.on('preferences', (e, data) =>
 ipcMain.on('request:preferences', (e, data) => {
   if (didInit) return onReqPrefs()
 
-  console.log('request')
   return queue.push(onReqPrefs)
 })
 

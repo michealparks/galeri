@@ -13,11 +13,12 @@ const appLauncher = new AutoLaunch({
 
 let isEnabled
 
-appLauncher.isEnabled().then(data => { isEnabled = data })
+appLauncher.isEnabled().then(data => {
+  log('AUTOLAUNCH', isEnabled)
+  isEnabled = data
+})
 
 getConfig(config => {
-  log('AUTOLAUNCH')
-  log(config)
   if (config.enabled && !isEnabled) appLauncher.enable()
   if (!config.enabled && isEnabled) appLauncher.disable()
 

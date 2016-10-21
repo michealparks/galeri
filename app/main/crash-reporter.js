@@ -1,3 +1,5 @@
+const { app } = require('electron')
+
 function init () {
   const config = require('./config')
 
@@ -7,5 +9,9 @@ function init () {
     submitURL: config.CRASH_REPORT_URL
   })
 }
+
+app.on('gpu-process-crashed', function () {
+  console.error('gpu-process-crashed')
+})
 
 module.exports = { init }
