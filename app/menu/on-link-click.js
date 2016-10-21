@@ -5,4 +5,5 @@ function onLinkClick (e) {
   return shell.openExternal(this.href)
 }
 
-module.exports = onLinkClick
+Array.from(document.querySelectorAll('a[href]'))
+  .forEach(el => { el.onclick = onLinkClick })

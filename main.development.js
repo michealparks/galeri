@@ -1,9 +1,6 @@
 console.time('init')
 
-// TODO restart app and send crash report
-process.on('uncaughtException', function (e) {
-  console.error(e)
-})
+require('./app/main/crash-reporter').init()
 
 const electron = require('electron')
 const { app, BrowserWindow, ipcMain } = electron

@@ -42,10 +42,13 @@ function onError (msg) {
 function onPreload () {
   if (this.status !== 200) return onError(`HTTP status code: ${this.status}`)
 
-  objectURL = URL.createObjectURL(this.response)
+  try {
+    objectURL = URL.createObjectURL(this.response)
+    BGstyle[i].backgroundImage = `url("${objectURL}")`
+  } catch (e) { return onError(e) }
+
   i = (i + 1) % 2
   BG_CL[i].toggle('bg--top', _naturalHeight > _naturalWidth)
-  BGstyle[i].backgroundImage = `url("${objectURL}")`
 
   // Give a ms per pixel for rendering time
   return setTimeout(onRender, _naturalWidth > _naturalHeight ? _naturalWidth : _naturalHeight)
@@ -53,7 +56,6 @@ function onPreload () {
 
 function onRender () {
   BG_CL[1].toggle('bg--active', i === 1)
-  URL.revokeObjectURL(objectURL)
   return _next(null, _data)
 }
 

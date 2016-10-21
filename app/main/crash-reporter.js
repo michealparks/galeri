@@ -10,8 +10,13 @@ function init () {
   })
 }
 
-app.on('gpu-process-crashed', function () {
-  console.error('gpu-process-crashed')
-})
+function onFatalCrash (e) {
+  console.error(e)
+  return app.relaunch()
+}
+
+// TODO send crash report
+app.on('gpu-process-crashed', onFatalCrash)
+process.on('uncaughtException', onFatalCrash)
 
 module.exports = { init }

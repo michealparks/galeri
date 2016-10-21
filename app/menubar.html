@@ -264,7 +264,8 @@ select {
 }
 
 .copyright,
-.quit {
+.quit,
+.devtools {
   position: fixed;
   bottom: 0;
   padding: 3px 10px 5px 10px;
@@ -277,11 +278,15 @@ select {
   background-color: rgba(0, 0, 0, 0.11);
 }
 
-.quit {
+.quit, .devtools {
   right: 0;
 }
 
-.quit:hover {
+.devtools {
+  bottom: 30px;
+}
+
+.quit:hover, .devtools:hover {
   text-decoration: underline;
 }
 
@@ -364,6 +369,9 @@ select {
       <small>Copyright © 2016 Space Egg, LLC</small>
     </div>
 
+    <div id='devtools' class='devtools'>
+      <small>Devtools</small>
+    </div>
     <div id='quit' class='quit'>
       <small>Quit</small>
     </div>

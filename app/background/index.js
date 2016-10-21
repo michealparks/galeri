@@ -67,19 +67,16 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 function onOnlineStatusChange () {
-  if (navigator.onLine && !isPaused) {
-    // First clear any lingering fetches
-    clearTimeout(updateTimerId)
+  // Kill any future fetches
+  clearTimeout(updateTimerId)
 
+  if (navigator.onLine && !isPaused) {
     // Allow the lifecycle to complete a full round
     updateTimerId = -1
 
     // Kick off the lifecycle
     updateImage()
   } else {
-    // Kill any future fetches
-    clearTimeout(updateTimerId)
-
     // If we're in mid-lifecycle, don't allow it to finish
     updateTimerId = -2
   }
@@ -149,7 +146,7 @@ function onImageRender (err, data) {
     }, refreshRate)
   }
 
-  if (updateTimerId === -2) {
+  if (updateTimerId === -2 || isPaused) {
     updateTimerId = -1
     return
   }
