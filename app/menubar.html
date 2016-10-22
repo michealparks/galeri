@@ -14,15 +14,6 @@
 }
 
 @font-face {
-  font-family: 'Roboto Slab';
-  font-style: normal;
-  font-weight: 300;
-  src: local('Roboto Slab Light'),
-       local('RobotoSlab-Light'),
-       url(https://fonts.gstatic.com/s/robotoslab/v6/dazS1PrQQuCxC3iOAJFEJfR_54zmj3SbGZQh3vCOwvY.woff) format('woff');
-}
-
-@font-face {
   font-family: 'icomoon';
   src: url('../assets/icomoon.woff') format('woff');
   font-weight: normal;
@@ -79,8 +70,9 @@
 body {
   overflow: hidden;
   margin: 0;
-  font-family: Roboto Slab, Arimo, Open Sans, helvetica;
-  font-size: 13px;
+  font-family: -apple-system, BlinkMacSystemFont, Helvetica Neue, helvetica;
+  font-weight: 200;
+  font-size: 12px;
   color: #666; /* Hail satan! */
 }
 
@@ -163,7 +155,7 @@ select {
   width: 100%;
   height: calc(100% - 80px);
   padding: 10px;
-  background-color: rgba(255,255,255,0.9)
+  background-color: rgba(255,255,255,0.96)
 }
 
 .icon {
@@ -283,7 +275,7 @@ select {
 }
 
 .devtools {
-  bottom: 30px;
+  position: absolute;
 }
 
 .quit:hover, .devtools:hover {
@@ -324,6 +316,10 @@ select {
       <a id='artwork-link' class='artwork-link' target='_tab' href=''>
         <p>Learn more about it.</p>
       </a>
+
+      <div id='devtools' class='devtools'>
+        <small>Devtools</small>
+      </div>
     </div>
 
     <div class='tab tab--hidden' id='preferences'>
@@ -369,9 +365,6 @@ select {
       <small>Copyright © 2016 Space Egg, LLC</small>
     </div>
 
-    <div id='devtools' class='devtools'>
-      <small>Devtools</small>
-    </div>
     <div id='quit' class='quit'>
       <small>Quit</small>
     </div>

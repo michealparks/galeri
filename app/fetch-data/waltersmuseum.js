@@ -16,11 +16,12 @@ function WaltersMuseum () {
   this.onCollectionResponse = this.onCollectionResponse.bind(this)
 }
 
-WaltersMuseum.prototype = Object.assign(ApiTemplate.prototype)
+WaltersMuseum.prototype = Object.create(ApiTemplate.prototype)
 WaltersMuseum.prototype.constructor = ApiTemplate
+WaltersMuseum.prototype.onCollectionResponse = onCollectionResponse
+WaltersMuseum.prototype.handleItemTransform = handleItemTransform
 
-WaltersMuseum.prototype
-.onCollectionResponse = function () {
+function onCollectionResponse () {
   if (this.req.status !== 200) return this.onError(this.req.status)
 
   this.cache = this.req.response.Items
@@ -33,8 +34,7 @@ WaltersMuseum.prototype
   return this.next()
 }
 
-WaltersMuseum.prototype
-.handleItemTransform = function (next) {
+function handleItemTransform (next) {
   let obj
 
   do { obj = this.cache.pop() }

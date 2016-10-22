@@ -1,6 +1,6 @@
 require('buffer/')
 const { ipcRenderer } = require('electron')
-const fillBG = require('./fill-bg')
+const renderer = require('./renderer')
 const { startTextLifecycle, toggleTextVisibility } = require('./text')
 const { getNextImage, saveConfig } = require('../fetch-data')
 const { minutes } = require('../util/time')
@@ -34,6 +34,7 @@ ipcRenderer.on('log', (e, data) =>
 
 ipcRenderer.on('pause', () => {
   isPaused = true
+  renderer.onPause()
   return clearTimeout(updateTimerId)
 })
 
@@ -115,6 +116,7 @@ function interpretErrorAndRestart (err) {
   } catch (e) {
     if (process.env.NODE_ENV === 'development') {
       console.error(`ISSUE WITH ERR MSG: ${e}, ${JSON.stringify(err)}`)
+      return onOnlineStatusChange()
     }
   }
 
@@ -129,7 +131,7 @@ function onImageFetch (err, data) {
     href: data.href
   })
 
-  return fillBG(data, onImageRender)
+  return renderer.draw(data, onImageRender)
 }
 
 function onImageRender (err, data) {
@@ -146,7 +148,7 @@ function onImageRender (err, data) {
     }, refreshRate)
   }
 
-  if (updateTimerId === -2 || isPaused) {
+  if (isPaused || updateTimerId === -2) {
     updateTimerId = -1
     return
   }

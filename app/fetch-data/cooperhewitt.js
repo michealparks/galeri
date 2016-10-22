@@ -19,9 +19,10 @@ function CooperHewitt () {
 
 CooperHewitt.prototype = Object.create(ApiTemplate.prototype)
 CooperHewitt.prototype.constructor = ApiTemplate
+CooperHewitt.prototype.onCollectionResponse = onCollectionResponse
+CooperHewitt.prototype.handleItemTransform = handleItemTransform
 
-CooperHewitt.prototype
-.onCollectionResponse = function () {
+function onCollectionResponse () {
   if (this.req.status !== 200) return this.onError(this.req.status)
 
   this.cache = this.req.response.objects
@@ -44,8 +45,7 @@ CooperHewitt.prototype
   return this.next()
 }
 
-CooperHewitt.prototype
-.handleItemTransform = function (next) {
+function handleItemTransform (next) {
   let obj
   do {
     if (!this.cache.length) {

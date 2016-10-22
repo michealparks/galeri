@@ -1,14 +1,14 @@
 const ApiTemplate = require('./api-template')
 const shuffle = require('../util/shuffle')
 
-function RijksMuseum () {
+function RijksMuseum (type) {
   const perPage = 100
   const randSeed = Math.ceil(Math.random() * 20)
 
   ApiTemplate.call(this, {
     perPage,
     endpoint: 'https://www.rijksmuseum.nl/api/en/collection',
-    endpointParams: `?key=xPauC1vP&format=json&ps=${perPage}&imgonly=True&type=painting`,
+    endpointParams: `?key=xPauC1vP&format=json&ps=${perPage}&imgonly=True&type=${type}`,
     nextPage: randSeed,
     pageParam: `&p=${randSeed}`
   })
@@ -18,9 +18,10 @@ function RijksMuseum () {
 
 RijksMuseum.prototype = Object.create(ApiTemplate.prototype)
 RijksMuseum.prototype.constructor = ApiTemplate
+RijksMuseum.prototype.onCollectionResponse = onCollectionResponse
+RijksMuseum.prototype.handleItemTransform = handleItemTransform
 
-RijksMuseum.prototype
-.onCollectionResponse = function () {
+function onCollectionResponse () {
   if (this.req.status !== 200) return this.onError(this.req.status)
 
   this.cache = this.req.response.artObjects
@@ -44,8 +45,7 @@ RijksMuseum.prototype
   return this.next()
 }
 
-RijksMuseum.prototype
-.handleItemTransform = function (next) {
+function handleItemTransform (next) {
   let obj
 
   do {
@@ -68,4 +68,4 @@ RijksMuseum.prototype
   })
 }
 
-module.exports = new RijksMuseum()
+module.exports = new RijksMuseum('painting')

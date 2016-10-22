@@ -21,13 +21,15 @@ function ApiTemplate (config = {}) {
   this.endpoint = config.endpoint || this.endpoint || ''
   this.endpointParams = config.endpointParams || ''
   this.pageParam = config.pageParam || ''
-  console.log(config, this)
-
-  this.onError = this.onError.bind(this)
+  this.onError = onError.bind(this)
 }
 
-ApiTemplate.prototype
-.getConfig = function getConfig () {
+ApiTemplate.prototype.getConfig = getConfig
+ApiTemplate.prototype.giveConfig = giveConfig
+ApiTemplate.prototype.getCollectionData = getCollectionData
+ApiTemplate.prototype.getNextItem = getNextItem
+
+function getConfig () {
   return {
     page: this.nextPage,
     results: this.cache,
@@ -36,8 +38,7 @@ ApiTemplate.prototype
   }
 }
 
-ApiTemplate.prototype
-.giveConfig = function giveConfig (config) {
+function giveConfig (config) {
   this.didInit = true
 
   if (config) {
@@ -50,12 +51,12 @@ ApiTemplate.prototype
   if (this.queue) return this.getNextItem(this.queue)
 }
 
-ApiTemplate.prototype
-.getCollectionData = function getCollectionData (next) {
+function getCollectionData (next) {
   this.next = next
   this.req = new XMLHttpRequest()
   this.req.open('GET', `${this.endpoint}${this.endpointParams}${this.pageParam}`, true)
   this.req.responseType = 'json'
+  this.req.timeout = 5000
 
   for (let i = 0, h, l = this.headers.length; i < l; ++i) {
     h = this.headers[i]
@@ -67,8 +68,7 @@ ApiTemplate.prototype
   return this.req.send()
 }
 
-ApiTemplate.prototype
-.onError = function onError (e) {
+function onError (e) {
   this.next({
     errType: 'warn',
     file: 'fetch-data/api-template.js',
@@ -77,8 +77,7 @@ ApiTemplate.prototype
   })
 }
 
-ApiTemplate.prototype
-.getNextItem = function getNextItem (next) {
+function getNextItem (next) {
   if (!this.didInit) {
     this.queue = next
     return

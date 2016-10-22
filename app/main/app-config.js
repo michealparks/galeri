@@ -29,8 +29,7 @@ config.read((err, data) => {
   if (queue.length) return queue.forEach(fn => fn(cache))
 })
 
-ipcMain.on('preferences', (e, data) =>
-  config.write(data))
+ipcMain.on('preferences', (e, data) => config.write(data))
 
 ipcMain.on('request:preferences', (e, data) => {
   if (didInit) return onReqPrefs()

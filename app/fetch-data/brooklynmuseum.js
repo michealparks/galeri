@@ -24,9 +24,10 @@ function BrooklynMuseum () {
 
 BrooklynMuseum.prototype = Object.create(ApiTemplate.prototype)
 BrooklynMuseum.prototype.constructor = ApiTemplate
+BrooklynMuseum.prototype.onCollectionResponse = onCollectionResponse
+BrooklynMuseum.prototype.handleItemTransform = handleItemTransform
 
-BrooklynMuseum.prototype
-.onCollectionResponse = function () {
+function onCollectionResponse () {
   if (this.req.status !== 200) return this.onError(this.req.status)
 
   this.cache = []
@@ -44,8 +45,7 @@ BrooklynMuseum.prototype
   return this.next()
 }
 
-BrooklynMuseum.prototype
-.handleItemTransform = function handleItemTransform (next) {
+function handleItemTransform (next) {
   const obj = this.cache.pop()
 
   return validateImg({

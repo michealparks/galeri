@@ -5,15 +5,26 @@ const RijksMuseum = require('./rijksmuseum')
 const CooperHewitt = require('./cooperhewitt')
 const BrooklynMuseum = require('./brooklynmuseum')
 const MetMuseum = require('./metmuseum')
+const shuffle = require('../util/shuffle')
 const { log, warn } = require('../util/log')
 
-let srcRotator = -1
-let rareSrcRotator = 0
+let rareSourceSelector = fillSourceSelector(Array(2))
+let sourceSelector = fillSourceSelector(Array(6))
 
 window.addEventListener('beforeunload', () => {
   saveConfig(() => require('electron').remote.app.exit())
   return false
 })
+
+config.read(onReadConfig)
+
+function fillSourceSelector (arr) {
+  for (let i = arr.length - 1; i > -1; i--) arr[i] = i
+
+  shuffle(arr)
+
+  return arr
+}
 
 function saveConfig (next) {
   return config.write({
@@ -35,13 +46,19 @@ function getNextImage (next) {
   // This is where we'll put the images we want to rarely display,
   // like weird stuff.
   if (Math.floor(Math.random() * 75) === 5) {
-    switch (++rareSrcRotator % 2) {
+    if (!rareSourceSelector.length) {
+      rareSourceSelector = fillSourceSelector(Array(2))
+    }
+    switch (rareSourceSelector.pop()) {
       case 0: log('Cooper'); return CooperHewitt.getNextItem(next)
       case 1: log('Walters'); return WaltersMuseum.getNextItem(next)
     }
   }
 
-  switch (++srcRotator % 6) {
+  if (!sourceSelector.length) {
+    sourceSelector = fillSourceSelector(Array(6))
+  }
+  switch (sourceSelector.pop()) {
     case 0: log('Wiki'); return Wikipedia.getNextItem(next)
     case 2: log('Walters'); return WaltersMuseum.getNextItem(next)
     case 3: log('Rijks'); return RijksMuseum.getNextItem(next)
@@ -53,7 +70,7 @@ function getNextImage (next) {
   }
 }
 
-config.read(function onReadConfig (err, data) {
+function onReadConfig (err, data) {
   if (err) warn(err)
 
   Wikipedia.giveConfig(data.wikipedia)
@@ -62,7 +79,7 @@ config.read(function onReadConfig (err, data) {
   CooperHewitt.giveConfig(data.cooperHewitt)
   BrooklynMuseum.giveConfig(data.brooklynMuseum)
   MetMuseum.giveConfig(data.metMuseum)
-})
+}
 
 module.exports = {
   saveConfig,

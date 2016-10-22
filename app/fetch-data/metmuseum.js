@@ -19,9 +19,10 @@ function MetMuseum () {
 
 MetMuseum.prototype = Object.create(ApiTemplate.prototype)
 MetMuseum.prototype.constructor = ApiTemplate
+MetMuseum.prototype.onCollectionResponse = onCollectionResponse
+MetMuseum.prototype.handleItemTransform = handleItemTransform
 
-MetMuseum.prototype
-.onCollectionResponse = function () {
+function onCollectionResponse () {
   if (this.req.status !== 200) return this.onError(this.req.status)
 
   this.cache = this.req.response.results
@@ -45,8 +46,7 @@ MetMuseum.prototype
   return this.next()
 }
 
-MetMuseum.prototype
-.handleItemTransform = function (next) {
+function handleItemTransform (next) {
   const obj = this.cache.pop()
 
   return validateImg({

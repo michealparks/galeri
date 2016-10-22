@@ -6,7 +6,8 @@ const shuffle = require('../util/shuffle')
 function Wikipedia (type) {
   ApiTemplate.call(this, {
     endpoint: 'https://en.wikipedia.org/w/api.php',
-    endpointParams: `?action=parse&prop=text&page=Wikipedia:Featured%20pictures/Artwork/${type}&format=json&origin=*`
+    endpointParams: `?action=parse&prop=text&page=Wikipedia:Featured%20pictures/Artwork/${type}&format=json&origin=*`,
+    pageParam: ''
   })
 
   this.onCollectionResponse = this.onCollectionResponse.bind(this)
@@ -15,13 +16,16 @@ function Wikipedia (type) {
 
 Wikipedia.prototype = Object.create(ApiTemplate.prototype)
 Wikipedia.prototype.constructor = ApiTemplate
+Wikipedia.prototype.onCollectionResponse = onCollectionResponse
+Wikipedia.prototype.handleItemTransform = handleItemTransform
+Wikipedia.prototype.getDescription = getDescription
+Wikipedia.prototype.onDescriptionLoad = onDescriptionLoad
 
 Wikipedia.prototype.template = document.createElement('template')
 Wikipedia.prototype.pixelRegex = /[0-9]{3,4}px/
 Wikipedia.prototype.parenRegex = / *\([^)]*\) */g
 
-Wikipedia.prototype
-.onCollectionResponse = function () {
+function onCollectionResponse () {
   if (this.req.status !== 200) return this.onError(this.req.status)
 
   if (!this.req.response) {
@@ -55,8 +59,7 @@ Wikipedia.prototype
   return this.next()
 }
 
-Wikipedia.prototype
-.handleItemTransform = function (next) {
+function handleItemTransform (next) {
   this.nextImage = this.cache.pop()
   // this.getDescription(this.nextImage.href.replace('https://wikipedia.org/wiki/', ''))
 
@@ -73,8 +76,7 @@ Wikipedia.prototype
     }))
 }
 
-Wikipedia.prototype
-.getDescription = function (title) {
+function getDescription (title) {
   this.desReq = new XMLHttpRequest()
   this.desReq.open('GET', `${this.endpoint}?action=parse&prop=text&page=${title}&format=json&origin=*`, true)
   this.desReq.responseType = 'json'
@@ -82,8 +84,7 @@ Wikipedia.prototype
   this.desReq.send()
 }
 
-Wikipedia.prototype
-.onDescriptionLoad = function () {
+function onDescriptionLoad () {
   this.template.innerHTML = this.desReq.response.parse.text['*']
 
   this.description = this.template.content
