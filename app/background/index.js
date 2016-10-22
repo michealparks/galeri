@@ -9,7 +9,7 @@ const updateImage = getNextImage.bind(null, onImageFetch)
 
 let refreshRate = minutes(30)
 let imageCount = 0
-let imagesUntilRestart = 2
+let imagesUntilRestart = 20
 let isPaused = false
 
 let lastUpdateTime = Date.now()
