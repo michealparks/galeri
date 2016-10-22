@@ -21,6 +21,7 @@ function ApiTemplate (config = {}) {
   this.endpoint = config.endpoint || this.endpoint || ''
   this.endpointParams = config.endpointParams || ''
   this.pageParam = config.pageParam || ''
+  console.log(config, this)
 
   this.onError = this.onError.bind(this)
 }

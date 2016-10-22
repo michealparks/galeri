@@ -5,6 +5,7 @@ const shuffle = require('../util/shuffle')
 
 function Wikipedia (type) {
   ApiTemplate.call(this, {
+    endpoint: 'https://en.wikipedia.org/w/api.php',
     endpointParams: `?action=parse&prop=text&page=Wikipedia:Featured%20pictures/Artwork/${type}&format=json&origin=*`
   })
 
@@ -16,7 +17,6 @@ Wikipedia.prototype = Object.create(ApiTemplate.prototype)
 Wikipedia.prototype.constructor = ApiTemplate
 
 Wikipedia.prototype.template = document.createElement('template')
-Wikipedia.prototype.endpoint = 'https://en.wikipedia.org/w/api.php'
 Wikipedia.prototype.pixelRegex = /[0-9]{3,4}px/
 Wikipedia.prototype.parenRegex = / *\([^)]*\) */g
 
