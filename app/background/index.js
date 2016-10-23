@@ -35,6 +35,8 @@ window.addEventListener('offline', onOnlineStatusChange)
 ipcRenderer.on('log', (e, data) =>
   data.args.forEach(arg => console[data.type]('main process: ', arg)))
 
+ipcRenderer.on('preferences', (e, data) => onGetPreferences(data))
+
 ipcRenderer.on('pause', () => {
   isPaused = true
   renderer.onPause()
@@ -86,8 +88,12 @@ function onGetPreferences (data) {
   // we don't need to persist this data to memory since it's just a toggle
   toggleTextVisibility(data.showTextOnDesktop)
 
+  console.log(refreshRate, data, data.refreshRate === refreshRate)
+
   if (data.refreshRate === refreshRate) return
+
   clearTimeout(updateTimerId)
+
   refreshRate = data.refreshRate
 
   if (!isPaused) {
@@ -125,11 +131,7 @@ function interpretErrorAndRestart (err) {
 function onImageFetch (err, data) {
   if (err) return interpretErrorAndRestart(err)
 
-  console.log('ART!', data)
-  ipcRenderer.send('artwork', {
-    source: data.source,
-    href: data.href
-  })
+  ipcRenderer.send('artwork', data)
 
   return renderer.draw(data, onImageRender)
 }

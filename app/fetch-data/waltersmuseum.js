@@ -43,8 +43,7 @@ function handleItemTransform (next) {
   do { obj = this.cache.pop() }
   while (!obj.PrimaryImage || !obj.PrimaryImage.Raw)
 
-  console.log(this.minHeight, this.minWidth)
-  validateImg({
+  return validateImg({
     url: obj.PrimaryImage.Raw,
     minHeight: this.minHeight,
     minWidth: this.minWidth

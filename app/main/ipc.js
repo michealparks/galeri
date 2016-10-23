@@ -1,8 +1,14 @@
 const { ipcMain, BrowserWindow } = require('electron')
 
+let tray
+
 const ids = {
   background: null,
   menubar: null
+}
+
+function cacheTray (t) {
+  tray = t
 }
 
 function cacheId (name, id) {
@@ -27,9 +33,13 @@ function sendToMenubar (msg, arg) {
 ipcMain.on('preferences', (e, arg) => sendToBackground('preferences', arg))
 ipcMain.on('play', sendToBackground.bind(null, 'play'))
 ipcMain.on('pause', sendToBackground.bind(null, 'pause'))
-ipcMain.on('artwork', (e, arg) => sendToMenubar('artwork', arg))
+ipcMain.on('artwork', (e, arg) => {
+  tray.setToolTip(`${arg.title}\n${arg.text}`)
+  sendToMenubar('artwork', arg)
+})
 
 module.exports = {
+  cacheTray,
   cacheId,
   sendToWindows,
   sendToBackground,

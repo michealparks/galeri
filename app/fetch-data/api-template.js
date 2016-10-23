@@ -58,7 +58,6 @@ function giveConfig (config) {
 }
 
 function getCollectionData (next) {
-  console.log(this.pageParam)
   this.next = next
   this.req = new XMLHttpRequest()
   this.req.open('GET', `${this.endpoint}${this.endpointParams}${this.pageParam}`, true)

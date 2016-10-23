@@ -6,6 +6,7 @@ const electron = require('electron')
 const { cacheId, sendToWindows } = require('./app/main/ipc')
 const { app, BrowserWindow, ipcMain } = electron
 const delayedInitTime = 3000
+let screen
 let menubarWindow
 let backgroundWindow = []
 
@@ -51,6 +52,10 @@ function init () {
 }
 
 function onReady () {
+  screen = electron.screen
+
+  screen.on('display-metrics-changed', () => setTimeout(resizeBackgrounds))
+
   makeBackgroundWindow()
 
   electron.powerMonitor.on('suspend', sendToWindows.bind(null, 'suspend'))
@@ -81,13 +86,13 @@ function onBrowserDestroyReady () {
 }
 
 function makeBackgroundWindow () {
-  const { width, height } = electron.screen.getPrimaryDisplay().size
+  const { width, height } = screen.getPrimaryDisplay().size
 
   let win = new BrowserWindow({
-    x: -10,
-    y: -10,
-    width: width + 20,
-    height: height + 20,
+    x: 0,
+    y: 0,
+    width: width,
+    height: height,
     type: 'desktop',
     resizable: false,
     title: 'Galeri',
@@ -114,4 +119,12 @@ function makeBackgroundWindow () {
   }
 
   backgroundWindow.push(win)
+}
+
+function resizeBackgrounds () {
+  const { width, height } = screen.getPrimaryDisplay().size
+  backgroundWindow.forEach(win => {
+    win.setPosition(0, 0)
+    win.setSize(width, height)
+  })
 }

@@ -2,7 +2,7 @@ const { resolve } = require('path')
 const events = require('events')
 const electron = require('electron')
 const Positioner = require('./positioner')
-const { cacheId } = require('./ipc')
+const { cacheId, cacheTray } = require('./ipc')
 const { app } = electron
 const menubar = new events.EventEmitter()
 const opts = {
@@ -32,6 +32,8 @@ function appReady () {
   menubar.tray.on('click', clicked)
   menubar.tray.on('double-click', clicked)
   menubar.tray.setToolTip('Galeri')
+
+  cacheTray(menubar.tray)
 
   try {
     menubar.tray.setHighlightMode('never')

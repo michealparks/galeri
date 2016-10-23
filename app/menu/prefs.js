@@ -15,7 +15,7 @@ ShowTextOnDesktopBtn.onclick = function () {
 }
 
 RefreshRateBtn.onchange = function () {
-  preferences.refreshRate = this.value
+  preferences.refreshRate = Number(this.value)
 
   return ipcRenderer.send('preferences', preferences)
 }

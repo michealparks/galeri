@@ -54,10 +54,8 @@ function getNextImage (next) {
   //   }
   // }
 
-  if (!sourceSelector.length) {
-    sourceSelector = fillSourceSelector()
-  }
-  console.log(sourceSelector, new Date())
+  if (!sourceSelector.length) sourceSelector = fillSourceSelector()
+
   switch (sourceSelector.pop()) {
     case 0: log('Wiki'); return Wikipedia.getNextItem(next)
     case 2: log('Walters'); return WaltersMuseum.getNextItem(next)
@@ -73,8 +71,6 @@ function getNextImage (next) {
 
 function onReadConfig (err, data) {
   if (err) warn(err)
-
-  console.log(data)
 
   Wikipedia.giveConfig(data.wikipedia)
   RijksMuseum.giveConfig(data.rijksMuseum)
