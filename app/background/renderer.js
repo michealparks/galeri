@@ -13,20 +13,23 @@ function draw (data, next) {
   _naturalHeight = data.naturalHeight
   _next = next
   _data = data
-  return requestImage(`${data.img}?${Date.now()}`)
+  return requestImage(data.img)
 }
 
 function requestImage (url) {
+  console.log('requestImage')
   req = new XMLHttpRequest()
   req.open('GET', url, true)
-  req.timeout = 5000
+  req.timeout = 7000
   req.responseType = 'blob'
   req.onload = onPreload
+  req.ontimeout = onError
   req.onerror = onError
   return req.send()
 }
 
 function onError (msg) {
+  console.log('onError()', msg)
   return _next({
     errType: 'warn',
     file: 'background/fill-bg.js',
