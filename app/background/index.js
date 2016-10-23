@@ -5,7 +5,6 @@ const { startTextLifecycle, toggleTextVisibility } = require('./text')
 const { getNextImage, saveConfig } = require('../fetch-data')
 const config = require('../util/config')
 const { minutes } = require('../util/time')
-const { clamp } = require('../util/math')
 const updateImage = getNextImage.bind(null, onImageFetch)
 
 let refreshRate = minutes(30)
@@ -102,7 +101,11 @@ function onGetPreferences (data) {
 function getRemainingTime () {
   // time until next fetch minus the amount of time elapsed since last fetch
   // time while suspended is given back to the time until next fetch
-  return refreshRate - (Date.now() - lastUpdateTime) + clamp(totalSuspendTime, 0, Date.now() - lastUpdateTime)
+  const timeSinceLastUpdate = Date.now() - lastUpdateTime
+  const timeUntilNextUpdate = refreshRate - timeSinceLastUpdate + totalSuspendTime
+
+  console.log(`Next image in ${timeUntilNextUpdate / 1000 / 60} minutes`)
+  return timeUntilNextUpdate
 }
 
 function interpretErrorAndRestart (err) {
