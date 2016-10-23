@@ -76,6 +76,8 @@ function validateImg (_input, _next) {
   req = (options.protocol === 'http:' ? http : https)
     .get(options, onResponse)
     .on('error', onError)
+
+  return req.setTimeout(2000)
 }
 
 module.exports = validateImg

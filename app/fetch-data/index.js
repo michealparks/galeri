@@ -40,7 +40,7 @@ function saveConfig (next) {
 }
 
 function getNextImage (next) {
-  console.log(new Date())
+  console.log('getNextImage()')
 
   // This is where we'll put the images we want to rarely display,
   // like weird stuff.

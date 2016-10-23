@@ -84,6 +84,7 @@ function onError (e) {
 }
 
 function getNextItem (next) {
+  console.log('getNextItem()', this.didInit, this.cache.length)
   if (!this.didInit) {
     this.queue = next
     return
