@@ -88,8 +88,6 @@ function onGetPreferences (data) {
   // we don't need to persist this data to memory since it's just a toggle
   toggleTextVisibility(data.showTextOnDesktop)
 
-  console.log(refreshRate, data, data.refreshRate === refreshRate)
-
   if (data.refreshRate === refreshRate) return
 
   clearTimeout(updateTimerId)
