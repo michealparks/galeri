@@ -24,7 +24,7 @@ let supportsTrayHighlightState = false
 app.on('ready', appReady)
 
 function appReady () {
-  app.dock.hide()
+  if (process.platform !== 'win32') app.dock.hide()
 
   menubar.tray = new electron.Tray(process.env.NODE_ENV === 'production'
     ? `${__dirname}/assets/icon_32x32.png`

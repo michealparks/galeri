@@ -8,6 +8,7 @@ let req, objectURL, restoreIndex, renderTimerId
 let _next, _data, _naturalWidth, _naturalHeight
 
 function draw (data, next) {
+  console.log('draw()', data, next)
   _naturalWidth = data.naturalWidth
   _naturalHeight = data.naturalHeight
   _next = next
@@ -35,6 +36,7 @@ function onError (msg) {
 }
 
 function onPreload () {
+  console.log('onPreload()', this.status, this.response)
   if (this.status !== 200) {
     return onError(`HTTP status code: ${this.status}`)
   }
@@ -56,6 +58,7 @@ function onPreload () {
 }
 
 function onRender () {
+  console.log('onRender()', i)
   BG_CL[1].toggle('bg--active', i === 1)
 
   return _next(null, _data)
