@@ -127,6 +127,7 @@ function interpretErrorAndRestart (err) {
 }
 
 function onImageFetch (err, data) {
+  console.log('onImageFetch()', err, data)
   if (err) return interpretErrorAndRestart(err)
 
   ipcRenderer.send('artwork', data)
@@ -135,12 +136,14 @@ function onImageFetch (err, data) {
 }
 
 function onImageRender (err, data) {
+  console.log('onImageRender()', err, data)
   if (err) return interpretErrorAndRestart(err)
 
   startTextLifecycle(data)
 
   if (imageCount === 0) ipcRenderer.send('browser-rendered')
 
+  console.log('imageCount', imageCount)
   if (++imageCount >= imagesUntilRestart) {
     return setTimeout(() => {
       startTextLifecycle()
@@ -155,5 +158,7 @@ function onImageRender (err, data) {
 
   totalSuspendTime = 0
   lastUpdateTime = Date.now()
+
+  console.log(`updateTimerId = setTimeout(updateImage, ${refreshRate / 1000 / 60}min)`)
   updateTimerId = setTimeout(updateImage, refreshRate)
 }
