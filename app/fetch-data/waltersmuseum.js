@@ -8,17 +8,16 @@ function WaltersMuseum () {
   ApiTemplate.call(this, {
     perPage,
     endpoint: 'http://api.thewalters.org/v1/objects',
-    endpointParams: '?apikey=ar9kcanGaRe3Wk4b5wyNdcqZJgYS7VQoQihXukTZPGwtHrxG78hfCZJx1aQv1K95',
+    endpointParams: '?apikey=ar9kcanGaRe3Wk4b5wyNdcqZJgYS7VQoQihXukTZPGwtHrxG78hfCZJx1aQv1K95&classification=painting',
     nextPage: 1,
     pageParam: '&page=1'
   })
 
-  this.onCollectionResponse = this.onCollectionResponse.bind(this)
+  this.onCollectionResponse = onCollectionResponse.bind(this)
 }
 
 WaltersMuseum.prototype = Object.create(ApiTemplate.prototype)
 WaltersMuseum.prototype.constructor = ApiTemplate
-WaltersMuseum.prototype.onCollectionResponse = onCollectionResponse
 WaltersMuseum.prototype.handleItemTransform = handleItemTransform
 
 function onCollectionResponse () {
@@ -26,10 +25,14 @@ function onCollectionResponse () {
 
   this.cache = this.req.response.Items
 
-  shuffle(this.cache)
-
-  if (this.req.response.NextPage) ++this.nextPage
+  if (this.req.response.NextPage) this.nextPage += 1
   else this.nextPage = 0
+
+  this.pageParam = `&page=${this.nextPage}`
+
+  if (!this.cache.length) return this.onError('WaltersMuseum: no images.')
+
+  shuffle(this.cache)
 
   return this.next()
 }
@@ -40,10 +43,11 @@ function handleItemTransform (next) {
   do { obj = this.cache.pop() }
   while (!obj.PrimaryImage || !obj.PrimaryImage.Raw)
 
+  console.log(this.minHeight, this.minWidth)
   validateImg({
     url: obj.PrimaryImage.Raw,
-    minHeight: window.innerHeight * window.devicePixelRatio * 0.55,
-    minWidth: window.innerWidth * window.devicePixelRatio * 0.55
+    minHeight: this.minHeight,
+    minWidth: this.minWidth
   }, (err, data) => err ? next(err) : next(null, {
     source: 'The Walters Art Museum',
     href: obj.ResourceURL,

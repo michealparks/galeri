@@ -1,36 +1,36 @@
 const { ipcMain, BrowserWindow } = require('electron')
 
-let windows
+const ids = {
+  background: null,
+  menubar: null
+}
 
-function init () {
-  windows = BrowserWindow.getAllWindows()
+function cacheId (name, id) {
+  ids[name] = id
 }
 
 function sendToWindows (msg, arg) {
-  windows[0].webContents.send(msg, arg)
-  windows[1].webContents.send(msg, arg)
+  return BrowserWindow.getAllWindows().forEach(win =>
+    win.webContents.send(msg, arg)
+  )
 }
 
 function sendToBackground (msg, arg) {
-  windows[0].webContents.send(msg, arg)
+  return BrowserWindow.fromId(ids.background).webContents.send(msg, arg)
 }
 
 function sendToMenubar (msg, arg) {
-  windows[1].webContents.send(msg, arg)
+  return BrowserWindow.fromId(ids.menubar).webContents.send(msg, arg)
 }
 
 // preferences can only be toggled from menubar, so send to background
-ipcMain.on('preferences', (e, arg) =>
-  sendToBackground('preferences', arg))
-
-ipcMain.on('artwork', (e, arg) =>
-  sendToMenubar('artwork', arg))
-
+ipcMain.on('preferences', (e, arg) => sendToBackground('preferences', arg))
 ipcMain.on('play', sendToBackground.bind(null, 'play'))
 ipcMain.on('pause', sendToBackground.bind(null, 'pause'))
+ipcMain.on('artwork', (e, arg) => sendToMenubar('artwork', arg))
 
 module.exports = {
-  init,
+  cacheId,
   sendToWindows,
   sendToBackground,
   sendToMenubar

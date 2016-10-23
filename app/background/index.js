@@ -3,6 +3,7 @@ const { ipcRenderer } = require('electron')
 const renderer = require('./renderer')
 const { startTextLifecycle, toggleTextVisibility } = require('./text')
 const { getNextImage, saveConfig } = require('../fetch-data')
+const config = require('../util/config')
 const { minutes } = require('../util/time')
 const { clamp } = require('../util/math')
 const updateImage = getNextImage.bind(null, onImageFetch)
@@ -16,6 +17,8 @@ let lastUpdateTime = Date.now()
 let startSuspendTime = 0
 let totalSuspendTime = 0
 let updateTimerId = -1
+
+config.get(onGetPreferences)
 
 window.addEventListener('error', e => {
   console.error(`Error propagated to window. This should not happen. Message: ${e}`)
@@ -57,10 +60,6 @@ ipcRenderer.on('resume', () => {
   updateTimerId = setTimeout(onOnlineStatusChange, getRemainingTime())
 })
 
-ipcRenderer.on('preferences', onGetPreferences)
-
-ipcRenderer.send('request:preferences')
-
 onOnlineStatusChange()
 
 if (process.env.NODE_ENV === 'development') {
@@ -83,7 +82,7 @@ function onOnlineStatusChange () {
   }
 }
 
-function onGetPreferences (e, data) {
+function onGetPreferences (data) {
   // we don't need to persist this data to memory since it's just a toggle
   toggleTextVisibility(data.showTextOnDesktop)
 
@@ -126,6 +125,7 @@ function interpretErrorAndRestart (err) {
 function onImageFetch (err, data) {
   if (err) return interpretErrorAndRestart(err)
 
+  console.log('ART!', data)
   ipcRenderer.send('artwork', {
     source: data.source,
     href: data.href

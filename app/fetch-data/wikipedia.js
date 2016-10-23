@@ -10,16 +10,14 @@ function Wikipedia (type) {
     pageParam: ''
   })
 
-  this.onCollectionResponse = this.onCollectionResponse.bind(this)
-  this.onDescriptionLoad = this.onDescriptionLoad.bind(this)
+  this.onCollectionResponse = onCollectionResponse.bind(this)
+  this.onDescriptionLoad = onDescriptionLoad.bind(this)
 }
 
 Wikipedia.prototype = Object.create(ApiTemplate.prototype)
 Wikipedia.prototype.constructor = ApiTemplate
-Wikipedia.prototype.onCollectionResponse = onCollectionResponse
 Wikipedia.prototype.handleItemTransform = handleItemTransform
 Wikipedia.prototype.getDescription = getDescription
-Wikipedia.prototype.onDescriptionLoad = onDescriptionLoad
 
 Wikipedia.prototype.template = document.createElement('template')
 Wikipedia.prototype.pixelRegex = /[0-9]{3,4}px/
@@ -86,9 +84,7 @@ function getDescription (title) {
 
 function onDescriptionLoad () {
   this.template.innerHTML = this.desReq.response.parse.text['*']
-
-  this.description = this.template.content
-    .querySelector('p').innerHTML
+  this.description = this.template.content.querySelector('p').innerHTML
 
   const text = this.template.content.querySelector('p').innerHTML.split('. ')
 }

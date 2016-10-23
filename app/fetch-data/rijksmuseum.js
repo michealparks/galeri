@@ -13,12 +13,11 @@ function RijksMuseum (type) {
     pageParam: `&p=${randSeed}`
   })
 
-  this.onCollectionResponse = this.onCollectionResponse.bind(this)
+  this.onCollectionResponse = onCollectionResponse.bind(this)
 }
 
 RijksMuseum.prototype = Object.create(ApiTemplate.prototype)
 RijksMuseum.prototype.constructor = ApiTemplate
-RijksMuseum.prototype.onCollectionResponse = onCollectionResponse
 RijksMuseum.prototype.handleItemTransform = handleItemTransform
 
 function onCollectionResponse () {
@@ -26,9 +25,7 @@ function onCollectionResponse () {
 
   this.cache = this.req.response.artObjects
 
-  shuffle(this.cache)
-
-  if (!this.viewedPages || !this.viewedPages.length) {
+  if (!this.viewedPages.length) {
     this.totalPages = Math.ceil(this.req.response.count / this.perPage)
     this.viewedPages = []
 
@@ -40,8 +37,12 @@ function onCollectionResponse () {
   }
 
   this.nextPage = this.viewedPages.pop()
-
   this.pageParam = `&page=${this.nextPage}`
+
+  if (!this.cache.length) return this.onError('RijksMuseum: no images.')
+
+  shuffle(this.cache)
+
   return this.next()
 }
 
@@ -49,11 +50,19 @@ function handleItemTransform (next) {
   let obj
 
   do {
-    if (!this.cache.length) return next('No Images')
+    if (!this.cache.length) {
+      return next({
+        errType: 'warn',
+        file: 'fetch-data/rijksmuseum',
+        fn: 'handleItemTransform()',
+        msg: 'No Images'
+      })
+    }
+
     obj = this.cache.pop()
   } while (obj.webImage === null ||
-           obj.webImage.width < window.innerWidth * (window.devicePixelRatio * 0.77) ||
-           obj.webImage.height < window.innerHeight * (window.devicePixelRatio * 0.77))
+           obj.webImage.width < this.minWidth ||
+           obj.webImage.height < this.minHeight)
 
   const text = obj.longTitle.split(',')
 

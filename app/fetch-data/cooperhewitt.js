@@ -3,23 +3,20 @@ const shuffle = require('../util/shuffle')
 
 function CooperHewitt () {
   const perPage = 100
-  const apiKey = '065eb1fb4238bb6af1fbf030b2ccade8'
-  const endpointParams = `?method=cooperhewitt.search.objects&access_token=${apiKey}&on_display=true&has_images=true&has_no_known_copyright=true&per_page=${perPage}`
 
   ApiTemplate.call(this, {
-    endpointParams,
-    perPage,
     endpoint: 'https://api.collection.cooperhewitt.org/rest/',
+    endpointParams: `?method=cooperhewitt.search.objects&access_token=065eb1fb4238bb6af1fbf030b2ccade8&on_display=true&has_images=true&has_no_known_copyright=true&per_page=${perPage}`,
+    perPage,
     nextPage: 1,
     pageParam: '&page=1'
   })
 
-  this.onCollectionResponse = this.onCollectionResponse.bind(this)
+  this.onCollectionResponse = onCollectionResponse.bind(this)
 }
 
 CooperHewitt.prototype = Object.create(ApiTemplate.prototype)
 CooperHewitt.prototype.constructor = ApiTemplate
-CooperHewitt.prototype.onCollectionResponse = onCollectionResponse
 CooperHewitt.prototype.handleItemTransform = handleItemTransform
 
 function onCollectionResponse () {
@@ -27,9 +24,7 @@ function onCollectionResponse () {
 
   this.cache = this.req.response.objects
 
-  shuffle(this.cache)
-
-  if (!this.viewedPages || !this.viewedPages.length) {
+  if (!this.viewedPages.length) {
     this.totalPages = Math.ceil(this.req.response.total / this.perPage)
     this.viewedPages = []
 
@@ -41,6 +36,11 @@ function onCollectionResponse () {
   }
 
   this.nextPage = this.viewedPages.pop()
+  this.pageParam = `&page=${this.nextPage}`
+
+  if (!this.cache.length) return this.onError('CooperHewitt: no images.')
+
+  shuffle(this.cache)
 
   return this.next()
 }
@@ -60,8 +60,8 @@ function handleItemTransform (next) {
     obj = this.cache.pop()
   } while (!obj.images[0] ||
            !obj.images[0].x ||
-            obj.images[0].x.width < window.innerWidth * (window.devicePixelRatio * 0.75) ||
-            obj.images[0].x.height < window.innerHeight * (window.devicePixelRatio * 0.75))
+            obj.images[0].x.width < this.minWidth ||
+            obj.images[0].x.height < this.minHeight)
 
   return next(null, {
     source: 'Cooper Hewitt, Smithsonian Design Museum',

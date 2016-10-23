@@ -4,7 +4,7 @@ const BGstyle = [BG[0].style, BG[1].style]
 const BG_CL = [BG[0].classList, BG[1].classList]
 
 let i = 0
-let req, objectURL, oldObjectURL, restoreIndex, renderTimerId
+let req, objectURL, restoreIndex, renderTimerId
 let _next, _data, _naturalWidth, _naturalHeight
 
 function draw (data, next) {
@@ -58,28 +58,10 @@ function onPreload () {
 function onRender () {
   BG_CL[1].toggle('bg--active', i === 1)
 
-  req = null
-  renderTimerId = null
-  restoreIndex = null
-
-  setTimeout(revokeObjectURL, 5000)
   return _next(null, _data)
 }
 
-function revokeObjectURL () {
-  if (oldObjectURL) {
-    try {
-      URL.revokeObjectURL(oldObjectURL)
-    } catch (e) {
-      console.error(e)
-    }
-  }
-
-  oldObjectURL = objectURL
-}
-
 function onPause () {
-  console.log(req, req.readyState, renderTimerId, restoreIndex)
   if (req && req.readyState !== 4) req.abort()
   if (renderTimerId) clearTimeout(renderTimerId)
   if (restoreIndex) i = restoreIndex

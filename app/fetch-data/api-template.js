@@ -24,10 +24,16 @@ function ApiTemplate (config = {}) {
   this.onError = onError.bind(this)
 }
 
+const DPR = window.devicePixelRatio
+const IH = window.innerHeight
+const IW = window.innerWidth
+
 ApiTemplate.prototype.getConfig = getConfig
 ApiTemplate.prototype.giveConfig = giveConfig
 ApiTemplate.prototype.getCollectionData = getCollectionData
 ApiTemplate.prototype.getNextItem = getNextItem
+ApiTemplate.prototype.minHeight = IH * (DPR > 1.5 ? DPR * 0.7 : DPR * 0.8)
+ApiTemplate.prototype.minWidth = IW * (DPR > 1.5 ? DPR * 0.7 : DPR * 0.8)
 
 function getConfig () {
   return {
@@ -42,9 +48,9 @@ function giveConfig (config) {
   this.didInit = true
 
   if (config) {
-    this.nextPage = config.page
-    this.cache = config.results
-    this.viewedPages = config.viewedPages
+    this.nextPage = config.page || 1
+    this.cache = config.results || []
+    this.viewedPages = config.viewedPages || []
     this.totalPages = config.totalPages
   }
 
@@ -52,6 +58,7 @@ function giveConfig (config) {
 }
 
 function getCollectionData (next) {
+  console.log(this.pageParam)
   this.next = next
   this.req = new XMLHttpRequest()
   this.req.open('GET', `${this.endpoint}${this.endpointParams}${this.pageParam}`, true)

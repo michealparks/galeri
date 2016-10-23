@@ -3,6 +3,7 @@ console.time('init')
 require('./app/main/crash-reporter').init()
 
 const electron = require('electron')
+const { cacheId, sendToWindows } = require('./app/main/ipc')
 const { app, BrowserWindow, ipcMain } = electron
 const delayedInitTime = 3000
 let menubarWindow
@@ -52,12 +53,8 @@ function init () {
 function onReady () {
   makeBackgroundWindow()
 
-  const ipc = require('./app/main/ipc')
-
-  ipc.init()
-
-  electron.powerMonitor.on('suspend', ipc.sendToWindows.bind(null, 'suspend'))
-  electron.powerMonitor.on('resume', ipc.sendToWindows.bind(null, 'resume'))
+  electron.powerMonitor.on('suspend', sendToWindows.bind(null, 'suspend'))
+  electron.powerMonitor.on('resume', sendToWindows.bind(null, 'resume'))
 
   // To keep app startup fast, some non-essential code is delayed.
   return setTimeout(onDelayedStartup, delayedInitTime)
@@ -104,6 +101,9 @@ function makeBackgroundWindow () {
     enableLargerThanScreen: true
   })
 
+  cacheId('background', win.id)
+
+  win.setVisibleOnAllWorkspaces(true)
   win.once('ready-to-show', win.showInactive)
   win.on('closed', () => { win = null })
   win.loadURL(`file://${__dirname}/app/background.html`)

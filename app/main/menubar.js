@@ -2,21 +2,13 @@ const { resolve } = require('path')
 const events = require('events')
 const electron = require('electron')
 const Positioner = require('./positioner')
+const { cacheId } = require('./ipc')
 const { app } = electron
 const menubar = new events.EventEmitter()
 const opts = {
   dir: resolve(app.getAppPath()),
-  tooltip: '',
-  index: process.env.NODE_ENV === 'production'
-    ? `file://${__dirname}/app/menubar.html`
-    : `file://${__dirname}/../../app/menubar.html`,
-  icon: process.env.NODE_ENV === 'production'
-    ? `${__dirname}/assets/icon_32x32.png`
-    : `${__dirname}/../../assets/icon_32x32.png`,
-  preloadWindow: true,
   resizable: false,
   alwaysOnTop: process.env.NODE_ENV === 'development',
-  showDockIcon: process.env.NODE_ENV === 'development',
   windowPosition: (process.platform === 'win32') ? 'trayBottomCenter' : 'trayCenter',
   transparent: true,
   show: false,
@@ -32,12 +24,14 @@ let supportsTrayHighlightState = false
 app.on('ready', appReady)
 
 function appReady () {
-  if (app.dock && !opts.showDockIcon) app.dock.hide()
+  app.dock.hide()
 
-  menubar.tray = new electron.Tray(opts.icon)
+  menubar.tray = new electron.Tray(process.env.NODE_ENV === 'production'
+    ? `${__dirname}/assets/icon_32x32.png`
+    : `${__dirname}/../../assets/icon_32x32.png`)
   menubar.tray.on('click', clicked)
   menubar.tray.on('double-click', clicked)
-  menubar.tray.setToolTip(opts.tooltip)
+  menubar.tray.setToolTip('Galeri')
 
   try {
     menubar.tray.setHighlightMode('never')
@@ -55,19 +49,21 @@ function createWindow () {
   menubar.window = new electron.BrowserWindow(opts)
   menubar.positioner = new Positioner(menubar.window)
 
+  cacheId('menubar', menubar.window.id)
+
   menubar.window.on('blur', () => opts.alwaysOnTop
     ? menubar.emit('focus-lost')
     : hideWindow())
 
-  if (opts.showOnAllWorkspaces !== false) {
-    menubar.window.setVisibleOnAllWorkspaces(true)
-  }
+  menubar.window.setVisibleOnAllWorkspaces(true)
 
   menubar.window.on('close', () => {
     delete menubar.window
     return menubar.emit('after-close')
   })
-  menubar.window.loadURL(opts.index)
+  menubar.window.loadURL(process.env.NODE_ENV === 'production'
+    ? `file://${__dirname}/app/menubar.html`
+    : `file://${__dirname}/../../app/menubar.html`)
   menubar.emit('after-create-window')
 }
 

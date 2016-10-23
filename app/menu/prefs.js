@@ -1,9 +1,12 @@
 const { ipcRenderer } = require('electron')
+const config = require('../util/config')
 const ShowTextOnDesktopBtn = document.getElementById('show-desktop')
 const RefreshRateBtn = document.getElementById('refresh-rate')
 const AutolaunchBtn = document.getElementById('autolaunch')
 
 let preferences = {}
+
+config.get(onGetPrefs)
 
 ShowTextOnDesktopBtn.onclick = function () {
   preferences.showTextOnDesktop = this.checked
@@ -23,11 +26,11 @@ AutolaunchBtn.onclick = function () {
   return ipcRenderer.send('preferences', preferences)
 }
 
-ipcRenderer.on('preferences', (e, data) => {
+ipcRenderer.on('preferences', (e, data) => onGetPrefs(data))
+
+function onGetPrefs (data) {
   preferences = data
   ShowTextOnDesktopBtn.checked = preferences.showTextOnDesktop
   RefreshRateBtn.value = preferences.refreshRate
   AutolaunchBtn.checked = preferences.autolaunch
-})
-
-setTimeout(() => ipcRenderer.send('request:preferences'), 3000)
+}

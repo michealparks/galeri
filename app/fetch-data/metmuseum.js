@@ -14,12 +14,11 @@ function MetMuseum () {
     pageParam: `&page=${randSeed}`
   })
 
-  this.onCollectionResponse = this.onCollectionResponse.bind(this)
+  this.onCollectionResponse = onCollectionResponse.bind(this)
 }
 
 MetMuseum.prototype = Object.create(ApiTemplate.prototype)
 MetMuseum.prototype.constructor = ApiTemplate
-MetMuseum.prototype.onCollectionResponse = onCollectionResponse
 MetMuseum.prototype.handleItemTransform = handleItemTransform
 
 function onCollectionResponse () {
@@ -51,8 +50,8 @@ function handleItemTransform (next) {
 
   return validateImg({
     url: obj.image.replace('web-thumb', 'original'),
-    minHeight: window.innerHeight * window.devicePixelRatio * 0.1, // 0.73,
-    minWidth: window.innerWidth * window.devicePixelRatio * 0.1 // 0.73
+    minHeight: this.minHeight,
+    minWidth: this.minWidth
   }, (err, data) => err ? next(err) : next(null, {
     source: 'The Metropolitan Museum of Art',
     href: `https://metmuseum.org${obj.url}`,
