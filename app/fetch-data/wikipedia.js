@@ -77,8 +77,11 @@ function handleItemTransform (next) {
 function getDescription (title) {
   this.desReq = new XMLHttpRequest()
   this.desReq.open('GET', `${this.endpoint}?action=parse&prop=text&page=${title}&format=json&origin=*`, true)
+  this.desReq.timeout = 7000
   this.desReq.responseType = 'json'
   this.desReq.onload = this.onDescriptionLoad
+  this.desReq.onError = this.onError
+  this.desReq.ontimeout = this.onError
   this.desReq.send()
 }
 

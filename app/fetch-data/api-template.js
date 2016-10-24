@@ -24,16 +24,20 @@ function ApiTemplate (config = {}) {
   this.onError = onError.bind(this)
 }
 
-const DPR = window.devicePixelRatio
-const IH = window.innerHeight
-const IW = window.innerWidth
-
 ApiTemplate.prototype.getConfig = getConfig
 ApiTemplate.prototype.giveConfig = giveConfig
 ApiTemplate.prototype.getCollectionData = getCollectionData
 ApiTemplate.prototype.getNextItem = getNextItem
-ApiTemplate.prototype.minHeight = IH * (DPR > 1.5 ? DPR * 0.7 : DPR * 0.8)
-ApiTemplate.prototype.minWidth = IW * (DPR > 1.5 ? DPR * 0.7 : DPR * 0.8)
+
+onResize()
+
+window.addEventListener('resize', onResize)
+
+function onResize () {
+  const DPR = window.devicePixelRatio
+  ApiTemplate.prototype.minHeight = window.innerHeight * (DPR > 1.5 ? DPR * 0.75 : DPR * 0.85)
+  ApiTemplate.prototype.minWidth = window.innerWidth * (DPR > 1.5 ? DPR * 0.75 : DPR * 0.85)
+}
 
 function getConfig () {
   return {
@@ -62,7 +66,7 @@ function getCollectionData (next) {
   this.req = new XMLHttpRequest()
   this.req.open('GET', `${this.endpoint}${this.endpointParams}${this.pageParam}`, true)
   this.req.responseType = 'json'
-  this.req.timeout = 5000
+  this.req.timeout = 7000
 
   for (let i = 0, h, l = this.headers.length; i < l; ++i) {
     h = this.headers[i]
@@ -70,6 +74,7 @@ function getCollectionData (next) {
   }
 
   this.req.onload = this.onCollectionResponse
+  this.req.ontimeout = this.onError
   this.req.onerror = this.onError
   return this.req.send()
 }

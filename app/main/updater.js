@@ -26,7 +26,9 @@ function getLatestTag (next) {
     res.on('data', d => body += d)
     res.on('end', () => next(null, JSON.parse(body).tag_name))
     res.on('error', next)
-  }).on('error', next)
+  })
+  .on('error', next)
+  .setTimeout(10000)
 }
 
 function isNewVersion (latest) {
