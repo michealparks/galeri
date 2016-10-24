@@ -18,10 +18,7 @@ config.read((err, data) => {
   didInit = true
   cache = data
 
-  if (err ||
-     !cache ||
-     Object.keys(cache).length === 0 ||
-     !cache.version) {
+  if (err || !cache || Object.keys(cache).length === 0 || !cache.version) {
     cache = baseConfig
     config.write(baseConfig)
   }

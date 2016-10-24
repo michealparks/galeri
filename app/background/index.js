@@ -1,4 +1,5 @@
 require('buffer/')
+require('./debug')
 const { ipcRenderer } = require('electron')
 const renderer = require('./renderer')
 const { startTextLifecycle, toggleTextVisibility } = require('./text')
@@ -11,6 +12,7 @@ let refreshRate = minutes(30)
 let imageCount = 0
 let imagesUntilRestart = 20
 let isPaused = false
+let isUpdatingImage = false
 
 let lastUpdateTime = Date.now()
 let startSuspendTime = 0
@@ -19,20 +21,8 @@ let updateTimerId = -1
 
 config.get(onGetPreferences)
 
-window.addEventListener('error', e => {
-  console.error(`Error propagated to window. This should not happen. Message: ${e}`)
-
-  if (process.env.NODE_ENV === 'production') {
-    // TODO: crash report
-    return ipcRenderer.send('browser-reset')
-  }
-})
-
 window.addEventListener('online', onOnlineStatusChange)
 window.addEventListener('offline', onOnlineStatusChange)
-
-ipcRenderer.on('log', (e, data) =>
-  data.args.forEach(arg => console[data.type]('main process: ', arg)))
 
 ipcRenderer.on('preferences', (e, data) => onGetPreferences(data))
 
@@ -76,6 +66,7 @@ function onOnlineStatusChange () {
     updateTimerId = -1
 
     // Kick off the lifecycle
+    isUpdatingImage = true
     updateImage()
   } else {
     // If we're in mid-lifecycle, don't allow it to finish
@@ -93,7 +84,7 @@ function onGetPreferences (data) {
 
   refreshRate = data.refreshRate
 
-  if (!isPaused) {
+  if (!isPaused && !isUpdatingImage) {
     updateTimerId = setTimeout(onOnlineStatusChange, getRemainingTime())
   }
 }
@@ -163,5 +154,6 @@ function onImageRender (err, data) {
   lastUpdateTime = Date.now()
 
   console.log(`updateTimerId = setTimeout(updateImage, ${refreshRate / 1000 / 60}min)`)
+  isUpdatingImage = false
   updateTimerId = setTimeout(updateImage, refreshRate)
 }
