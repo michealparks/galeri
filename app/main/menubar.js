@@ -3,10 +3,9 @@ const events = require('events')
 const electron = require('electron')
 const Positioner = require('./positioner')
 const { cacheId, cacheTray } = require('./ipc')
-const { app } = electron
 const menubar = new events.EventEmitter()
 const opts = {
-  dir: resolve(app.getAppPath()),
+  dir: resolve(electron.app.getAppPath()),
   resizable: false,
   alwaysOnTop: process.env.NODE_ENV === 'development',
   windowPosition: (process.platform === 'win32') ? 'trayBottomCenter' : 'trayCenter',
@@ -21,17 +20,16 @@ const opts = {
 let cachedBounds // cachedBounds are needed for double-clicked event
 let supportsTrayHighlightState = false
 
-app.on('ready', appReady)
+menubar.init = appReady
 
 function appReady () {
-  if (process.platform !== 'win32') app.dock.hide()
+  if (process.platform !== 'win32') electron.app.dock.hide()
 
   menubar.tray = new electron.Tray(process.env.NODE_ENV === 'production'
     ? `${__dirname}/assets/icon_32x32.png`
     : `${__dirname}/../../assets/icon_32x32.png`)
   menubar.tray.on('click', clicked)
   menubar.tray.on('double-click', clicked)
-  menubar.tray.setToolTip('Galeri')
 
   cacheTray(menubar.tray)
 

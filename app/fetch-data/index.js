@@ -58,14 +58,12 @@ function getNextImage (next) {
 
   switch (sourceSelector.pop()) {
     case 0: log('Wiki'); return Wikipedia.getNextItem(next)
-    case 2: log('Walters'); return WaltersMuseum.getNextItem(next)
-    case 3: log('Rijks'); return RijksMuseum.getNextItem(next)
-    case 4: log('Brooklyn'); return BrooklynMuseum.getNextItem(next)
-    // we like Met so, so much.
-    // so we give it TWO slots.
-    case 1:
-    case 5:
-    default: log('Met'); return MetMuseum.getNextItem(next)
+    case 1: log('Walters'); return WaltersMuseum.getNextItem(next)
+    case 2: log('Rijks'); return RijksMuseum.getNextItem(next)
+    case 3: log('Brooklyn'); return BrooklynMuseum.getNextItem(next)
+    // we like Met so, so much... so we give it TWO slots
+    // (three if we're bad programmers)
+    case 4: case 5: default: log('Met'); return MetMuseum.getNextItem(next)
   }
 }
 

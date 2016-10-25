@@ -56,6 +56,7 @@ function onReady () {
 
   screen.on('display-metrics-changed', () => setTimeout(resizeBackgrounds))
 
+  menubarWindow.init()
   makeBackgroundWindow()
 
   electron.powerMonitor.on('suspend', sendToWindows.bind(null, 'suspend'))
@@ -103,7 +104,10 @@ function makeBackgroundWindow () {
     show: false,
     frame: false,
     transparent: true,
-    enableLargerThanScreen: true
+    enableLargerThanScreen: true,
+    pageVisibility: true,
+    webAudio: false,
+    webgl: false
   })
 
   cacheId('background', win.id)
