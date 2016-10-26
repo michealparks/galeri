@@ -9,18 +9,15 @@ const reqObj = Object.assign(parse(config.GITHUB_RELEASE_API), {
   headers: { 'User-Agent': 'michealparks' }
 })
 
-function isValid (str) {
-  return str.slice(1).split('.').length === 3
-}
-
-function init () {
-  return process.platform === 'linux'
-    ? initLinux()
-    : initDarwinWin32()
-}
+if (process.platform === 'linux') initLinux()
+else initDarwinWin32()
 
 function initLinux () {
   // autoupdating features don't exist...
+}
+
+function isValid (tag) {
+  return tag.slice(1).split('.').length === 3
 }
 
 function getLatestTag (next) {
@@ -147,5 +144,3 @@ function initDarwinWin32 () {
 
   return setInterval(() => check(onCheck), config.CHECK_UPDATE_INTERVAL)
 }
-
-module.exports = { init }

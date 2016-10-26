@@ -1,6 +1,6 @@
 console.time('init')
 
-require('./app/main/crash-reporter').init()
+require('./app/main/crash-reporter')
 
 const electron = require('electron')
 const { cacheId, sendToWindows } = require('./app/main/ipc')
@@ -32,6 +32,8 @@ if (!shouldQuit) {
 if (!shouldQuit) init()
 
 function init () {
+  require('./app/main/updater')
+
   app.commandLine.appendSwitch('disable-http-cache')
 
   menubarWindow = require('./app/main/menubar')
@@ -68,7 +70,6 @@ function onReady () {
 
 function onDelayedStartup () {
   require('./app/main/autolaunch')
-  require('./app/main/updater').init()
 }
 
 function onBrowserRender () {
