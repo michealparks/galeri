@@ -1,7 +1,8 @@
-// const appConfig = require('application-config')('Galeri')
+const config = require('application-config')('Galeri')
+const { ipcMain } = require('electron')
+const { minutes } = require('../util/time')
 const path = require('path')
 const { hours } = require('../util/time')
-// const electron = require('electron')
 // const arch = require('arch')
 
 const APP_NAME = 'Galeri'
@@ -30,3 +31,18 @@ module.exports = {
 
   CHECK_UPDATE_INTERVAL: hours(24)
 }
+
+const baseConfig = {
+  version: 'v0.0.3',
+  refreshRate: minutes(30),
+  showTextOnDesktop: true,
+  autolaunch: true
+}
+
+config.read((err, data) => {
+  if (!err && data && Object.keys(data).length > 0 && data.version) return
+
+  return config.write(baseConfig)
+})
+
+ipcMain.on('preferences', (e, data) => config.write(data))

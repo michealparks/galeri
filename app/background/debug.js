@@ -3,7 +3,9 @@ const savedConsole = console
 
 function noop () {}
 
-if (process.env.NODE_ENV === 'production') GlobalDebug(false, true)
+if (process.env.NODE_ENV === 'production') {
+  GlobalDebug(false, true)
+}
 
 window.GlobalDebug = GlobalDebug
 

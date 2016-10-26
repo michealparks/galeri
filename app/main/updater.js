@@ -1,7 +1,6 @@
 const { parse } = require('url')
 const { get } = require('https')
 const electron = require('electron')
-const semver = require('semver')
 const config = require('./config')
 const debug = require('./log')
 const WIN32 = (process.platform === 'win32')
@@ -9,6 +8,10 @@ const REGEX_ZIP_URL = /\/(v)?(\d+\.\d+\.\d+)\/.*\.zip/
 const reqObj = Object.assign(parse(config.GITHUB_RELEASE_API), {
   headers: { 'User-Agent': 'michealparks' }
 })
+
+function isValid (str) {
+  return str.slice(1).split('.').length === 3
+}
 
 function init () {
   return process.platform === 'linux'
@@ -31,8 +34,20 @@ function getLatestTag (next) {
   .setTimeout(10000)
 }
 
-function isNewVersion (latest) {
-  return semver.lt(config.APP_VERSION, latest)
+function isNewerVersionAvailable (latest) {
+  const latestArr = latest.slice(1).split('.')
+  const currentArr = config.APP_VERSION.slice(1).split('.')
+
+  // Major version update
+  if (Number(latestArr[0]) > Number(currentArr[0])) return true
+
+  // Minor version update
+  if (Number(latestArr[1]) > Number(currentArr[1])) return true
+
+  // Patch update
+  if (Number(latestArr[2]) > Number(currentArr[2])) return true
+
+  return false
 }
 
 function getFeedURL (tag, next) {
@@ -67,20 +82,19 @@ function getFeedURL (tag, next) {
           })
         }
 
-        const matchReleaseUrl = zipUrl.match(REGEX_ZIP_URL)
-        if (!matchReleaseUrl) {
+        const match = zipUrl.match(REGEX_ZIP_URL)
+        if (!match) {
           return next({
             type: 'error',
             msg: `The zipUrl (${zipUrl}) is a invalid release URL`
           })
         }
 
-        const versionInZipUrl = matchReleaseUrl[matchReleaseUrl.length - 1]
-        const latestVersion = semver.clean(tag)
-        if (versionInZipUrl !== latestVersion) {
+        const zipVerison = match[match.length - 1]
+        if (zipVerison !== tag.slice(1)) {
           next({
             type: 'error',
-            msg: `The feedUrl does not link to latest tag (zipUrl=${versionInZipUrl}; latestVersion=${latestVersion})`
+            msg: `The feedUrl does not link to latest tag (zipUrl=${zipVerison}; latestVersion=${tag})`
           })
         }
 
@@ -93,11 +107,11 @@ function check (next) {
   return getLatestTag((err, tag) => {
     if (err) return next(err)
 
-    if (!tag || !semver.valid(semver.clean(tag))) {
+    if (!tag || !isValid(tag)) {
       return next({ type: 'error', msg: 'Could not find a valid release tag.' })
     }
 
-    if (!isNewVersion(tag)) {
+    if (!isNewerVersionAvailable(tag)) {
       return next({ type: 'warn', msg: 'There is no newer version.' })
     }
 
@@ -110,21 +124,21 @@ function check (next) {
 function initDarwinWin32 () {
   const { autoUpdater } = electron
 
-  autoUpdater.on('error', debug.error)
-  autoUpdater.on('checking-for-update', debug.log)
-  autoUpdater.on('update-available', debug.log)
-  autoUpdater.on('update-not-available', debug.log)
+  autoUpdater.on('error', err => console.error(err))
+  autoUpdater.on('checking-for-update', msg => console.log(msg))
+  autoUpdater.on('update-available', msg => console.log(msg))
+  autoUpdater.on('update-not-available', msg => console.log(msg))
 
   autoUpdater.on('update-downloaded', msg => {
-    debug.log('update-downloaded', msg)
+    console.log('update-downloaded', msg)
     return autoUpdater.quitAndInstall()
   })
 
   function onCheck (err, feedUrl) {
-    if (err && !err.type) return debug.error(err)
+    if (err && !err.type) return console.error(err)
     if (err) return debug[err.type](err.msg)
 
-    debug.log('feed-url', feedUrl)
+    console.log('feed-url', feedUrl)
     autoUpdater.setFeedURL(feedUrl)
     autoUpdater.checkForUpdates()
   }

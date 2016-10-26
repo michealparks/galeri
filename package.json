@@ -71,8 +71,7 @@
   },
   "dependencies": {
     "application-config": "1.0.1",
-    "auto-launch": "4.0.1",
-    "semver": "5.3.0"
+    "auto-launch": "4.0.1"
   },
   "build": {
     "appId": "caboodle.by.micheal.parks",

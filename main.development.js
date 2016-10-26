@@ -67,7 +67,6 @@ function onReady () {
 }
 
 function onDelayedStartup () {
-  require('./app/main/app-config')
   require('./app/main/autolaunch')
   require('./app/main/updater').init()
 }
