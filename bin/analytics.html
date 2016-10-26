@@ -1,0 +1,115 @@
+<style>
+body {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 0;
+  font-size: 16px;
+  font-family: -apple-system, Helvetica Neue, helvetica;
+}
+
+h1, p {
+  width: 250px;
+  margin: auto;
+  font-weight: 300;
+}
+
+h1 {
+  margin: 30px auto 5px auto;
+}
+
+.container {
+  width: 400px;
+  overflow: hidden;
+  overflow-y: auto;
+}
+
+.container p {
+  border-bottom: 1px solid #eee;
+  margin-bottom: 5px;
+  padding-bottom: 2px;
+}
+
+.container p span {
+  float: right;
+}
+
+#dl-version-container {
+  height: 100%;
+  background-color: #f5f5f5;
+}
+</style>
+
+<body>
+  <div class='container' id='total-container'>
+    <h1>Galeri</h1>
+    <p>
+      Total Downloads
+      <span id='dl-total'></span>
+    </p>
+
+    <p>
+      Total Updates
+      <span id='updates-total'></span>
+    </p>
+  </div>
+  <div class='container' id='dl-version-container'></div>
+</body>
+
+<script>
+let totalDl = 0
+let totalUpdates = 0
+
+const endpoint = 'https://api.github.com/repos/michealparks/galeri-www/releases'
+const body = document.createDocumentFragment()
+const xhr = new window.XMLHttpRequest()
+
+xhr.open('GET', endpoint, true)
+xhr.responseType = 'json'
+xhr.timeout = 10000
+xhr.ontimeout = xhr.onerror = writeError
+
+xhr.onload = () => {
+  if (xhr.status === 200) return writeVersionStats()
+  return writeError()
+}
+
+function writeVersionStats () {
+  xhr.response.forEach(release => {
+    const title = document.createElement('h1')
+    const regex = new RegExp(`Galeri\-${release.tag_name.replace(/\./g, '\.')}(\-)?|\.?`)
+    title.textContent = release.tag_name
+    body.appendChild(title)
+
+    release.assets.forEach(asset => {
+      if (asset.name.includes('.zip')) {
+        totalUpdates += asset.download_count
+      } else {
+        totalDl += asset.download_count
+      }
+
+      const stats = document.createElement('p')
+      const name = asset.name.replace(regex, '')
+      stats.innerHTML = `${name} <span>${numberWithCommas(asset.download_count)}</span>`
+      body.appendChild(stats)
+    })
+  })
+
+  document.getElementById('dl-version-container').appendChild(body)
+  document.getElementById('dl-total').textContent = numberWithCommas(totalDl)
+  document.getElementById('updates-total').textContent = numberWithCommas(totalUpdates)
+}
+
+function writeError () {
+  const section = document.createElement('p')
+  section.textContent = 'There was an error fetching analytics.'
+  body.appendChild(section)
+  document.body.appendChild(body)
+}
+
+function numberWithCommas(x) {
+  return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+}
+
+xhr.send()
+</script>

@@ -17,7 +17,8 @@
     "build:renderers": "cross-env NODE_ENV=production webpack --config webpack.config.production.js --progress --profile --colors",
     "build": "npm run build:main & npm run build:renderers",
     "package": "cross-env NODE_ENV=production node package.js",
-    "package:mac": "node ./bin/package.js darwin --sign"
+    "package:mac": "node ./bin/package.js darwin --sign",
+    "analytics": "open -a \"Google Chrome\" bin/analytics.html"
   },
   "repository": {
     "type": "git",
@@ -39,12 +40,12 @@
   },
   "devDependencies": {
     "asar": "^0.12.3",
-    "babel-core": "^6.17.0",
+    "babel-core": "^6.18.0",
     "babel-loader": "^6.2.5",
     "babel-plugin-add-module-exports": "^0.2.1",
     "babel-plugin-dev-expression": "^0.2.1",
-    "babel-plugin-transform-es2015-modules-commonjs": "^6.16.0",
-    "babel-plugin-transform-strict-mode": "^6.11.3",
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.18.0",
+    "babel-plugin-transform-strict-mode": "^6.18.0",
     "babili-webpack-plugin": "0.0.5",
     "concurrently": "^3.1.0",
     "cross-env": "^3.1.3",
@@ -52,7 +53,7 @@
     "del": "^2.2.2",
     "depcheck": "^0.6.4",
     "devtron": "^1.4.0",
-    "electron": "^1.4.3",
+    "electron": "^1.4.4",
     "electron-debug": "^1.0.1",
     "electron-devtools-installer": "^2.0.1",
     "electron-osx-sign": "^0.3.2",
@@ -65,14 +66,12 @@
     "nobin-debian-installer": "0.0.10",
     "run-series": "^1.1.4",
     "webpack": "^1.13.2",
-    "webpack-merge": "^0.14.1",
+    "webpack-merge": "^0.15.0",
     "webpack-validator": "^2.2.9"
   },
   "dependencies": {
     "application-config": "1.0.1",
     "auto-launch": "4.0.1",
-    "buffer": "5.0.0",
-    "image-size": "0.5.0",
     "semver": "5.3.0"
   },
   "build": {

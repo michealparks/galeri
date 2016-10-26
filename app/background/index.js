@@ -1,4 +1,3 @@
-require('buffer/')
 require('./debug')
 const { ipcRenderer } = require('electron')
 const renderer = require('./renderer')

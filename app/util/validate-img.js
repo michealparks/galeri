@@ -7,9 +7,15 @@
 const https = require('https')
 const http = require('http')
 const { parse } = require('url')
-const sizeOf = require('image-size')
+const sizeOf = require('./image-size')
+const invalidDimensionsErr = {
+  errType: 'warn',
+  file: 'util/validate-image.js',
+  fn: 'validateImg()',
+  msg: 'Requested image has invalid dimensions.'
+}
 
-let req, url, next, buffer, dimensions, err, input
+let req, url, next, buffer, dimensions, input
 
 function onError (msg) {
   return next({
@@ -27,23 +33,18 @@ function onData (chunk) {
     try {
       dimensions = sizeOf(buffer)
       return req.abort()
-    } catch (e) { err = e }
+    } catch (e) {}
   }
 }
 
 function onEnd () {
-  if (!dimensions) return next(err)
+  if (!dimensions) return next(invalidDimensionsErr)
 
   const { width, height } = dimensions
 
   if (width < (input.minWidth || (window.innerWidth * window.devicePixelRatio * 0.75)) ||
       height < (input.minHeight || (window.innerHeight * window.devicePixelRatio * 0.75))) {
-    return next({
-      errType: 'warn',
-      file: 'util/validate-image.js',
-      fn: 'validateImg()',
-      msg: 'Requested image is too small.'
-    })
+    return next(invalidDimensionsErr)
   }
 
   buffer = null
@@ -66,7 +67,6 @@ function onResponse (res) {
 }
 
 function validateImg (_input, _next) {
-  err = null
   input = _input
   next = _next
   url = typeof input === 'string' ? input : input.url
