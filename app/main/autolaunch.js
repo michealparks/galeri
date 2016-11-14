@@ -1,24 +1,21 @@
-const { app, ipcMain } = require('electron')
 const AutoLaunch = require('auto-launch')
-
-const appLauncher = new AutoLaunch({
-  name: 'Galeri',
-  // See https://github.com/Teamwork/node-auto-launch/issues/28#issuecomment-222194437
-  path: process.platform === 'darwin'
-    ? app.getPath('exe').replace(/\.app\/Content.*/, '.app')
-    : undefined // Use the default
-})
+const { ipcMain } = require('electron')
+const { sendToMenubar } = require('./ipc')
+const launcher = new AutoLaunch({ name: 'Galeri' })
 
 let isEnabled
 
-appLauncher.isEnabled().then(data => {
+launcher.isEnabled().then(function (data) {
   isEnabled = data
+  setTimeout(function () {
+    sendToMenubar('autolaunch', isEnabled)
+  }, 3000)
 })
 
-ipcMain.on('preferences', (e, data) => {
+ipcMain.on('preferences', function (e, data) {
   if (!data.autolaunch || data.autolaunch === isEnabled) return
 
   return data.autolaunch
-    ? appLauncher.enable()
-    : appLauncher.disable()
+    ? launcher.enable()
+    : launcher.disable()
 })

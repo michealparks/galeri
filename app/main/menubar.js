@@ -57,13 +57,15 @@ function createWindow () {
 
   menubar.window.setVisibleOnAllWorkspaces(true)
 
-  menubar.window.on('close', () => {
+  menubar.window.on('close', function () {
     delete menubar.window
     return menubar.emit('after-close')
   })
+
   menubar.window.loadURL(process.env.NODE_ENV === 'production'
     ? `file://${__dirname}/app/menubar.html`
     : `file://${__dirname}/../../app/menubar.html`)
+
   menubar.emit('after-create-window')
 }
 

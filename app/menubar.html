@@ -193,7 +193,7 @@ select {
   right: -5px;
   perspective: 40px;
   perspective-origin: center;
-
+  transition: transform 2000ms, opacity 300ms;
 }
 
 .btn__icon {
@@ -250,6 +250,14 @@ select {
   transform: translate3d(110%, 0, 0);
 }
 
+#updating {
+  position: absolute;
+}
+
+#updating, #source, #artwork-link {
+  transition: opacity 300ms;
+}
+
 .additional {
   position: absolute;
   bottom: 5px;
@@ -282,6 +290,11 @@ select {
   text-decoration: underline;
 }
 
+.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
 </style>
 </head>
 
@@ -310,12 +323,17 @@ select {
     </nav>
 
     <div class='tab' id='description'>
-      <div id='artwork-blurb' class='artwork-blurb'></div>
-      <small style='margin-top:10px'>This work was provided by</small>
-      <p id='artwork-source' class='artwork-source'></p>
-      <a id='artwork-link' class='artwork-link' target='_tab' href=''>
-        <p>Learn more about it.</p>
-      </a>
+      <div id='updating' class='hidden'>
+        <p>Updating...</p>
+      </div>
+
+      <div id='source'>
+        <small style='margin-top:10px'>This work was provided by</small>
+        <p id='artwork-source' class='artwork-source'></p>
+        <a id='artwork-link' class='artwork-link' target='_tab' href=''>
+          <p>Learn more about it.</p>
+        </a>
+      </div>
 
       <div id='devtools' class='devtools'>
         <small>Devtools</small>

@@ -18,9 +18,9 @@ function cacheId (name, id) {
 }
 
 function sendToWindows (msg, arg) {
-  return BrowserWindow.getAllWindows().forEach(win =>
-    win.webContents.send(msg, arg)
-  )
+  return BrowserWindow.getAllWindows().forEach(function (win) {
+    return win.webContents.send(msg, arg)
+  })
 }
 
 function sendToBackground (msg, arg) {
@@ -31,20 +31,29 @@ function sendToMenubar (msg, arg) {
   return BrowserWindow.fromId(ids.menubar).webContents.send(msg, arg)
 }
 
-ipcMain.on('play', sendToBackground.bind(null, 'play'))
-ipcMain.on('pause', sendToBackground.bind(null, 'pause'))
+ipcMain.on('play', function () {
+  return sendToBackground('play')
+})
 
-ipcMain.on('preferences', (e, data) => {
+ipcMain.on('pause', function () {
+  return sendToBackground('pause')
+})
+
+ipcMain.on('preferences', function (e, data) {
   sendToBackground('preferences', data)
   return config.write(data)
 })
 
-ipcMain.on('artwork', (e, arg) => {
-  tray.setToolTip(`${arg.title}\n${arg.text}`)
-  sendToMenubar('artwork', arg)
+ipcMain.on('artwork', function (e, arg) {
+  tray.setToolTip(`${arg.title}\n${arg.text}\n${arg.source}`)
+  return sendToMenubar('artwork', arg)
 })
 
-config.read((err, data) => {
+ipcMain.on('artwork-updated', function () {
+  return sendToMenubar('artwork-updated')
+})
+
+config.read(function (err, data) {
   if (!err && data && Object.keys(data).length > 0 && data.version) return
 
   return config.write({

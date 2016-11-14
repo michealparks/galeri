@@ -1,13 +1,11 @@
 const { BrowserWindow } = require('electron')
 
-function sendToBackground (msg, arg) {
-  return BrowserWindow.getAllWindows()[0].webContents.send(msg, arg)
-}
-
 function noop () {}
 
 function send (type, ...args) {
-  return sendToBackground('log', { type, args })
+  return BrowserWindow
+    .getAllWindows()[0]
+    .webContents.send('log', { type, args })
 }
 
 const prod = process.env.NODE_ENV === 'production'

@@ -1,14 +1,27 @@
-const CL = [
+const tabCL = [
   document.getElementById('description').classList,
   document.getElementById('preferences').classList
 ]
-const ArtworkTabBtn = document.getElementById('btn-artwork-tab')
-const PrefsTabBtn = document.getElementById('btn-prefs-tab')
 
-ArtworkTabBtn.onclick = toggleTabs.bind(null, 0)
-PrefsTabBtn.onclick = toggleTabs.bind(null, 1)
+const ArtworkBtn = document.getElementById('btn-artwork-tab')
+const PrefsBtn = document.getElementById('btn-prefs-tab')
+
+const btnCL = [
+  ArtworkBtn.classList,
+  PrefsBtn.classList
+]
+
+ArtworkBtn.onclick = function () {
+  return toggleTabs(0)
+}
+
+PrefsBtn.onclick = function () {
+  return toggleTabs(1)
+}
 
 function toggleTabs (activeIndex) {
-  CL[activeIndex].remove('tab--hidden')
-  return CL[activeIndex ^ 1].add('tab--hidden')
+  btnCL[activeIndex].add('btn--active')
+  btnCL[activeIndex ^ 1].remove('btn--active')
+  tabCL[activeIndex].remove('tab--hidden')
+  return tabCL[activeIndex ^ 1].add('tab--hidden')
 }

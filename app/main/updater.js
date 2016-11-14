@@ -21,10 +21,10 @@ function isValid (tag) {
 }
 
 function getLatestTag (next) {
-  return get(reqObj, res => {
+  return get(reqObj, function (res) {
     let body = ''
-    res.on('data', d => body += d)
-    res.on('end', () => next(null, JSON.parse(body).tag_name))
+    res.on('data', function (d) { body += d })
+    res.on('end', function () { next(null, JSON.parse(body).tag_name) })
     res.on('error', next)
   })
   .on('error', next)
@@ -50,11 +50,11 @@ function isNewerVersionAvailable (latest) {
 function getFeedURL (tag, next) {
   return WIN32
     ? next(`${config.GITHUB_URL}/releases/download/${tag}`)
-    : get(`${config.GITHUB_URL_RAW}/updater.json`, res => {
+    : get(`${config.GITHUB_URL_RAW}/updater.json`, function (res) {
       let body = ''
-      res.on('data', d => body += d)
+      res.on('data', function (d) { body += d })
       res.on('error', next)
-      res.on('end', () => {
+      res.on('end', function () {
         if (res.statusCode === 404) {
           return next({
             type: 'error',
@@ -101,7 +101,7 @@ function getFeedURL (tag, next) {
 }
 
 function check (next) {
-  return getLatestTag((err, tag) => {
+  return getLatestTag(function (err, tag) {
     if (err) return next(err)
 
     if (!tag || !isValid(tag)) {
@@ -112,9 +112,7 @@ function check (next) {
       return next({ type: 'warn', msg: 'There is no newer version.' })
     }
 
-    return getFeedURL(tag, (err, feedUrl) => err
-      ? next(err)
-      : next(null, feedUrl))
+    return getFeedURL(tag, next)
   })
 }
 
@@ -126,7 +124,7 @@ function initDarwinWin32 () {
   autoUpdater.on('update-available', msg => console.log(msg))
   autoUpdater.on('update-not-available', msg => console.log(msg))
 
-  autoUpdater.on('update-downloaded', msg => {
+  autoUpdater.on('update-downloaded', function (msg) {
     console.log('update-downloaded', msg)
     return autoUpdater.quitAndInstall()
   })
@@ -142,5 +140,7 @@ function initDarwinWin32 () {
 
   check(onCheck)
 
-  return setInterval(() => check(onCheck), config.CHECK_UPDATE_INTERVAL)
+  return setInterval(function () {
+    return check(onCheck)
+  }, config.CHECK_UPDATE_INTERVAL)
 }

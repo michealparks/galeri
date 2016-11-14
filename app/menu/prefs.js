@@ -6,7 +6,7 @@ const AutolaunchBtn = document.getElementById('autolaunch')
 
 let preferences = {}
 
-config.get(onGetPrefs)
+config.get(data => onGetPrefs(null, data))
 
 ShowTextOnDesktopBtn.onclick = function () {
   preferences.showTextOnDesktop = this.checked
@@ -26,9 +26,15 @@ AutolaunchBtn.onclick = function () {
   return ipcRenderer.send('preferences', preferences)
 }
 
-ipcRenderer.on('preferences', (e, data) => onGetPrefs(data))
+ipcRenderer.on('autolaunch', onGetAutolaunch)
+ipcRenderer.on('preferences', onGetPrefs)
 
-function onGetPrefs (data) {
+function onGetAutolaunch (e, data) {
+  preferences.autolaunch = data
+  AutolaunchBtn.checked = data
+}
+
+function onGetPrefs (e, data) {
   preferences = data
   ShowTextOnDesktopBtn.checked = preferences.showTextOnDesktop
   RefreshRateBtn.value = preferences.refreshRate
