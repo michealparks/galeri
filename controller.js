@@ -5,17 +5,7 @@
   const { emit, on } = window
 
   ipc.on('preferences', function (e, data) {
-    const prefs = {}
-
-    if (data.hasOwnProperty('refreshRate')) {
-      prefs.UPDATE_RATE = data.refreshRate
-    }
-
-    if (data.hasOwnProperty('showTextOnDesktop')) {
-      prefs.IS_TITLE_SHOWN = data.showTextOnDesktop
-    }
-
-    return emit('preferences', prefs)
+    return emit('preferences', data)
   })
 
   ipc.on('pause', function () {
@@ -32,6 +22,11 @@
 
   ipc.on('resume', function () {
     return emit('resume')
+  })
+
+  on('cached-preferences', function (data) {
+    console.log(data)
+    return ipc.send('cached-preferences', data)
   })
 
   on('artwork', function (data) {

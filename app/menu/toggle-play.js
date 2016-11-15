@@ -1,4 +1,4 @@
-const { ipcRenderer } = require('electron')
+const ipc = require('electron').ipcRenderer
 
 let isPaused = false
 let isAnimating = false
@@ -11,7 +11,7 @@ document.getElementById('btn-toggle').onclick = function (e) {
 
   this.classList.toggle('btn-toggle--paused', isPaused)
   setTimeout(onToggleAnimationEnd, 500)
-  return ipcRenderer.send(isPaused ? 'pause' : 'play')
+  return ipc.send(isPaused ? 'pause' : 'play')
 }
 
 function onToggleAnimationEnd () {

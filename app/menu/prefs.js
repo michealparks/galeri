@@ -1,42 +1,38 @@
-const { ipcRenderer } = require('electron')
-const config = require('../util/config')
+const ipc = require('electron').ipcRenderer
 const ShowTextOnDesktopBtn = document.getElementById('show-desktop')
-const RefreshRateBtn = document.getElementById('refresh-rate')
+const UpdateRateBtn = document.getElementById('update-rate')
 const AutolaunchBtn = document.getElementById('autolaunch')
 
-let preferences = {}
+let preferences = Object.seal({
+  IS_AUTOLAUNCH: undefined,
+  IS_TITLE_SHOWN: undefined,
+  UPDATE_RATE: undefined
+})
 
-config.get(data => onGetPrefs(null, data))
+ipc.on('cached-preferences', function (e, data) {
+  console.log(data)
+  preferences = data
+  ShowTextOnDesktopBtn.checked = preferences.IS_TITLE_SHOWN = data.IS_TITLE_SHOWN
+  UpdateRateBtn.value = preferences.UPDATE_RATE = data.UPDATE_RATE
+  AutolaunchBtn.checked = preferences.IS_AUTOLAUNCH = data.IS_AUTOLAUNCH
+})
+
+ipc.on('autolaunch', function (e, data) {
+  preferences.IS_AUTOLAUNCH = data
+  AutolaunchBtn.checked = data
+})
 
 ShowTextOnDesktopBtn.onclick = function () {
-  preferences.showTextOnDesktop = this.checked
-
-  return ipcRenderer.send('preferences', preferences)
+  preferences.IS_TITLE_SHOWN = this.checked
+  return ipc.send('preferences', preferences)
 }
 
-RefreshRateBtn.onchange = function () {
-  preferences.refreshRate = Number(this.value)
-
-  return ipcRenderer.send('preferences', preferences)
+UpdateRateBtn.onchange = function () {
+  preferences.UPDATE_RATE = Number(this.value)
+  return ipc.send('preferences', preferences)
 }
 
 AutolaunchBtn.onclick = function () {
-  preferences.autolaunch = this.checked
-
-  return ipcRenderer.send('preferences', preferences)
-}
-
-ipcRenderer.on('autolaunch', onGetAutolaunch)
-ipcRenderer.on('preferences', onGetPrefs)
-
-function onGetAutolaunch (e, data) {
-  preferences.autolaunch = data
-  AutolaunchBtn.checked = data
-}
-
-function onGetPrefs (e, data) {
-  preferences = data
-  ShowTextOnDesktopBtn.checked = preferences.showTextOnDesktop
-  RefreshRateBtn.value = preferences.refreshRate
-  AutolaunchBtn.checked = preferences.autolaunch
+  preferences.IS_AUTOLAUNCH = this.checked
+  return ipc.send('preferences', preferences)
 }

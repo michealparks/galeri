@@ -65,8 +65,6 @@ function createWindow () {
   menubar.window.loadURL(process.env.NODE_ENV === 'production'
     ? `file://${__dirname}/app/menubar.html`
     : `file://${__dirname}/../../app/menubar.html`)
-
-  menubar.emit('after-create-window')
 }
 
 function clicked (e, bounds) {

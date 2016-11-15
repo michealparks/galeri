@@ -1,6 +1,4 @@
-const config = require('application-config')('Galeri')
 const { ipcMain, BrowserWindow } = require('electron')
-const { minutes } = require('../util/time')
 
 const ids = {
   background: null,
@@ -40,8 +38,11 @@ ipcMain.on('pause', function () {
 })
 
 ipcMain.on('preferences', function (e, data) {
-  sendToBackground('preferences', data)
-  return config.write(data)
+  return sendToBackground('preferences', data)
+})
+
+ipcMain.on('cached-preferences', function (e, data) {
+  return sendToMenubar('cached-preferences', data)
 })
 
 ipcMain.on('artwork', function (e, arg) {
@@ -51,17 +52,6 @@ ipcMain.on('artwork', function (e, arg) {
 
 ipcMain.on('artwork-updated', function () {
   return sendToMenubar('artwork-updated')
-})
-
-config.read(function (err, data) {
-  if (!err && data && Object.keys(data).length > 0 && data.version) return
-
-  return config.write({
-    version: 'v0.0.3',
-    refreshRate: minutes(30),
-    showTextOnDesktop: true,
-    autolaunch: true
-  })
 })
 
 module.exports = {

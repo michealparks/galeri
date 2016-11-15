@@ -47,12 +47,6 @@ function init () {
   if (process.platform !== 'darwin') {
     app.once('window-all-closed', app.quit)
   }
-
-  if (process.env.NODE_ENV === 'development') {
-    menubarWindow.once('after-create-window', function () {
-      return menubarWindow.window.openDevTools({ mode: 'detach' })
-    })
-  }
 }
 
 function onReady () {
@@ -62,9 +56,15 @@ function onReady () {
     return setTimeout(resizeBackgrounds)
   })
 
-  menubarWindow.init()
-  makeBackgroundWindow()
+  menubarWindow.once('ready', function () {
+    if (process.env.NODE_ENV === 'development') {
+      menubarWindow.window.openDevTools({ mode: 'detach' })
+    }
 
+    makeBackgroundWindow()
+  })
+
+  menubarWindow.init()
   electron.powerMonitor.on('suspend', sendToWindows.bind(null, 'suspend'))
   electron.powerMonitor.on('resume', sendToWindows.bind(null, 'resume'))
 

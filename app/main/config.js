@@ -1,10 +1,7 @@
 const path = require('path')
-const { hours } = require('../util/time')
-// const arch = require('arch')
-
+const APP_VERSION = require('../../package.json').version
 const APP_NAME = 'Galeri'
 const APP_TEAM = 'Space Egg, LLC'
-const APP_VERSION = require('../../package.json').version
 
 module.exports = {
   HOME_PAGE_URL: 'https://galeri.io',
@@ -26,5 +23,5 @@ module.exports = {
   ROOT_PATH: path.join(__dirname, '../..'),
   STATIC_PATH: path.join(__dirname, '../..', 'assets'),
 
-  CHECK_UPDATE_INTERVAL: hours(24)
+  CHECK_UPDATE_INTERVAL: 24 * 1000 * 60 * 60 // 24 hours
 }
