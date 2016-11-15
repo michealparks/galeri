@@ -1,7 +1,17 @@
 const AutoLaunch = require('auto-launch')
-const { ipcMain } = require('electron')
+const { app, ipcMain } = require('electron')
 const { sendToMenubar } = require('./ipc')
-const launcher = new AutoLaunch({ name: 'Galeri' })
+
+// On Mac, work around a bug in auto-launch where it opens a Terminal window
+// See https://github.com/Teamwork/node-auto-launch/issues/28#issuecomment-222194437
+const appPath = process.platform === 'darwin'
+  ? app.getPath('exe').replace(/\.app\/Content.*/, '.app')
+  : undefined // Use the default
+
+const launcher = new AutoLaunch({
+  name: 'Galeri',
+  path: appPath
+})
 
 launcher.isEnabled().then(function (isEnabled) {
   setTimeout(function () {

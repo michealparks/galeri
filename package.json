@@ -1,7 +1,7 @@
 {
   "name": "Galeri",
   "productName": "Galeri",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "author": "Micheal Parks",
   "description": "Fantastic Art Rendering Technology",
   "main": "main.js",
@@ -70,7 +70,6 @@
     "webpack-validator": "^2.2.9"
   },
   "dependencies": {
-    "application-config": "1.0.1",
     "auto-launch": "5.0.1"
   },
   "build": {

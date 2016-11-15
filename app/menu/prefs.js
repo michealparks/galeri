@@ -1,18 +1,18 @@
 const ipc = require('electron').ipcRenderer
-const ShowTextOnDesktopBtn = document.getElementById('show-desktop')
+const LabelLocationBtn = document.getElementById('label-location')
 const UpdateRateBtn = document.getElementById('update-rate')
 const AutolaunchBtn = document.getElementById('autolaunch')
 
 let preferences = Object.seal({
   IS_AUTOLAUNCH: undefined,
-  IS_TITLE_SHOWN: undefined,
+  LABEL_LOCATION: undefined,
   UPDATE_RATE: undefined
 })
 
 ipc.on('cached-preferences', function (e, data) {
   console.log(data)
   preferences = data
-  ShowTextOnDesktopBtn.checked = preferences.IS_TITLE_SHOWN = data.IS_TITLE_SHOWN
+  LabelLocationBtn.value = preferences.LABEL_LOCATION = data.LABEL_LOCATION
   UpdateRateBtn.value = preferences.UPDATE_RATE = data.UPDATE_RATE
   AutolaunchBtn.checked = preferences.IS_AUTOLAUNCH = data.IS_AUTOLAUNCH
 })
@@ -22,8 +22,8 @@ ipc.on('autolaunch', function (e, data) {
   AutolaunchBtn.checked = data
 })
 
-ShowTextOnDesktopBtn.onclick = function () {
-  preferences.IS_TITLE_SHOWN = this.checked
+LabelLocationBtn.onchange = function () {
+  preferences.LABEL_LOCATION = this.value
   return ipc.send('preferences', preferences)
 }
 

@@ -342,26 +342,29 @@ select {
 
     <div class='tab tab--hidden' id='preferences'>
       <div>
-        <label>
-          <p class='no-margin'>
-            Show artwork title on desktop
-            <input id='show-desktop' class='float-right' type='checkbox' checked /></p>
-        </label>
+        Show artwork label
+        <select id='label-location' class='float-right'>
+          <option value='top'>on top</option>
+          <option value='bottom' selected>on bottom</option>
+          <option value='menu'>only in menu</option>
+        </select>
       </div>
+
       <div>
         <p>
           Change artwork every
           <select id='update-rate' class='float-right'>
-            <option value='30000'>30 Sec</option>
-            <option value='60000'>Minute</option>
-            <option value='600000'>10 Min</option>
-            <option value='1800000' selected>30 Min</option>
-            <option value='3600000'>Hour</option>
-            <option value='86400000'>Day</option>
-            <option value='604800000'>Week</option>
+            <option value='30000'>30 seconds</option>
+            <option value='60000'>minute</option>
+            <option value='600000'>10 minutes</option>
+            <option value='1800000' selected>30 minutes</option>
+            <option value='3600000'>hour</option>
+            <option value='86400000'>day</option>
+            <option value='604800000'>week</option>
           </select>
         </p>
       </div>
+
       <div>
         <label>
           <p class='no-margin'>

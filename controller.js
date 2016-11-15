@@ -25,7 +25,6 @@
   })
 
   on('cached-preferences', function (data) {
-    console.log(data)
     return ipc.send('cached-preferences', data)
   })
 
