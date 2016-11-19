@@ -169,6 +169,25 @@ select {
   border-bottom: 1px solid #aaa;
 }
 
+.active-arrow {
+  position: absolute;
+  bottom: 0;
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 5px solid #aaa;
+  transition: transform 300ms;
+}
+
+.active-arrow--tab-0 {
+  transform: translate3d(9.5px, 0, 0);
+}
+
+.active-arrow--tab-1 {
+  transform: translate3d(44px, 0, 0);
+}
+
 .nav__border {
   position: absolute;
   width: 50%;
@@ -181,7 +200,7 @@ select {
   height: 22px;
   padding: 14px;
   border-radius: 100%;
-  transition: 2000ms;
+  transition: 1000ms;
 }
 
 .btn:active {
@@ -310,6 +329,7 @@ select {
 
   <div class='panel'>
     <nav class='nav'>
+      <div id='active-arrow' class='active-arrow active-arrow--tab-0'></div>
       <div id='btn-artwork-tab' class='btn'>
         <span class='btn__icon icon icon-image'></span>
       </div>

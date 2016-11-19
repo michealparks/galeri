@@ -10,7 +10,6 @@ let preferences = Object.seal({
 })
 
 ipc.on('cached-preferences', function (e, data) {
-  console.log(data)
   preferences = data
   LabelLocationBtn.value = preferences.LABEL_LOCATION = data.LABEL_LOCATION
   UpdateRateBtn.value = preferences.UPDATE_RATE = data.UPDATE_RATE

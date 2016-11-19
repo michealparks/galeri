@@ -1,3 +1,4 @@
 [submodule "core"]
 	path = core
 	url = https://github.com/michealparks/galeri-core
+	branch = master
