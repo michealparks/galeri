@@ -6,16 +6,13 @@ const env = JSON.stringify('development')
 
 module.exports = validate(merge(baseConfig, {
   debug: true,
+  target: 'electron-renderer',
 
-  entry: {
-    menu: ['./app/menu']
-  },
+  entry: { menu: ['./app/menu'] },
 
   plugins: [
     new webpack.optimize.OccurenceOrderPlugin(),
     new webpack.NoErrorsPlugin(),
     new webpack.DefinePlugin({ 'process.env.NODE_ENV': env })
-  ],
-
-  target: 'electron-renderer'
+  ]
 }))

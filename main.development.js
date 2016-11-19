@@ -8,7 +8,7 @@ const { app, BrowserWindow, ipcMain } = electron
 const delayedInitTime = 3000
 
 let screen
-let menubarWindow
+let initMenubar
 let backgroundWindow = []
 
 // Handle restart due to windows updates
@@ -36,8 +36,9 @@ function init () {
   require('./app/main/updater')
 
   app.commandLine.appendSwitch('disable-http-cache')
+  app.dock.hide()
 
-  menubarWindow = require('./app/main/menubar')
+  initMenubar = require('./app/main/menubar')
 
   app.once('ready', onReady)
 
@@ -56,17 +57,15 @@ function onReady () {
     return setTimeout(resizeBackgrounds)
   })
 
-  menubarWindow.once('ready', function () {
-    if (process.env.NODE_ENV === 'development') {
-      menubarWindow.window.openDevTools({ mode: 'detach' })
-    }
+  initMenubar(makeBackgroundWindow)
 
-    makeBackgroundWindow()
+  electron.powerMonitor.on('suspend', function () {
+    return sendToWindows('suspend')
   })
 
-  menubarWindow.init()
-  electron.powerMonitor.on('suspend', sendToWindows.bind(null, 'suspend'))
-  electron.powerMonitor.on('resume', sendToWindows.bind(null, 'resume'))
+  electron.powerMonitor.on('resume', function () {
+    sendToWindows('resume')
+  })
 
   // To keep app startup fast, some non-essential code is delayed.
   return setTimeout(onDelayedStartup, delayedInitTime)

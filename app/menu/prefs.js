@@ -10,10 +10,9 @@ let preferences = Object.seal({
 })
 
 ipc.on('cached-preferences', function (e, data) {
-  preferences = data
+  AutolaunchBtn.checked = preferences.IS_AUTOLAUNCH = data.IS_AUTOLAUNCH
   LabelLocationBtn.value = preferences.LABEL_LOCATION = data.LABEL_LOCATION
   UpdateRateBtn.value = preferences.UPDATE_RATE = data.UPDATE_RATE
-  AutolaunchBtn.checked = preferences.IS_AUTOLAUNCH = data.IS_AUTOLAUNCH
 })
 
 ipc.on('autolaunch', function (e, data) {

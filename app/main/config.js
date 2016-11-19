@@ -1,6 +1,4 @@
-const path = require('path')
-const APP_VERSION = require('../../package.json').version
-const APP_NAME = 'Galeri'
+const { join } = require('path')
 const APP_TEAM = 'Space Egg, LLC'
 
 module.exports = {
@@ -14,14 +12,14 @@ module.exports = {
   GITHUB_URL_RAW: 'https://raw.githubusercontent.com/michealparks/galeri-www/master',
   GITHUB_RELEASE_API: 'https://api.github.com/repos/michealparks/galeri-www/releases/latest',
 
-  APP_NAME,
+  APP_NAME: 'Galeri',
   APP_TEAM,
-  APP_VERSION,
+  APP_VERSION: require('../../package.json').version,
   APP_COPYRIGHT: 'Copyright © 2016 ' + APP_TEAM,
-  APP_ICON: path.join(__dirname, '../..', 'assets', 'Galeri'),
+  APP_ICON: join(__dirname, '../..', 'assets', 'Galeri'),
 
-  ROOT_PATH: path.join(__dirname, '../..'),
-  STATIC_PATH: path.join(__dirname, '../..', 'assets'),
+  ROOT_PATH: join(__dirname, '../..'),
+  STATIC_PATH: join(__dirname, '../..', 'assets'),
 
   CHECK_UPDATE_INTERVAL: 24 * 1000 * 60 * 60 // 24 hours
 }
