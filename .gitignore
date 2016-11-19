@@ -6,3 +6,5 @@ release/
 build/
 dist/
 main.js
+
+.DS_Store
