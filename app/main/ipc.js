@@ -1,32 +1,29 @@
 const { ipcMain, BrowserWindow } = require('electron')
+const { getAllWindows, fromId } = BrowserWindow
 
-const ids = {
-  background: null,
-  menubar: null
-}
-
-let tray
+let tray, backgroundID, menubarID
 
 function cacheTray (t) {
   tray = t
 }
 
 function cacheId (name, id) {
-  ids[name] = id
+  if (name === 'background') backgroundID = id
+  if (name === 'menubar') menubarID = id
 }
 
 function sendToWindows (msg, arg) {
-  return BrowserWindow.getAllWindows().forEach(function (win) {
-    return win.webContents.send(msg, arg)
-  })
+  for (let i = 0, arr = getAllWindows(), l = arr.length; i < l; ++i) {
+    arr[i].webContents.send(msg, arg)
+  }
 }
 
 function sendToBackground (msg, arg) {
-  return BrowserWindow.fromId(ids.background).webContents.send(msg, arg)
+  return fromId(backgroundID).webContents.send(msg, arg)
 }
 
 function sendToMenubar (msg, arg) {
-  return BrowserWindow.fromId(ids.menubar).webContents.send(msg, arg)
+  return fromId(menubarID).webContents.send(msg, arg)
 }
 
 ipcMain.on('play', function () {

@@ -5,10 +5,11 @@ const ArtSource = document.getElementById('artwork-source')
 const ArtLink = document.getElementById('artwork-link')
 const ToggleBtn = document.getElementById('btn-toggle')
 
-let cache
+let source, href
 
 ipc.on('artwork', function (e, data) {
-  cache = data
+  source = data.source
+  href = data.href
 
   Updating.classList.remove('hidden')
   Source.classList.add('hidden')
@@ -17,8 +18,8 @@ ipc.on('artwork', function (e, data) {
 })
 
 ipc.on('artwork-updated', function () {
-  ArtSource.textContent = cache.source
-  ArtLink.href = cache.href
+  ArtSource.textContent = source
+  ArtLink.href = href
 
   Updating.classList.add('hidden')
   Source.classList.remove('hidden')

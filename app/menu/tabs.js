@@ -19,7 +19,7 @@ PrefsBtn.onclick = function () {
   return toggleTabs(1)
 }
 
-function toggleActiveArrow(n) {
+function toggleActiveArrow (n) {
   activeArrowCL.toggle('active-arrow--tab-0', n === 0)
   activeArrowCL.toggle('active-arrow--tab-1', n === 1)
 }

@@ -23,9 +23,13 @@ function isValid (tag) {
 function getLatestTag (next) {
   return get(reqObj, function (res) {
     let body = ''
-    res.on('data', function (d) { body += d })
-    res.on('end', function () { next(null, JSON.parse(body).tag_name) })
     res.on('error', next)
+    res.on('data', function (d) {
+      body += d
+    })
+    res.on('end', function () {
+      next(null, JSON.parse(body).tag_name)
+    })
   })
   .on('error', next)
   .setTimeout(10000)
@@ -37,13 +41,11 @@ function isNewerVersionAvailable (latest) {
 
   // Major version update
   if (Number(latestArr[0]) > Number(currentArr[0])) return true
-
   // Minor version update
   if (Number(latestArr[1]) > Number(currentArr[1])) return true
-
   // Patch update
   if (Number(latestArr[2]) > Number(currentArr[2])) return true
-
+  // No update
   return false
 }
 
@@ -52,8 +54,10 @@ function getFeedURL (tag, next) {
     ? next(`${config.GITHUB_URL}/releases/download/${tag}`)
     : get(`${config.GITHUB_URL_RAW}/updater.json`, function (res) {
       let body = ''
-      res.on('data', function (d) { body += d })
       res.on('error', next)
+      res.on('data', function (d) {
+        body += d
+      })
       res.on('end', function () {
         if (res.statusCode === 404) {
           return next({

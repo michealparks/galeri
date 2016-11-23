@@ -14,8 +14,8 @@ document.getElementById('quit').onclick = function () {
 }
 
 document.getElementById('devtools').onclick = function () {
-  return require('electron').remote.BrowserWindow
-    .getAllWindows().forEach(function (win) {
-      return win.openDevTools({ mode: 'detach' })
-    })
+  const wins = require('electron').remote.BrowserWindow.getAllWindows()
+  for (let i = 0, l = wins.length; i < l; ++i) {
+    wins[i].openDevTools({ mode: 'detach' })
+  }
 }
