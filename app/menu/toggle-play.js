@@ -4,11 +4,11 @@ const ToggleBtn = document.getElementById('btn-toggle')
 let isPaused = false
 let isAnimating = false
 
-ipc.on('cached-preferences', function (e, data) {
-  if (data.hasOwnProperty('IS_PAUSED')) {
-    isPaused = data.IS_PAUSED
-    return animateToggle()
-  }
+ipc.on('preferences-to-menubar', function (e, data) {
+  if (data.IS_PAUSED === undefined) return
+
+  isPaused = data.IS_PAUSED
+  return animateToggle()
 })
 
 ToggleBtn.onclick = function (e) {

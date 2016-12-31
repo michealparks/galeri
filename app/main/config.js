@@ -15,7 +15,7 @@ module.exports = {
   APP_NAME: 'Galeri',
   APP_TEAM,
   APP_VERSION: require('../../package.json').version,
-  APP_COPYRIGHT: 'Copyright © 2016 ' + APP_TEAM,
+  APP_COPYRIGHT: `Copyright © ${(new Date()).getFullYear()} ${APP_TEAM}`,
   APP_ICON: join(__dirname, '../..', 'assets', 'Galeri'),
 
   ROOT_PATH: join(__dirname, '../..'),

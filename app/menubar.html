@@ -59,10 +59,13 @@
   content: "\e076";
 }
 
-::selection { background: transparent }
+::selection {
+  background: transparent
+}
 
 * {
   cursor: default;
+  -webkit-user-select: none;
   user-select: none;
   box-sizing: border-box;
 }
@@ -155,7 +158,7 @@ select {
   width: 100%;
   height: calc(100% - 80px);
   padding: 10px;
-  background-color: rgba(255,255,255,0.96)
+  background-color: rgba(255,255,255,0.96);
 }
 
 .icon {
@@ -282,30 +285,24 @@ select {
   bottom: 5px;
 }
 
-.copyright,
-.quit,
-.devtools {
+.about, .quit {
   position: fixed;
   bottom: 0;
   padding: 3px 10px 5px 10px;
   font-size: 12px;
 }
 
-.copyright {
+.about {
   left: 0;
   width: 100%;
   background-color: rgba(0, 0, 0, 0.11);
 }
 
-.quit, .devtools {
+.quit {
   right: 0;
 }
 
-.devtools {
-  position: absolute;
-}
-
-.quit:hover, .devtools:hover {
+.quit:hover, .about:hover {
   text-decoration: underline;
 }
 
@@ -354,10 +351,6 @@ select {
           <p>Learn more about it.</p>
         </a>
       </div>
-
-      <div id='devtools' class='devtools'>
-        <small>Devtools</small>
-      </div>
     </div>
 
     <div class='tab tab--hidden' id='preferences'>
@@ -389,7 +382,8 @@ select {
         <label>
           <p class='no-margin'>
             Launch Galeri on startup
-            <input id='autolaunch' class='float-right' type='checkbox' checked /></p>
+            <input id='autolaunch' class='float-right' type='checkbox' checked />
+          </p>
         </label>
       </div>
 
@@ -403,8 +397,8 @@ select {
       </div>
     </div>
 
-    <div class='copyright'>
-      <small>Copyright © 2016 Space Egg, LLC</small>
+    <div id='about' class='about'>
+      <small>About</small>
     </div>
 
     <div id='quit' class='quit'>
@@ -412,6 +406,6 @@ select {
     </div>
   </div>
 
-  <script src='../build/menu.js'></script>
+  <script async src='../build/menu.js'></script>
 </body>
 </html>

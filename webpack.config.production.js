@@ -14,7 +14,5 @@ module.exports = validate(merge(baseConfig, {
     new BabiliPlugin(),
     new webpack.optimize.OccurrenceOrderPlugin(),
     new webpack.DefinePlugin({ 'process.env.NODE_ENV': env })
-  ],
-
-  target: 'electron-renderer'
+  ]
 }))

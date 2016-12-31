@@ -1,4 +1,6 @@
-console.time('init')
+const dev = process.env.NODE_ENV === 'development'
+
+if (dev) console.time('init')
 
 require('./app/main/crash-reporter')
 
@@ -77,7 +79,7 @@ function onDelayedStartup () {
 
 function onBrowserRender () {
   if (backgroundWindow.length === 1) {
-    console.timeEnd('init')
+    if (dev) console.timeEnd('init')
   } else {
     return setTimeout(onBrowserDestroyReady, 4000)
   }

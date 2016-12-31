@@ -1,16 +1,35 @@
 const electron = require('electron')
+const { systemPreferences } = electron
 const Positioner = require('./positioner')
 const { cacheId, cacheTray } = require('./ipc')
 
 const win32 = process.platform === 'win32'
 const dev = process.env.NODE_ENV === 'development'
 
-let tray, win, positioner, cachedBounds
+let icon, tray, win, positioner, cachedBounds
+
+systemPreferences.subscribeNotification('AppleInterfaceThemeChangedNotification', function () {
+  getIconColor()
+
+  if (!tray) return
+
+  tray.setImage(getImage())
+})
+
+function getIconColor () {
+  icon = systemPreferences.isDarkMode() ? 'icon-dark' : 'icon'
+}
+
+function getImage () {
+  return dev
+    ? `${__dirname}/../../assets/${icon}_32x32.png`
+    : `${__dirname}/assets/${icon}_32x32.png`
+}
 
 function initMenubar (next) {
-  tray = new electron.Tray(!dev
-    ? `${__dirname}/assets/icon_32x32.png`
-    : `${__dirname}/../../assets/icon_32x32.png`)
+  getIconColor()
+
+  tray = new electron.Tray(getImage())
 
   tray.on('click', onClick)
   tray.on('double-click', onClick)
@@ -33,16 +52,17 @@ function createWindow (next) {
     width: 250,
     height: 320
   })
+
+  if (dev) win.openDevTools({ mode: 'detach' })
+
   positioner = new Positioner(win)
 
   cacheId('menubar', win.id)
 
-  if (dev) win.openDevTools({ mode: 'detach' })
-
   win.setVisibleOnAllWorkspaces(true)
 
   win.on('blur', function () {
-    if (!dev) return hideWindow()
+    return dev ? null : hideWindow()
   })
 
   win.on('close', function () {
@@ -51,14 +71,20 @@ function createWindow (next) {
 
   win.once('ready-to-show', next)
 
-  return win.loadURL(!dev
-    ? `file://${__dirname}/app/menubar.html`
-    : `file://${__dirname}/../../app/menubar.html`)
+  return win.loadURL(dev
+    ? `file://${__dirname}/../../app/menubar.html`
+    : `file://${__dirname}/app/menubar.html`)
 }
 
 function onClick (e, bounds) {
-  if (e.altKey || e.shiftKey || e.ctrlKey || e.metaKey) return hideWindow()
-  if (win && win.isVisible()) return hideWindow()
+  if (e.altKey || e.shiftKey || e.ctrlKey || e.metaKey) {
+    return hideWindow()
+  }
+
+  if (win && win.isVisible()) {
+    return hideWindow()
+  }
+
   cachedBounds = bounds || cachedBounds
   return showWindow(cachedBounds)
 }
