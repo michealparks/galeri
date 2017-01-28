@@ -110,8 +110,11 @@ function makeBackgroundWindow () {
     frame: false,
     transparent: true,
     enableLargerThanScreen: true,
-    webAudio: false,
-    webgl: false
+    webPreferences: {
+      webAudio: false,
+      webgl: false,
+      backgroundThrottling: false
+    }
   })
 
   cacheId('background', win.id)

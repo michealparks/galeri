@@ -10,7 +10,6 @@ let preferences = Object.seal({
 })
 
 ipc.on('preferences-to-menubar', function (e, data) {
-  console.log(data)
   AutolaunchBtn.checked = preferences.IS_AUTOLAUNCH = data.IS_AUTOLAUNCH
   LabelLocationBtn.value = preferences.LABEL_LOCATION = data.LABEL_LOCATION
   UpdateRateBtn.value = preferences.UPDATE_RATE = data.UPDATE_RATE

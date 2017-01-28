@@ -1,12 +1,12 @@
 const electron = require('electron')
 const { systemPreferences } = electron
-const Positioner = require('./positioner')
+const calculatePosition = require('./positioner')
 const { cacheId, cacheTray } = require('./ipc')
 
 const win32 = process.platform === 'win32'
 const dev = process.env.NODE_ENV === 'development'
 
-let icon, tray, win, positioner, cachedBounds
+let icon, tray, win, cachedBounds
 
 systemPreferences.subscribeNotification('AppleInterfaceThemeChangedNotification', function () {
   getIconColor()
@@ -50,12 +50,15 @@ function createWindow (next) {
     show: false,
     frame: false,
     width: 250,
-    height: 320
+    height: 320,
+    webPreferences: {
+      webAudio: false,
+      webgl: false,
+      backgroundThrottling: false
+    }
   })
 
   if (dev) win.openDevTools({ mode: 'detach' })
-
-  positioner = new Positioner(win)
 
   cacheId('menubar', win.id)
 
@@ -106,15 +109,17 @@ function showWindow (trayPos) {
   }
 
   // Default the window to the right if `trayPos` bounds are undefined or null.
-  let noBoundsPosition = null
+  let noBoundsPosition
+
   if ((trayPos === undefined || trayPos.x === 0)) {
     noBoundsPosition = win32 ? 'bottomRight' : 'topRight'
   }
 
   const winPosition = win32 ? 'trayBottomCenter' : 'trayCenter'
-  const position = positioner.calculate(noBoundsPosition || winPosition, trayPos)
+  const position = calculatePosition(win, noBoundsPosition || winPosition, trayPos)
 
   win.setPosition(position.x, position.y + (win32 ? 0 : 5))
+
   return win.show()
 }
 
