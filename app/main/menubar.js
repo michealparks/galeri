@@ -6,7 +6,7 @@ const { cacheId, cacheTray } = require('./ipc')
 const win32 = process.platform === 'win32'
 const dev = process.env.NODE_ENV === 'development'
 
-let icon, tray, win, cachedBounds
+let icon, tray, win, screen, cachedBounds
 
 systemPreferences.subscribeNotification('AppleInterfaceThemeChangedNotification', function () {
   getIconColor()
@@ -29,6 +29,7 @@ function getImage () {
 function initMenubar (next) {
   getIconColor()
 
+  screen = electron.screen
   tray = new electron.Tray(getImage())
 
   tray.on('click', onClick)
@@ -116,7 +117,7 @@ function showWindow (trayPos) {
   }
 
   const winPosition = win32 ? 'trayBottomCenter' : 'trayCenter'
-  const position = calculatePosition(win, noBoundsPosition || winPosition, trayPos)
+  const position = calculatePosition(screen, win, noBoundsPosition || winPosition, trayPos)
 
   win.setPosition(position.x, position.y + (win32 ? 0 : 5))
 

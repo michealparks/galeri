@@ -1,5 +1,3 @@
-const { screen } = require('electron')
-
 function getPosition (location, trayPosition, screenSize, windowSize) {
   switch (location) {
     case 'trayCenter': return {
@@ -21,7 +19,7 @@ function getPosition (location, trayPosition, screenSize, windowSize) {
   }
 }
 
-function calculatePosition (browserWindow, position, trayPosition) {
+function calculatePosition (screen, browserWindow, position, trayPosition) {
   const screenSize = screen.getDisplayNearestPoint(screen.getCursorScreenPoint()).workArea
   const windowSize = browserWindow.getSize()
   const basePosition = getPosition(position, trayPosition || {}, screenSize, windowSize)

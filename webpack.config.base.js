@@ -8,9 +8,6 @@ module.exports = validate({
         test: /\.js$/,
         loader: 'babel-loader',
         exclude: /node_modules/
-      }, {
-        test: /\.json$/,
-        loader: 'json-loader'
       }
     ]
   },

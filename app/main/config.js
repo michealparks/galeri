@@ -1,7 +1,7 @@
 const { join } = require('path')
 const APP_TEAM = 'Space Egg, LLC'
 
-module.exports = {
+module.exports = Object.seal({
   HOME_PAGE_URL: 'https://galeri.io',
   AUTO_UPDATE_URL: 'https://galeri.io/update',
   CRASH_REPORT_URL: 'https://galeri.io/crash-report',
@@ -22,4 +22,4 @@ module.exports = {
   STATIC_PATH: join(__dirname, '../..', 'assets'),
 
   CHECK_UPDATE_INTERVAL: 24 * 1000 * 60 * 60 // 24 hours
-}
+})
