@@ -42,17 +42,22 @@ const argv = minimist(process.argv.slice(2), {
   ]
 })
 
-Promise.all(
+Promise.all([
   del(BUILD_PATH),
   del(DIST_PATH)
-).then(function () {
-  return Promise.all(
+]).then(function () {
+  return Promise.all([
     webpackBuild(mainWpCfg),
     webpackBuild(rendererWpCfg)
-  )
-}).then(function () {
+  ])
+})
+.then(function () {
   return html()
-}).then(build)
+})
+.then(build)
+.catch(function (e) {
+  console.error(e)
+})
 
 function html () {
   return new Promise((resolve, reject) => {

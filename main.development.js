@@ -122,7 +122,9 @@ function makeBackgroundWindow () {
   win.setVisibleOnAllWorkspaces(true)
   win.once('ready-to-show', win.showInactive)
   win.once('closed', function () { win = null })
-  win.loadURL(`file://${__dirname}/core/public/index.html`)
+  win.loadURL(process.env.NODE_ENV === 'development'
+    ? `file://${__dirname}/core/public/index.html`
+    : `file://${__dirname}/build/index.html`)
 
   if (process.env.NODE_ENV === 'development') {
     require('electron-debug')()
