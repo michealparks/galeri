@@ -6,6 +6,7 @@ const electron = require('electron')
 const { cacheId, sendToWindows } = require('./app/main/ipc')
 const { app, BrowserWindow, ipcMain } = electron
 const delayedInitTime = 3000
+const darwin = process.platform === 'darwin'
 
 let screen
 let initMenubar
@@ -36,7 +37,7 @@ function init () {
   require('./app/main/updater')
 
   app.commandLine.appendSwitch('disable-http-cache')
-  app.dock.hide()
+  if (darwin) app.dock.hide()
 
   initMenubar = require('./app/main/menubar')
 
@@ -53,7 +54,15 @@ function init () {
 function onReady () {
   screen = electron.screen
 
-  screen.on('display-metrics-changed', function () {
+  electron.screen.on('display-added', function () {
+    // TODO
+  })
+
+  electron.screen.on('display-removed', function () {
+    // TODO
+  })
+
+  electron.screen.on('display-metrics-changed', function () {
     return setTimeout(resizeBackgrounds)
   })
 
@@ -115,9 +124,12 @@ function makeBackgroundWindow () {
   cacheId('background', win.id)
 
   win.setVisibleOnAllWorkspaces(true)
+  win.setSkipTaskbar(true)
   win.once('ready-to-show', win.showInactive)
   win.once('closed', function () { win = null })
   win.loadURL(`file://${__dirname}/core/public/index.html`)
+
+  win.on('move', onBackgroundMove)
 
   if (process.env.NODE_ENV === 'development') {
     require('electron-debug')()
@@ -125,6 +137,16 @@ function makeBackgroundWindow () {
   }
 
   backgroundWindow.push(win)
+}
+
+function onBackgroundMove () {
+  console.log('BOOOOOOOOOOOOO')
+  return setTimeout(() => {
+    const { width, height } = screen.getPrimaryDisplay().size
+
+    this.setSize(width, height + 5)
+    this.setPosition(0, 0)
+  }, 200)
 }
 
 function resizeBackgrounds () {

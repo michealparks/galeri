@@ -39,6 +39,7 @@ function createWindow (next) {
 
   if (dev) win.openDevTools({ mode: 'detach' })
 
+  win.setSkipTaskbar(true)
   win.setVisibleOnAllWorkspaces(true)
 
   win.on('blur', function () {
