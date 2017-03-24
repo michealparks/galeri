@@ -69,19 +69,20 @@ xhr.responseType = 'json'
 xhr.timeout = 10000
 xhr.ontimeout = xhr.onerror = writeError
 
-xhr.onload = () => {
+xhr.onload = function () {
   if (xhr.status === 200) return writeVersionStats()
   return writeError()
 }
 
 function writeVersionStats () {
-  xhr.response.forEach(release => {
+  xhr.response.forEach(function (release) {
     const title = document.createElement('h1')
     const regex = new RegExp(`Galeri\-${release.tag_name.replace(/\./g, '\.')}(\-)?|\.?`)
+
     title.textContent = release.tag_name
     body.appendChild(title)
 
-    release.assets.forEach(asset => {
+    release.assets.forEach(function (asset) {
       if (asset.name.includes('.zip')) {
         totalUpdates += asset.download_count
       } else {
@@ -107,7 +108,7 @@ function writeError () {
   document.body.appendChild(body)
 }
 
-function numberWithCommas(x) {
+function numberWithCommas (x) {
   return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
 }
 

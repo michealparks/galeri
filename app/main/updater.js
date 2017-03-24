@@ -24,9 +24,7 @@ function getLatestTag (next) {
   return get(reqObj, function (res) {
     let body = ''
     res.on('error', next)
-    res.on('data', function (d) {
-      body += d
-    })
+    res.on('data', function (d) { body += d })
     res.on('end', function () {
       next(null, JSON.parse(body).tag_name)
     })
@@ -123,10 +121,10 @@ function check (next) {
 function initDarwinWin32 () {
   const { autoUpdater } = electron
 
-  autoUpdater.on('error', err => console.error(err))
-  autoUpdater.on('checking-for-update', msg => console.log(msg))
-  autoUpdater.on('update-available', msg => console.log(msg))
-  autoUpdater.on('update-not-available', msg => console.log(msg))
+  autoUpdater.on('error', console.error.bind(console))
+  autoUpdater.on('checking-for-update', console.log.bind(console))
+  autoUpdater.on('update-available', console.log.bind(console))
+  autoUpdater.on('update-not-available', console.log.bind(console))
 
   autoUpdater.on('update-downloaded', function (msg) {
     console.log('update-downloaded', msg)

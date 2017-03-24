@@ -71,8 +71,10 @@ ipcMain.on('open-about-window', function () {
     minimizable: false,
     maximizable: false,
     fullscreenable: false,
-    webAudio: false,
-    webgl: false
+    webPreferences: {
+      webAudio: false,
+      webgl: false
+    }
   })
 
   aboutWin.once('ready-to-show', aboutWin.show)

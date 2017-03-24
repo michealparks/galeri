@@ -4,6 +4,7 @@ require('./tabs')
 require('./toggle-play')
 require('./artwork')
 require('./prefs')
+require('./locale')
 
 document
   .getElementById('version')

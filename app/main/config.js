@@ -1,4 +1,4 @@
-const { join } = require('path')
+const path = require('path')
 const APP_TEAM = 'Space Egg, LLC'
 
 module.exports = Object.seal({
@@ -13,13 +13,13 @@ module.exports = Object.seal({
   GITHUB_RELEASE_API: 'https://api.github.com/repos/michealparks/galeri-www/releases/latest',
 
   APP_NAME: 'Galeri',
-  APP_TEAM,
+  APP_TEAM: APP_TEAM,
   APP_VERSION: require('../../package.json').version,
   APP_COPYRIGHT: `Copyright © ${(new Date()).getFullYear()} ${APP_TEAM}`,
-  APP_ICON: join(__dirname, '../..', 'assets', 'Galeri'),
+  APP_ICON: path.join(__dirname, '../..', 'assets', 'Galeri'),
 
-  ROOT_PATH: join(__dirname, '../..'),
-  STATIC_PATH: join(__dirname, '../..', 'assets'),
+  ROOT_PATH: path.join(__dirname, '../..'),
+  STATIC_PATH: path.join(__dirname, '../..', 'assets'),
 
   CHECK_UPDATE_INTERVAL: 24 * 1000 * 60 * 60 // 24 hours
 })
