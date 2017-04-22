@@ -228,13 +228,18 @@ select {
   transform-origin: center;
 }
 
-.artwork-blurb a {
-  color: #666 !important;
-  text-decoration: none;
-}
-
 .artwork-source {
   margin: 0;
+}
+
+#artwork-title {
+  font-size: 16px;
+  margin: 0;
+}
+
+#artwork-text {
+  margin: 0 0 10px 0;
+  font-size: 10px;
 }
 
 #btn-prefs-tab {
@@ -310,7 +315,6 @@ select {
   opacity: 0;
   pointer-events: none;
 }
-
 </style>
 </head>
 
@@ -345,6 +349,10 @@ select {
       </div>
 
       <div id='source'>
+        <div id='artwork-info'>
+          <p id='artwork-title'></p>
+          <p id='artwork-text'></p>
+        </div>
         <small id='source__text' style='margin-top:10px'>
           This work was provided by
         </small>

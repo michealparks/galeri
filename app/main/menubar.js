@@ -2,32 +2,30 @@ const electron = require('electron')
 const { systemPreferences } = electron
 const calculatePosition = require('./positioner')
 const { cacheId, cacheTray } = require('./ipc')
-
 const win32 = process.platform === 'win32'
-const dev = process.env.NODE_ENV === 'development'
 
 let icon, tray, win, screen, cachedBounds
 
 systemPreferences.subscribeNotification('AppleInterfaceThemeChangedNotification', function () {
-  getIconColor()
+  setIconColor()
 
   if (!tray) return
 
   tray.setImage(getImage())
 })
 
-function getIconColor () {
+function setIconColor () {
   icon = systemPreferences.isDarkMode() ? 'icon-dark' : 'icon'
 }
 
 function getImage () {
-  return dev
+  return __dev__
     ? `${__dirname}/../../assets/${icon}_32x32.png`
     : `${__dirname}/assets/${icon}_32x32.png`
 }
 
 function initMenubar (next) {
-  getIconColor()
+  setIconColor()
 
   screen = electron.screen
   tray = new electron.Tray(getImage())
@@ -45,7 +43,7 @@ function initMenubar (next) {
 function createWindow (next) {
   win = new electron.BrowserWindow({
     dir: require('path').resolve(electron.app.getAppPath()),
-    alwaysOnTop: dev,
+    alwaysOnTop: __dev__,
     resizable: false,
     transparent: true,
     show: false,
@@ -59,14 +57,14 @@ function createWindow (next) {
     }
   })
 
-  if (dev) win.openDevTools({ mode: 'detach' })
+  if (__dev__) win.openDevTools({ mode: 'detach' })
 
   cacheId('menubar', win.id)
 
   win.setVisibleOnAllWorkspaces(true)
 
   win.on('blur', function () {
-    return dev ? null : hideWindow()
+    return __dev__ ? null : hideWindow()
   })
 
   win.on('close', function () {
@@ -75,7 +73,7 @@ function createWindow (next) {
 
   win.once('ready-to-show', next)
 
-  return win.loadURL(dev
+  return win.loadURL(__dev__
     ? `file://${__dirname}/../../app/menubar.html`
     : `file://${__dirname}/app/menubar.html`)
 }
@@ -112,14 +110,14 @@ function showWindow (trayPos) {
   // Default the window to the right if `trayPos` bounds are undefined or null.
   let noBoundsPosition
 
-  if ((trayPos === undefined || trayPos.x === 0)) {
+  if (trayPos === undefined || trayPos.x === 0) {
     noBoundsPosition = win32 ? 'bottomRight' : 'topRight'
   }
 
   const winPosition = win32 ? 'trayBottomCenter' : 'trayCenter'
   const position = calculatePosition(screen, win, noBoundsPosition || winPosition, trayPos)
 
-  win.setPosition(position.x, position.y + (win32 ? 0 : 5))
+  win.setPosition(position[0], position[1] + (win32 ? 0 : 5))
 
   return win.show()
 }

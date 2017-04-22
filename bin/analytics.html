@@ -77,7 +77,7 @@ xhr.onload = function () {
 function writeVersionStats () {
   xhr.response.forEach(function (release) {
     const title = document.createElement('h1')
-    const regex = new RegExp(`Galeri\-${release.tag_name.replace(/\./g, '\.')}(\-)?|\.?`)
+    const regex = new RegExp(`Galeri-${release.tag_name.replace(/\./g, '.')}(-)?|.?`)
 
     title.textContent = release.tag_name
     body.appendChild(title)

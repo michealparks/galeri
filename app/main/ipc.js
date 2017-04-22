@@ -1,4 +1,3 @@
-const dev = process.env.NODE_ENV === 'development'
 const { ipcMain, BrowserWindow } = require('electron')
 const { getAllWindows, fromId } = BrowserWindow
 
@@ -86,7 +85,7 @@ ipcMain.on('open-about-window', function () {
   return aboutWin.loadURL(require('url').format({
     protocol: 'file',
     slashes: true,
-    pathname: dev
+    pathname: __dev__
       ? require('path').join(__dirname, '..', 'about.html')
       : require('path').join(__dirname, 'app', 'about.html')
   }))

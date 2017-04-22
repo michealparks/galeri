@@ -3,7 +3,7 @@ const { get } = require('https')
 const electron = require('electron')
 const config = require('./config')
 const debug = require('./log')
-const WIN32 = (process.platform === 'win32')
+const win32 = process.platform === 'win32'
 const REGEX_ZIP_URL = /\/(v)?(\d+\.\d+\.\d+)\/.*\.zip/
 const reqObj = Object.assign(parse(config.GITHUB_RELEASE_API), {
   headers: { 'User-Agent': 'michealparks' }
@@ -48,7 +48,7 @@ function isNewerVersionAvailable (latest) {
 }
 
 function getFeedURL (tag, next) {
-  return WIN32
+  return win32
     ? next(`${config.GITHUB_URL}/releases/download/${tag}`)
     : get(`${config.GITHUB_URL_RAW}/updater.json`, function (res) {
       let body = ''
@@ -119,25 +119,27 @@ function check (next) {
 }
 
 function initDarwinWin32 () {
-  const { autoUpdater } = electron
+  const updater = electron.autoUpdater
 
-  autoUpdater.on('error', console.error.bind(console))
-  autoUpdater.on('checking-for-update', console.log.bind(console))
-  autoUpdater.on('update-available', console.log.bind(console))
-  autoUpdater.on('update-not-available', console.log.bind(console))
+  if (__dev__) {
+    updater.on('error', console.error.bind(console))
+    updater.on('checking-for-update', console.log.bind(console))
+    updater.on('update-available', console.log.bind(console))
+    updater.on('update-not-available', console.log.bind(console))
+  }
 
-  autoUpdater.on('update-downloaded', function (msg) {
-    console.log('update-downloaded', msg)
-    return autoUpdater.quitAndInstall()
+  updater.on('update-downloaded', function (msg) {
+    if (__dev__) console.log('update-downloaded', msg)
+    return updater.quitAndInstall()
   })
 
   function onCheck (err, feedUrl) {
     if (err && !err.type) return console.error(err)
     if (err) return debug[err.type](err.msg)
 
-    console.log('feed-url', feedUrl)
-    autoUpdater.setFeedURL(feedUrl)
-    autoUpdater.checkForUpdates()
+    if (__dev__) console.log('feed-url', feedUrl)
+    updater.setFeedURL(feedUrl)
+    updater.checkForUpdates()
   }
 
   check(onCheck)
