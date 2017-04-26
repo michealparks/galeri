@@ -9,7 +9,6 @@ require('electron').crashReporter.start({
 
 function onFatalCrash (e) {
   console.error(e)
-  return app.relaunch()
 }
 
 // TODO send crash report

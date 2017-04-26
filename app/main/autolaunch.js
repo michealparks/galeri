@@ -15,10 +15,10 @@ launcher.isEnabled().then(function (isEnabled) {
   }, 5000)
 })
 
-electron.ipcMain.on('preferences', onPrefs)
-electron.ipcMain.on('cached-preferences', onPrefs)
+electron.ipcMain.on('preferences-to-background', onPrefs)
+electron.ipcMain.on('preferences-to-menubar', onPrefs)
 
 function onPrefs (e, data) {
-  if (typeof data.IS_AUTOLAUNCH === 'undefined') return
+  if (data.IS_AUTOLAUNCH === undefined) return
   return data.IS_AUTOLAUNCH ? launcher.enable() : launcher.disable()
 }

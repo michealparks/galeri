@@ -1,5 +1,6 @@
-const { shell } = require('electron')
+const open = require('open')
 const links = document.querySelectorAll('a[href]')
+const metStr = /^https:\/\/metmuseum.org\/art\/collection\/search\//
 
 for (let i = 0, l = links.length; i < l; ++i) {
   links[i].onclick = onLinkClick
@@ -7,5 +8,8 @@ for (let i = 0, l = links.length; i < l; ++i) {
 
 function onLinkClick (e) {
   e.preventDefault()
-  return shell.openExternal(this.href)
+
+  return open(metStr.test(this.href)
+    ? this.href.replace('https', 'http')
+    : this.href)
 }

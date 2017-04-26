@@ -43,16 +43,42 @@ const argv = minimist(process.argv.slice(2), {
 })
 
 Promise.all([
-  webpackBuild(mainWpCfg),
-  webpackBuild(rendererWpCfg),
   del(BUILD_PATH),
   del(DIST_PATH)
-]).then(build)
+]).then(function () {
+  return Promise.all([
+    webpackBuild(mainWpCfg),
+    webpackBuild(rendererWpCfg)
+  ])
+})
+.then(function () {
+  return html()
+})
+.then(build)
+.catch(function (e) {
+  console.error(e)
+})
+
+function html () {
+  return new Promise((resolve, reject) => {
+    const source = fs.createReadStream(
+      path.resolve(config.ROOT_PATH, 'core/public/index.html')
+    )
+
+    source.pipe(fs.createWriteStream(
+      path.resolve(config.ROOT_PATH, 'build/index.html')
+    ))
+    source.on('error', reject)
+    source.on('end', resolve)
+  })
+}
 
 function webpackBuild (c) {
-  return new Promise((resolve, reject) =>
-    webpack(c, (err, stats) => err ? reject(err) : resolve(stats))
-  )
+  return new Promise(function (resolve, reject) {
+    webpack(c, function (err, stats) {
+      return err ? reject(err) : resolve(stats)
+    })
+  })
 }
 
 function build () {
@@ -97,7 +123,7 @@ const all = {
 
   // Pattern which specifies which files to ignore when copying files to create the
   // package(s).
-  ignore: /^\/src|^\/main.development.js|^\/dist|^\/release|\/(appveyor.yml|\.appveyor.yml|\.github|appdmg|AUTHORS|CONTRIBUTORS|bench|benchmark|benchmark\.js|bin|bower\.json|component\.json|coverage|doc|docs|docs\.mli|dragdrop\.min\.js|example|examples|example\.html|example\.js|externs|ipaddr\.min\.js|Makefile|min|minimist|perf|rusha|simplepeer\.min\.js|simplewebsocket\.min\.js|static\/screenshot\.png|test|tests|test\.js|tests\.js|galeri\.min\.js|\.[^\/]*|.*\.md|.*\.markdown)$/,
+  ignore: /^\/src|^\/core|^\/main.development.js|^\/dist|^\/release|\/(appveyor.yml|\.appveyor.yml|\.github|appdmg|AUTHORS|CONTRIBUTORS|bench|benchmark|benchmark\.js|bin|bower\.json|component\.json|coverage|doc|docs|docs\.mli|dragdrop\.min\.js|example|examples|example\.html|example\.js|externs|ipaddr\.min\.js|Makefile|min|minimist|perf|rusha|simplepeer\.min\.js|simplewebsocket\.min\.js|static\/screenshot\.png|test|tests|test\.js|tests\.js|galeri\.min\.js|\.[^\/]*|.*\.md|.*\.markdown)$/,
 
   // The application name.
   name: config.APP_NAME,
@@ -113,7 +139,7 @@ const all = {
   prune: true,
 
   // The Electron version with which the app is built (without the leading 'v')
-  version: require('electron/package.json').version
+  electronVersion: require('electron/package.json').version
 }
 
 const darwin = {

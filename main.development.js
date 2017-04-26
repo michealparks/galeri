@@ -1,4 +1,6 @@
-console.time('init')
+const dev = process.env.NODE_ENV === 'development'
+
+if (dev) console.time('init')
 
 require('./app/main/crash-reporter')
 
@@ -86,7 +88,7 @@ function onDelayedStartup () {
 
 function onBrowserRender () {
   if (backgroundWindow.length === 1) {
-    console.timeEnd('init')
+    if (dev) console.timeEnd('init')
   } else {
     return setTimeout(onBrowserDestroyReady, 4000)
   }
@@ -117,8 +119,11 @@ function makeBackgroundWindow () {
     frame: false,
     transparent: true,
     enableLargerThanScreen: true,
-    webAudio: false,
-    webgl: false
+    webPreferences: {
+      webAudio: false,
+      webgl: false,
+      backgroundThrottling: false
+    }
   })
 
   cacheId('background', win.id)
@@ -127,7 +132,9 @@ function makeBackgroundWindow () {
   win.setSkipTaskbar(true)
   win.once('ready-to-show', win.showInactive)
   win.once('closed', function () { win = null })
-  win.loadURL(`file://${__dirname}/core/public/index.html`)
+  win.loadURL(process.env.NODE_ENV === 'development'
+    ? `file://${__dirname}/core/public/index.html`
+    : `file://${__dirname}/build/index.html`)
 
   win.on('move', onBackgroundMove)
 

@@ -1,16 +1,42 @@
 const electron = require('electron')
-const Positioner = require('./positioner')
+const { systemPreferences } = electron
+const calculatePosition = require('./positioner')
 const { cacheId, cacheTray } = require('./ipc')
 
 const win32 = process.platform === 'win32'
 const dev = process.env.NODE_ENV === 'development'
 
-let tray, win, positioner, cachedBounds
+let icon, tray, win, screen, cachedBounds
+
+if ('subscribeNotification' in systemPreferences) {
+  systemPreferences.subscribeNotification(
+    'AppleInterfaceThemeChangedNotification',
+    function () {
+      getIconColor()
+
+      if (!tray) return
+
+      tray.setImage(getImage())
+    }
+  )
+}
+
+
+function getIconColor () {
+  icon = systemPreferences.isDarkMode() ? 'icon-dark' : 'icon'
+}
+
+function getImage () {
+  return dev
+    ? `${__dirname}/../../assets/${icon}_32x32.png`
+    : `${__dirname}/assets/${icon}_32x32.png`
+}
 
 function initMenubar (next) {
-  tray = new electron.Tray(!dev
-    ? `${__dirname}/assets/icon_32x32.png`
-    : `${__dirname}/../../assets/icon_32x32.png`)
+  getIconColor()
+
+  screen = electron.screen
+  tray = new electron.Tray(getImage())
 
   tray.on('click', onClick)
   tray.on('double-click', onClick)
@@ -31,19 +57,22 @@ function createWindow (next) {
     show: false,
     frame: false,
     width: 250,
-    height: 320
+    height: 320,
+    webPreferences: {
+      webAudio: false,
+      webgl: false,
+      backgroundThrottling: false
+    }
   })
-  positioner = new Positioner(win)
-
-  cacheId('menubar', win.id)
 
   if (dev) win.openDevTools({ mode: 'detach' })
 
+  cacheId('menubar', win.id)
   win.setSkipTaskbar(true)
   win.setVisibleOnAllWorkspaces(true)
 
   win.on('blur', function () {
-    if (!dev) return hideWindow()
+    return dev ? null : hideWindow()
   })
 
   win.on('close', function () {
@@ -52,14 +81,20 @@ function createWindow (next) {
 
   win.once('ready-to-show', next)
 
-  return win.loadURL(!dev
-    ? `file://${__dirname}/app/menubar.html`
-    : `file://${__dirname}/../../app/menubar.html`)
+  return win.loadURL(dev
+    ? `file://${__dirname}/../../app/menubar.html`
+    : `file://${__dirname}/app/menubar.html`)
 }
 
 function onClick (e, bounds) {
-  if (e.altKey || e.shiftKey || e.ctrlKey || e.metaKey) return hideWindow()
-  if (win && win.isVisible()) return hideWindow()
+  if (e.altKey || e.shiftKey || e.ctrlKey || e.metaKey) {
+    return hideWindow()
+  }
+
+  if (win && win.isVisible()) {
+    return hideWindow()
+  }
+
   cachedBounds = bounds || cachedBounds
   return showWindow(cachedBounds)
 }
@@ -81,15 +116,17 @@ function showWindow (trayPos) {
   }
 
   // Default the window to the right if `trayPos` bounds are undefined or null.
-  let noBoundsPosition = null
+  let noBoundsPosition
+
   if ((trayPos === undefined || trayPos.x === 0)) {
     noBoundsPosition = win32 ? 'bottomRight' : 'topRight'
   }
 
   const winPosition = win32 ? 'trayBottomCenter' : 'trayCenter'
-  const position = positioner.calculate(noBoundsPosition || winPosition, trayPos)
+  const position = calculatePosition(screen, win, noBoundsPosition || winPosition, trayPos)
 
   win.setPosition(position.x, position.y + (win32 ? 0 : 5))
+
   return win.show()
 }
 
