@@ -4,6 +4,10 @@
 <meta charset='utf-8'>
 
 <style>
+::selection {
+  background: transparent;
+}
+
 @font-face {
   font-family: 'Reem Kufi';
   font-style: normal;
@@ -233,8 +237,8 @@ select {
 }
 
 #artwork-title {
-  font-size: 16px;
-  margin: 0;
+  font-size: 1.25em;
+  margin: 0 0 2px 0;
 }
 
 #artwork-text {
@@ -290,7 +294,8 @@ select {
   bottom: 5px;
 }
 
-.about, .quit {
+.about,
+.quit {
   position: fixed;
   bottom: 0;
   padding: 3px 10px 5px 10px;
@@ -311,14 +316,24 @@ select {
   text-decoration: underline;
 }
 
-.hidden {
+.app #updating {
+  opacity: 0;
+}
+
+.app--updating #updating {
+  opacity: 1;
+}
+
+.app--updating #artwork-link,
+.app--updating #source,
+.app--updating #btn-toggle {
   opacity: 0;
   pointer-events: none;
 }
 </style>
 </head>
 
-<body>
+<body id='app' class='app app--updating'>
   <div class='title'>
     <div class='title__bg'></div>
     <div class='title__mask'></div>
@@ -344,7 +359,7 @@ select {
     </nav>
 
     <div class='tab' id='description'>
-      <div id='updating' class='hidden'>
+      <div id='updating'>
         <p id='updating__text'>Updating...</p>
       </div>
 
@@ -416,6 +431,6 @@ select {
     </div>
   </div>
 
-  <script async src='../build/menu.js'></script>
+  <script inline async src='../build/menu.js'></script>
 </body>
 </html>

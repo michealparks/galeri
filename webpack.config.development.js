@@ -5,7 +5,8 @@ const baseConfig = require('./webpack.config.base')
 module.exports = merge(baseConfig, {
   target: 'electron-renderer',
   entry: {
-    menu: ['./app/menu']
+    menu: ['./app/menu'],
+    clone: ['./app/bg-clone']
   },
   plugins: [
     new webpack.DefinePlugin({

@@ -1,13 +1,13 @@
-const { parse } = require('url')
-const { get } = require('https')
+const dev = process.env.NODE_ENV === 'development'
+const https = require('https')
 const electron = require('electron')
 const config = require('./config')
-const debug = require('./log')
 const win32 = process.platform === 'win32'
 const REGEX_ZIP_URL = /\/(v)?(\d+\.\d+\.\d+)\/.*\.zip/
-const reqObj = Object.assign(parse(config.GITHUB_RELEASE_API), {
-  headers: { 'User-Agent': 'michealparks' }
-})
+const reqObj = Object.assign(
+  require('url').parse(config.GITHUB_RELEASE_API),
+  { headers: { 'User-Agent': 'michealparks' } }
+)
 
 if (process.platform === 'linux') initLinux()
 else initDarwinWin32()
@@ -21,7 +21,7 @@ function isValid (tag) {
 }
 
 function getLatestTag (next) {
-  return get(reqObj, function (res) {
+  return https.get(reqObj, function (res) {
     let body = ''
     res.on('error', next)
     res.on('data', function (d) { body += d })
@@ -50,7 +50,7 @@ function isNewerVersionAvailable (latest) {
 function getFeedURL (tag, next) {
   return win32
     ? next(`${config.GITHUB_URL}/releases/download/${tag}`)
-    : get(`${config.GITHUB_URL_RAW}/updater.json`, function (res) {
+    : https.get(`${config.GITHUB_URL_RAW}/updater.json`, function (res) {
       let body = ''
       res.on('error', next)
       res.on('data', function (d) {
@@ -121,7 +121,7 @@ function check (next) {
 function initDarwinWin32 () {
   const updater = electron.autoUpdater
 
-  if (__dev__) {
+  if (dev) {
     updater.on('error', console.error.bind(console))
     updater.on('checking-for-update', console.log.bind(console))
     updater.on('update-available', console.log.bind(console))
@@ -129,15 +129,14 @@ function initDarwinWin32 () {
   }
 
   updater.on('update-downloaded', function (msg) {
-    if (__dev__) console.log('update-downloaded', msg)
+    if (dev) console.log('update-downloaded', msg)
     return updater.quitAndInstall()
   })
 
   function onCheck (err, feedUrl) {
-    if (err && !err.type) return console.error(err)
-    if (err) return debug[err.type](err.msg)
+    if (err) return console.error(err)
 
-    if (__dev__) console.log('feed-url', feedUrl)
+    if (dev) console.log('feed-url', feedUrl)
     updater.setFeedURL(feedUrl)
     updater.checkForUpdates()
   }

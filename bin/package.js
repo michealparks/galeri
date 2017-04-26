@@ -19,15 +19,19 @@ const path = require('path')
 const del = require('del')
 const series = require('run-series')
 const zip = require('cross-zip')
+const minify = require('html-minifier').minify
+const inline = require('inline-source')
 
 const config = require('../app/main/config')
 const mainWpCfg = require('../webpack.config.electron')
 const rendererWpCfg = require('../webpack.config.production')
 const pkg = require('../package.json')
 
+const resolve = path.resolve
 const BUILD_NAME = config.APP_NAME + '-v' + config.APP_VERSION
 const BUILD_PATH = path.join(config.ROOT_PATH, 'build')
 const DIST_PATH = path.join(config.ROOT_PATH, 'dist')
+const ROOT = config.ROOT_PATH
 
 const argv = minimist(process.argv.slice(2), {
   boolean: [
@@ -42,10 +46,8 @@ const argv = minimist(process.argv.slice(2), {
   ]
 })
 
-Promise.all([
-  del(BUILD_PATH),
-  del(DIST_PATH)
-]).then(function () {
+Promise.all([del(BUILD_PATH), del(DIST_PATH)])
+.then(function () {
   return Promise.all([
     webpackBuild(mainWpCfg),
     webpackBuild(rendererWpCfg)
@@ -60,16 +62,41 @@ Promise.all([
 })
 
 function html () {
-  return new Promise((resolve, reject) => {
-    const source = fs.createReadStream(
-      path.resolve(config.ROOT_PATH, 'core/public/index.html')
-    )
+  return Promise.all([
+    inlinePage(resolve(ROOT, 'core/public/index.html')),
+    inlinePage(resolve(ROOT, 'app/bg-clone.html')),
+    inlinePage(resolve(ROOT, 'app/menubar.html')),
+    inlinePage(resolve(ROOT, 'app/about.html'))
+  ]).then(function (pages) {
+    const opts = {
+      collapseWhitespace: true,
+      minifyCSS: true,
+      minifyJS: true
+    }
 
-    source.pipe(fs.createWriteStream(
-      path.resolve(config.ROOT_PATH, 'build/index.html')
-    ))
-    source.on('error', reject)
-    source.on('end', resolve)
+    const bgPage = minify(pages[0], opts)
+    const clonePage = minify(pages[1], opts)
+    const menuPage = minify(pages[2], opts)
+    const aboutPage = minify(pages[3], opts)
+
+    fs.writeFileSync(resolve(ROOT, 'build/index.html'), bgPage)
+    fs.writeFileSync(resolve(ROOT, 'build/bg-clone.html'), clonePage)
+    fs.writeFileSync(resolve(ROOT, 'build/menubar.html'), menuPage)
+    fs.writeFileSync(resolve(ROOT, 'build/about.html'), aboutPage)
+
+    return Promise.resolve()
+  })
+}
+
+function inlinePage (path) {
+  return new Promise(function (resolve, reject) {
+    inline(path, {
+      compress: false,
+      // rootpath: resolve(ROOT, 'app'),
+      ignore: []
+    }, function (err, html) {
+      return err ? reject(err) : resolve(html)
+    })
   })
 }
 
@@ -123,7 +150,7 @@ const all = {
 
   // Pattern which specifies which files to ignore when copying files to create the
   // package(s).
-  ignore: /^\/src|^\/core|^\/main.development.js|^\/dist|^\/release|\/(appveyor.yml|\.appveyor.yml|\.github|appdmg|AUTHORS|CONTRIBUTORS|bench|benchmark|benchmark\.js|bin|bower\.json|component\.json|coverage|doc|docs|docs\.mli|dragdrop\.min\.js|example|examples|example\.html|example\.js|externs|ipaddr\.min\.js|Makefile|min|minimist|perf|rusha|simplepeer\.min\.js|simplewebsocket\.min\.js|static\/screenshot\.png|test|tests|test\.js|tests\.js|galeri\.min\.js|\.[^\/]*|.*\.md|.*\.markdown)$/,
+  ignore: /^\/src|^\/core|^\/main.development.js|^\/dist|^\/app|^\/release|\/(appveyor.yml|\.appveyor.yml|\.github|appdmg|AUTHORS|CONTRIBUTORS|bench|benchmark|benchmark\.js|bin|bower\.json|component\.json|coverage|doc|docs|docs\.mli|dragdrop\.min\.js|example|examples|example\.html|example\.js|externs|ipaddr\.min\.js|Makefile|min|minimist|perf|rusha|simplepeer\.min\.js|simplewebsocket\.min\.js|static\/screenshot\.png|test|tests|test\.js|tests\.js|galeri\.min\.js|\.[^\/]*|.*\.md|.*\.markdown)$/,
 
   // The application name.
   name: config.APP_NAME,

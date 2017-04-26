@@ -1,39 +1,33 @@
+module.exports = initMenubar
+
+const dev = process.env.NODE_ENV === 'development'
 const electron = require('electron')
-const { systemPreferences } = electron
 const calculatePosition = require('./positioner')
-const { cacheId, cacheTray } = require('./ipc')
+const ipcHandler = require('./ipc')
 const win32 = process.platform === 'win32'
 
-let icon, tray, win, screen, cachedBounds
+let tray, win, cachedBounds
 
-systemPreferences.subscribeNotification('AppleInterfaceThemeChangedNotification', function () {
-  setIconColor()
-
-  if (!tray) return
-
-  tray.setImage(getImage())
+electron.systemPreferences
+.subscribeNotification('AppleInterfaceThemeChangedNotification', function () {
+  if (tray) tray.setImage(getImage())
 })
 
-function setIconColor () {
-  icon = systemPreferences.isDarkMode() ? 'icon-dark' : 'icon'
-}
-
 function getImage () {
-  return __dev__
+  const icon = electron.systemPreferences.isDarkMode() ? 'icon-dark' : 'icon'
+
+  return dev
     ? `${__dirname}/../../assets/${icon}_32x32.png`
     : `${__dirname}/assets/${icon}_32x32.png`
 }
 
 function initMenubar (next) {
-  setIconColor()
-
-  screen = electron.screen
   tray = new electron.Tray(getImage())
 
   tray.on('click', onClick)
   tray.on('double-click', onClick)
 
-  cacheTray(tray)
+  ipcHandler.cacheTray(tray)
 
   tray.setHighlightMode('never')
 
@@ -42,8 +36,9 @@ function initMenubar (next) {
 
 function createWindow (next) {
   win = new electron.BrowserWindow({
+    title: 'Galeri Menu',
     dir: require('path').resolve(electron.app.getAppPath()),
-    alwaysOnTop: __dev__,
+    alwaysOnTop: dev,
     resizable: false,
     transparent: true,
     show: false,
@@ -57,14 +52,14 @@ function createWindow (next) {
     }
   })
 
-  if (__dev__) win.openDevTools({ mode: 'detach' })
+  if (dev) win.openDevTools({ mode: 'detach' })
 
-  cacheId('menubar', win.id)
+  ipcHandler.cacheId('menubar', win.id)
 
   win.setVisibleOnAllWorkspaces(true)
 
   win.on('blur', function () {
-    return __dev__ ? null : hideWindow()
+    return dev ? null : hideWindow()
   })
 
   win.on('close', function () {
@@ -73,9 +68,9 @@ function createWindow (next) {
 
   win.once('ready-to-show', next)
 
-  return win.loadURL(__dev__
+  return win.loadURL(dev
     ? `file://${__dirname}/../../app/menubar.html`
-    : `file://${__dirname}/app/menubar.html`)
+    : `file://${__dirname}/build/menubar.html`)
 }
 
 function onClick (e, bounds) {
@@ -115,7 +110,7 @@ function showWindow (trayPos) {
   }
 
   const winPosition = win32 ? 'trayBottomCenter' : 'trayCenter'
-  const position = calculatePosition(screen, win, noBoundsPosition || winPosition, trayPos)
+  const position = calculatePosition(electron.screen, win, noBoundsPosition || winPosition, trayPos)
 
   win.setPosition(position[0], position[1] + (win32 ? 0 : 5))
 
@@ -126,5 +121,3 @@ function hideWindow () {
   tray.setHighlightMode('never')
   return win ? win.hide() : null
 }
-
-module.exports = initMenubar

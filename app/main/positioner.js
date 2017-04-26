@@ -1,3 +1,21 @@
+module.exports = function (screen, browserWindow, position, trayPosition) {
+  const screenSize = screen.getDisplayNearestPoint(screen.getCursorScreenPoint()).workArea
+  const windowSize = browserWindow.getSize()
+  const basePosition = getPosition(position, trayPosition || {}, screenSize, windowSize)
+
+  // Default to right if the window is bigger than the space left.
+  // Because on Windows the window might get out of bounds and dissappear.
+  if (position.substr(0, 4) === 'tray' &&
+     (basePosition[0] + windowSize[0]) > (screenSize.width + screenSize.x)) {
+    return [
+      getPosition('topRight', trayPosition || {}, screenSize, windowSize)[0],
+      basePosition[1]
+    ]
+  }
+
+  return basePosition
+}
+
 function getPosition (location, trayPosition, screenSize, windowSize) {
   switch (location) {
     case 'trayCenter':
@@ -22,25 +40,3 @@ function getPosition (location, trayPosition, screenSize, windowSize) {
       ]
   }
 }
-
-function calculatePosition (screen, browserWindow, position, trayPosition) {
-  const screenSize = screen.getDisplayNearestPoint(screen.getCursorScreenPoint()).workArea
-  const windowSize = browserWindow.getSize()
-  const basePosition = getPosition(position, trayPosition || {}, screenSize, windowSize)
-
-  console.log(windowSize)
-
-  // Default to right if the window is bigger than the space left.
-  // Because on Windows the window might get out of bounds and dissappear.
-  if (position.substr(0, 4) === 'tray' &&
-     (basePosition[0] + windowSize[0]) > (screenSize.width + screenSize.x)) {
-    return [
-      getPosition('topRight', trayPosition || {}, screenSize, windowSize)[0],
-      basePosition[1]
-    ]
-  }
-
-  return basePosition
-}
-
-module.exports = calculatePosition

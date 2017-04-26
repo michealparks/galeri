@@ -1,34 +1,26 @@
 const ipc = require('electron').ipcRenderer
+const AppClassList = document.getElementById('app').classList
 const ArtSource = document.getElementById('artwork-source')
 const ArtLink = document.getElementById('artwork-link')
 const Title = document.getElementById('artwork-title')
 const Text = document.getElementById('artwork-text')
-const SourceCL = document.getElementById('source').classList
-const UpdatingCL = document.getElementById('updating').classList
-const ToggleBtnCL = document.getElementById('btn-toggle').classList
 
-const HIDDEN = 'hidden'
-
-let source, href, title, text
+let artwork
 
 ipc.on('artwork', function (e, data) {
-  source = data.source
-  href = data.href
-  title = data.title
-  text = data.text
-  ArtLink.classList.add(HIDDEN)
-  UpdatingCL.remove(HIDDEN)
-  SourceCL.add(HIDDEN)
-  ToggleBtnCL.add(HIDDEN)
+  artwork = data
+  AppClassList.add('app--updating')
 })
 
 ipc.on('artwork-updated', function () {
-  ArtSource.textContent = source
-  ArtLink.href = href
-  Title.textContent = title
-  Text.textContent = text
-  ArtLink.classList.remove(HIDDEN)
-  UpdatingCL.add(HIDDEN)
-  SourceCL.remove(HIDDEN)
-  ToggleBtnCL.remove(HIDDEN)
+  ArtSource.textContent = artwork.source
+  ArtLink.href = artwork.href
+  Title.textContent = truncate(artwork.title, 50)
+  Text.textContent = truncate(artwork.text, 90)
+
+  AppClassList.remove('app--updating')
 })
+
+function truncate (str, len) {
+  return str.length > len ? str.slice(0, len - 3) + '...' : str
+}
