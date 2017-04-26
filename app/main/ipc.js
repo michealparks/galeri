@@ -1,16 +1,36 @@
 const dev = process.env.NODE_ENV === 'development'
-const { ipcMain, BrowserWindow } = require('electron')
-const { getAllWindows, fromId } = BrowserWindow
+const electron = require('electron')
+const ipc = electron.ipcMain
+const getAllWindows = electron.BrowserWindow.getAllWindows
+const getWindowFromId = electron.BrowserWindow.fromId
 
-let aboutWin, tray, backgroundID, menubarID
+let aboutWindow, tray, menubarID
+let backgroundIDs = []
 
 function cacheTray (t) {
   tray = t
 }
 
 function cacheId (name, id) {
-  if (name === 'background') backgroundID = id
-  if (name === 'menubar') menubarID = id
+  if (name === 'background') {
+    backgroundIDs.push(id)
+  }
+
+  if (name === 'menubar') {
+    menubarID = id
+  }
+}
+
+function removeCachedId (name, id) {
+  if (name === 'background') {
+    let newIds = []
+
+    for (let i = 0, l = backgroundIDs.length; i < l; ++i) {
+      if (backgroundIDs[i] !== id) newIds.push(backgroundIDs[i])
+    }
+
+    backgroundIDs = newIds
+  }
 }
 
 function sendToWindows (msg, arg) {
@@ -20,80 +40,85 @@ function sendToWindows (msg, arg) {
 }
 
 function sendToBackground (msg, arg) {
-  return fromId(backgroundID).webContents.send(msg, arg)
+  for (let i = 0, l = backgroundIDs.length; i < l; ++i) {
+    getWindowFromId(backgroundIDs[i]).webContents.send(msg, arg)
+  }
 }
 
 function sendToMenubar (msg, arg) {
-  return fromId(menubarID).webContents.send(msg, arg)
+  return getWindowFromId(menubarID).webContents.send(msg, arg)
 }
 
-ipcMain.on('play', function () {
+ipc.on('play', function () {
   return sendToBackground('play')
 })
 
-ipcMain.on('pause', function () {
+ipc.on('pause', function () {
   return sendToBackground('pause')
 })
 
-ipcMain.on('preferences-to-background', function (e, data) {
+ipc.on('preferences-to-background', function (e, data) {
   return sendToBackground('preferences-to-background', data)
 })
 
-ipcMain.on('preferences-to-menubar', function (e, data) {
+ipc.on('preferences-to-menubar', function (e, data) {
   return sendToMenubar('preferences-to-menubar', data)
 })
 
-ipcMain.on('menubar-needs-preferences', function () {
+ipc.on('menubar-needs-preferences', function () {
   return sendToBackground('menubar-needs-preferences')
 })
 
-ipcMain.on('artwork', function (e, arg) {
+ipc.on('artwork', function (e, arg) {
   tray.setToolTip(`${arg.title}\n${arg.text}\n${arg.source}`)
-  return sendToMenubar('artwork', arg)
+  return sendToWindows('artwork', arg)
 })
 
-ipcMain.on('artwork-updated', function () {
+ipc.on('artwork-updated', function () {
   return sendToMenubar('artwork-updated')
 })
 
-ipcMain.on('background-loaded', function () {
+ipc.on('background-loaded', function () {
   return sendToMenubar('background-loaded')
 })
 
-ipcMain.on('open-about-window', function () {
-  aboutWin = new BrowserWindow({
+ipc.on('open-about-window', function () {
+  aboutWindow = new electron.BrowserWindow({
+    title: 'Galeri About',
     center: true,
     show: false,
     width: 400,
     height: 300,
     resizable: false,
-    title: 'Galeri',
     minimizable: false,
     maximizable: false,
     fullscreenable: false,
-    webAudio: false,
-    webgl: false
+    webPreferences: {
+      webAudio: false,
+      webgl: false
+    }
   })
 
-  aboutWin.once('ready-to-show', aboutWin.show)
+  aboutWindow.once('ready-to-show', aboutWindow.show)
 
-  aboutWin.on('close', function () {
-    aboutWin = null
+  aboutWindow.on('close', function () {
+    aboutWindow = null
   })
 
-  return aboutWin.loadURL(require('url').format({
+  return aboutWindow.loadURL(require('url').format({
     protocol: 'file',
     slashes: true,
     pathname: dev
       ? require('path').join(__dirname, '..', 'about.html')
-      : require('path').join(__dirname, 'app', 'about.html')
+      : require('path').join(__dirname, 'build', 'about.html')
   }))
 })
 
 module.exports = {
-  cacheTray,
-  cacheId,
-  sendToWindows,
-  sendToBackground,
-  sendToMenubar
+  cacheTray: cacheTray,
+  cacheId: cacheId,
+  removeCachedId: removeCachedId,
+  sendToWindows: sendToWindows,
+  sendToBackground: sendToBackground,
+  sendToMenubar: sendToMenubar
 }

@@ -23,7 +23,7 @@ ToggleBtn.onclick = function (e) {
 function animateToggle () {
   isAnimating = true
   ToggleBtn.classList.toggle('btn-toggle--paused', isPaused)
-  return setTimeout(onToggleAnimationEnd, 500)
+  setTimeout(onToggleAnimationEnd, 500)
 }
 
 function onToggleAnimationEnd () {

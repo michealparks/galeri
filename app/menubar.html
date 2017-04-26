@@ -4,6 +4,10 @@
 <meta charset='utf-8'>
 
 <style>
+::selection {
+  background: transparent;
+}
+
 @font-face {
   font-family: 'Reem Kufi';
   font-style: normal;
@@ -228,13 +232,18 @@ select {
   transform-origin: center;
 }
 
-.artwork-blurb a {
-  color: #666 !important;
-  text-decoration: none;
-}
-
 .artwork-source {
   margin: 0;
+}
+
+#artwork-title {
+  font-size: 1.25em;
+  margin: 0 0 2px 0;
+}
+
+#artwork-text {
+  margin: 0 0 10px 0;
+  font-size: 10px;
 }
 
 #btn-prefs-tab {
@@ -285,7 +294,8 @@ select {
   bottom: 5px;
 }
 
-.about, .quit {
+.about,
+.quit {
   position: fixed;
   bottom: 0;
   padding: 3px 10px 5px 10px;
@@ -306,15 +316,24 @@ select {
   text-decoration: underline;
 }
 
-.hidden {
+.app #updating {
+  opacity: 0;
+}
+
+.app--updating #updating {
+  opacity: 1;
+}
+
+.app--updating #artwork-link,
+.app--updating #source,
+.app--updating #btn-toggle {
   opacity: 0;
   pointer-events: none;
 }
-
 </style>
 </head>
 
-<body>
+<body id='app' class='app app--updating'>
   <div class='title'>
     <div class='title__bg'></div>
     <div class='title__mask'></div>
@@ -340,15 +359,21 @@ select {
     </nav>
 
     <div class='tab' id='description'>
-      <div id='updating' class='hidden'>
-        <p>Updating...</p>
+      <div id='updating'>
+        <p id='updating__text'>Updating...</p>
       </div>
 
       <div id='source'>
-        <small style='margin-top:10px'>This work was provided by</small>
+        <div id='artwork-info'>
+          <p id='artwork-title'></p>
+          <p id='artwork-text'></p>
+        </div>
+        <small id='source__text' style='margin-top:10px'>
+          This work was provided by
+        </small>
         <p id='artwork-source' class='artwork-source'></p>
         <a id='artwork-link' class='artwork-link' target='_tab' href=''>
-          <p>Learn more about it.</p>
+          <p id='learn__text'>Learn more about it.</p>
         </a>
       </div>
     </div>
@@ -398,14 +423,14 @@ select {
     </div>
 
     <div id='about' class='about'>
-      <small>About</small>
+      <small id='about__text'>About</small>
     </div>
 
     <div id='quit' class='quit'>
-      <small>Quit</small>
+      <small id='quit__text'>Quit</small>
     </div>
   </div>
 
-  <script async src='../build/menu.js'></script>
+  <script inline async src='../build/menu.js'></script>
 </body>
 </html>

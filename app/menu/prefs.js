@@ -26,15 +26,15 @@ ipc.once('background-loaded', function () {
 
 LabelLocationBtn.onchange = function () {
   preferences.LABEL_LOCATION = this.value
-  return ipc.send('preferences-to-background', preferences)
+  ipc.send('preferences-to-background', preferences)
 }
 
 UpdateRateBtn.onchange = function () {
   preferences.UPDATE_RATE = Number(this.value)
-  return ipc.send('preferences-to-background', preferences)
+  ipc.send('preferences-to-background', preferences)
 }
 
 AutolaunchBtn.onclick = function () {
   preferences.IS_AUTOLAUNCH = this.checked
-  return ipc.send('preferences-to-background', preferences)
+  ipc.send('preferences-to-background', preferences)
 }

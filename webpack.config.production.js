@@ -1,18 +1,20 @@
 const webpack = require('webpack')
-const validate = require('webpack-validator')
 const merge = require('webpack-merge')
 const BabiliPlugin = require('babili-webpack-plugin')
 const baseConfig = require('./webpack.config.base')
 
-module.exports = validate(merge(baseConfig, {
+module.exports = merge(baseConfig, {
   target: 'electron-renderer',
   entry: {
-    menu: ['./app/menu']
+    menu: ['./app/menu'],
+    clone: ['./app/bg-clone']
   },
   plugins: [
     new BabiliPlugin(),
     new webpack.DefinePlugin({
-      'process.env.NODE_ENV': JSON.stringify('production')
+      'process.env.NODE_ENV': JSON.stringify('production'),
+      '__VERSION__': JSON.stringify(require('./package.json').version),
+      '__dev__': false
     })
   ]
-}))
+})

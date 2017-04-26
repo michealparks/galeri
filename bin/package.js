@@ -19,15 +19,19 @@ const path = require('path')
 const del = require('del')
 const series = require('run-series')
 const zip = require('cross-zip')
+const minify = require('html-minifier').minify
+const inline = require('inline-source')
 
 const config = require('../app/main/config')
 const mainWpCfg = require('../webpack.config.electron')
 const rendererWpCfg = require('../webpack.config.production')
 const pkg = require('../package.json')
 
+const resolve = path.resolve
 const BUILD_NAME = config.APP_NAME + '-v' + config.APP_VERSION
 const BUILD_PATH = path.join(config.ROOT_PATH, 'build')
 const DIST_PATH = path.join(config.ROOT_PATH, 'dist')
+const ROOT = config.ROOT_PATH
 
 const argv = minimist(process.argv.slice(2), {
   boolean: [
@@ -42,10 +46,8 @@ const argv = minimist(process.argv.slice(2), {
   ]
 })
 
-Promise.all([
-  del(BUILD_PATH),
-  del(DIST_PATH)
-]).then(function () {
+Promise.all([del(BUILD_PATH), del(DIST_PATH)])
+.then(function () {
   return Promise.all([
     webpackBuild(mainWpCfg),
     webpackBuild(rendererWpCfg)
@@ -60,16 +62,41 @@ Promise.all([
 })
 
 function html () {
-  return new Promise((resolve, reject) => {
-    const source = fs.createReadStream(
-      path.resolve(config.ROOT_PATH, 'core/public/index.html')
-    )
+  return Promise.all([
+    inlinePage(resolve(ROOT, 'core/public/index.html')),
+    inlinePage(resolve(ROOT, 'app/bg-clone.html')),
+    inlinePage(resolve(ROOT, 'app/menubar.html')),
+    inlinePage(resolve(ROOT, 'app/about.html'))
+  ]).then(function (pages) {
+    const opts = {
+      collapseWhitespace: true,
+      minifyCSS: true,
+      minifyJS: true
+    }
 
-    source.pipe(fs.createWriteStream(
-      path.resolve(config.ROOT_PATH, 'build/index.html')
-    ))
-    source.on('error', reject)
-    source.on('end', resolve)
+    const bgPage = minify(pages[0], opts)
+    const clonePage = minify(pages[1], opts)
+    const menuPage = minify(pages[2], opts)
+    const aboutPage = minify(pages[3], opts)
+
+    fs.writeFileSync(resolve(ROOT, 'build/index.html'), bgPage)
+    fs.writeFileSync(resolve(ROOT, 'build/bg-clone.html'), clonePage)
+    fs.writeFileSync(resolve(ROOT, 'build/menubar.html'), menuPage)
+    fs.writeFileSync(resolve(ROOT, 'build/about.html'), aboutPage)
+
+    return Promise.resolve()
+  })
+}
+
+function inlinePage (path) {
+  return new Promise(function (resolve, reject) {
+    inline(path, {
+      compress: false,
+      // rootpath: resolve(ROOT, 'app'),
+      ignore: []
+    }, function (err, html) {
+      return err ? reject(err) : resolve(html)
+    })
   })
 }
 
@@ -102,11 +129,11 @@ function build () {
 const all = {
   // The human-readable copyright line for the app. Maps to the `LegalCopyright` metadata
   // property on Windows, and `NSHumanReadableCopyright` on Mac.
-  'app-copyright': config.APP_COPYRIGHT,
+  appCopyright: config.APP_COPYRIGHT,
 
   // The release version of the application. Maps to the `ProductVersion` metadata
   // property on Windows, and `CFBundleShortVersionString` on Mac.
-  'app-version': pkg.version,
+  appVersion: pkg.version,
 
   // Package the application's source code into an archive, using Electron's archive
   // format. Mitigates issues around long path names on Windows and slightly speeds up
@@ -116,14 +143,14 @@ const all = {
   // The build version of the application. Maps to the FileVersion metadata property on
   // Windows, and CFBundleVersion on Mac. Note: Windows requires the build version to
   // start with a number
-  'build-version': pkg.version,
+  buildVersion: pkg.version,
 
   // The application source directory.
   dir: config.ROOT_PATH,
 
   // Pattern which specifies which files to ignore when copying files to create the
   // package(s).
-  ignore: /^\/src|^\/core|^\/main.development.js|^\/dist|^\/release|\/(appveyor.yml|\.appveyor.yml|\.github|appdmg|AUTHORS|CONTRIBUTORS|bench|benchmark|benchmark\.js|bin|bower\.json|component\.json|coverage|doc|docs|docs\.mli|dragdrop\.min\.js|example|examples|example\.html|example\.js|externs|ipaddr\.min\.js|Makefile|min|minimist|perf|rusha|simplepeer\.min\.js|simplewebsocket\.min\.js|static\/screenshot\.png|test|tests|test\.js|tests\.js|galeri\.min\.js|\.[^\/]*|.*\.md|.*\.markdown)$/,
+  ignore: /^\/src|^\/core|^\/main.development.js|^\/dist|^\/app|^\/release|\/(appveyor.yml|\.appveyor.yml|\.github|appdmg|AUTHORS|CONTRIBUTORS|bench|benchmark|benchmark\.js|bin|bower\.json|component\.json|coverage|doc|docs|docs\.mli|dragdrop\.min\.js|example|examples|example\.html|example\.js|externs|ipaddr\.min\.js|Makefile|min|minimist|perf|rusha|simplepeer\.min\.js|simplewebsocket\.min\.js|static\/screenshot\.png|test|tests|test\.js|tests\.js|galeri\.min\.js|\.[^\/]*|.*\.md|.*\.markdown)$/,
 
   // The application name.
   name: config.APP_NAME,
@@ -150,14 +177,14 @@ const darwin = {
   arch: 'x64',
 
   // The bundle identifier to use in the application's plist (Mac only).
-  'app-bundle-id': 'io.galeri.galeri',
+  appBundleId: 'io.galeri.galeri',
 
   // The application category type, as shown in the Finder via "View" -> "Arrange by
   // Application Category" when viewing the Applications directory (Mac only).
-  'app-category-type': 'public.app-category.utilities',
+  appCategoryType: 'public.app-category.utilities',
 
   // The bundle identifier to use in the application helper's plist (Mac only).
-  'helper-bundle-id': 'io.galeri.galeri-helper',
+  helperBundleId: 'io.galeri.galeri-helper',
 
   // Application icon.
   icon: config.APP_ICON + '.icns'

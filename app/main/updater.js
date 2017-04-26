@@ -1,13 +1,13 @@
-const { parse } = require('url')
-const { get } = require('https')
+const dev = process.env.NODE_ENV === 'development'
+const https = require('https')
 const electron = require('electron')
 const config = require('./config')
-const debug = require('./log')
-const WIN32 = (process.platform === 'win32')
+const win32 = process.platform === 'win32'
 const REGEX_ZIP_URL = /\/(v)?(\d+\.\d+\.\d+)\/.*\.zip/
-const reqObj = Object.assign(parse(config.GITHUB_RELEASE_API), {
-  headers: { 'User-Agent': 'michealparks' }
-})
+const reqObj = Object.assign(
+  require('url').parse(config.GITHUB_RELEASE_API),
+  { headers: { 'User-Agent': 'michealparks' } }
+)
 
 if (process.platform === 'linux') initLinux()
 else initDarwinWin32()
@@ -21,12 +21,10 @@ function isValid (tag) {
 }
 
 function getLatestTag (next) {
-  return get(reqObj, function (res) {
+  return https.get(reqObj, function (res) {
     let body = ''
     res.on('error', next)
-    res.on('data', function (d) {
-      body += d
-    })
+    res.on('data', function (d) { body += d })
     res.on('end', function () {
       next(null, JSON.parse(body).tag_name)
     })
@@ -50,9 +48,9 @@ function isNewerVersionAvailable (latest) {
 }
 
 function getFeedURL (tag, next) {
-  return WIN32
+  return win32
     ? next(`${config.GITHUB_URL}/releases/download/${tag}`)
-    : get(`${config.GITHUB_URL_RAW}/updater.json`, function (res) {
+    : https.get(`${config.GITHUB_URL_RAW}/updater.json`, function (res) {
       let body = ''
       res.on('error', next)
       res.on('data', function (d) {
@@ -121,25 +119,26 @@ function check (next) {
 }
 
 function initDarwinWin32 () {
-  const { autoUpdater } = electron
+  const updater = electron.autoUpdater
 
-  autoUpdater.on('error', err => console.error(err))
-  autoUpdater.on('checking-for-update', msg => console.log(msg))
-  autoUpdater.on('update-available', msg => console.log(msg))
-  autoUpdater.on('update-not-available', msg => console.log(msg))
+  if (dev) {
+    updater.on('error', console.error.bind(console))
+    updater.on('checking-for-update', console.log.bind(console))
+    updater.on('update-available', console.log.bind(console))
+    updater.on('update-not-available', console.log.bind(console))
+  }
 
-  autoUpdater.on('update-downloaded', function (msg) {
-    console.log('update-downloaded', msg)
-    return autoUpdater.quitAndInstall()
+  updater.on('update-downloaded', function (msg) {
+    if (dev) console.log('update-downloaded', msg)
+    return updater.quitAndInstall()
   })
 
   function onCheck (err, feedUrl) {
-    if (err && !err.type) return console.error(err)
-    if (err) return debug[err.type](err.msg)
+    if (err) return console.error(err)
 
-    console.log('feed-url', feedUrl)
-    autoUpdater.setFeedURL(feedUrl)
-    autoUpdater.checkForUpdates()
+    if (dev) console.log('feed-url', feedUrl)
+    updater.setFeedURL(feedUrl)
+    updater.checkForUpdates()
   }
 
   check(onCheck)

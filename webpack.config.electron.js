@@ -1,11 +1,10 @@
 const { resolve } = require('path')
 const webpack = require('webpack')
-const validate = require('webpack-validator')
 const merge = require('webpack-merge')
 const BabiliPlugin = require('babili-webpack-plugin')
 const baseConfig = require('./webpack.config.base')
 
-module.exports = validate(merge(baseConfig, {
+module.exports = merge(baseConfig, {
   target: 'electron-main',
   entry: resolve(__dirname, 'main.development'),
   output: {
@@ -15,11 +14,12 @@ module.exports = validate(merge(baseConfig, {
   plugins: [
     new BabiliPlugin(),
     new webpack.DefinePlugin({
-      'process.env.NODE_ENV': JSON.stringify('production')
+      'process.env.NODE_ENV': JSON.stringify('production'),
+      '__dev__': process.env.NODE_ENV === 'development'
     })
   ],
   node: {
     __dirname: false,
     __filename: false
   }
-}))
+})

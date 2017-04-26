@@ -20,5 +20,10 @@ electron.ipcMain.on('preferences-to-menubar', onPrefs)
 
 function onPrefs (e, data) {
   if (data.IS_AUTOLAUNCH === undefined) return
-  return data.IS_AUTOLAUNCH ? launcher.enable() : launcher.disable()
+
+  if (data.IS_AUTOLAUNCH) {
+    launcher.enable()
+  } else {
+    launcher.disable()
+  }
 }

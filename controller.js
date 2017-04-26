@@ -1,5 +1,7 @@
 const ipc = require('electron').ipcRenderer
-const { emit, on } = window
+const mediator = require('./core/src/js/util/mediator')
+const emit = mediator.emit
+const on = mediator.on
 
 ipc.on('pause', function () {
   return emit('pause')
@@ -45,4 +47,6 @@ on('browser-rendered', function () {
   return ipc.send('browser-rendered')
 })
 
-ipc.send('background-loaded')
+on('background-loaded', function () {
+  return ipc.send('background-loaded')
+})

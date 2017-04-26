@@ -1,7 +1,4 @@
-const path = require('path')
-const validate = require('webpack-validator')
-
-module.exports = validate({
+module.exports = {
   module: {
     loaders: [
       {
@@ -12,9 +9,9 @@ module.exports = validate({
     ]
   },
   output: {
-    path: path.join(__dirname, 'build'),
+    path: require('path').join(__dirname, 'build'),
     filename: '[name].js'
   },
   plugins: [],
   externals: []
-})
+}

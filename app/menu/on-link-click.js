@@ -1,8 +1,7 @@
 const open = require('open')
-const links = document.querySelectorAll('a[href]')
 const metStr = /^https:\/\/metmuseum.org\/art\/collection\/search\//
 
-for (let i = 0, l = links.length; i < l; ++i) {
+for (let i = 0, links = document.querySelectorAll('a[href]'), l = links.length; i < l; ++i) {
   links[i].onclick = onLinkClick
 }
 
