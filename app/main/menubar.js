@@ -8,7 +8,7 @@ const win32 = process.platform === 'win32'
 
 let tray, win, cachedBounds
 
-if ('subscribeNotification' in systemPreferences) {
+if ('subscribeNotification' in electron.systemPreferences) {
   electron.systemPreferences.subscribeNotification(
     'AppleInterfaceThemeChangedNotification',
     function () {

@@ -15,6 +15,7 @@ const backgroundCloneUrl = dev
   ? `file://${__dirname}/app/bg-clone.html`
   : `file://${__dirname}/build/bg-clone.html`
 const darwin = process.platform === 'darwin'
+const win32 = process.platform === 'win32'
 
 let screen, initMenubar, lastWinId, currentWinId
 let backgroundWindow = []
@@ -28,7 +29,7 @@ if (process.platform === 'win32') {
 // Handle possible other instances of the app
 if (!shouldQuit) {
   shouldQuit = app.makeSingleInstance(function () {
-  // Someone tried to run a second instance, we should focus our window.
+    // Someone tried to run a second instance, we should focus our window.
     if (backgroundWindow[0]) {
       if (backgroundWindow[0].isMinimized()) backgroundWindow[0].restore()
       backgroundWindow[0].focus()
@@ -45,8 +46,13 @@ function init () {
   initMenubar = require('./app/main/menubar')
 
   app.commandLine.appendSwitch('disable-renderer-backgrounding')
+
+  // Setting max_old_space_size doesn't seem to trigger GCs, investigate
   app.commandLine.appendSwitch('js-flags', '--max_old_space_size=256 --use_strict --optimize_for_size')
+
+  // Hide the app from the MacOS dock
   if (darwin) app.dock.hide()
+
   app.once('ready', onReady)
 
   electron.ipcMain.on('browser-reset', onBrowserReset)
@@ -59,9 +65,11 @@ function init () {
 
 function onReady () {
   screen = electron.screen
+
   screen.on('display-metrics-changed', resizeBackgrounds)
   screen.on('display-added', onDisplayAdded)
   screen.on('display-removed', onDisplayRemoved)
+
   electron.powerMonitor.on('suspend', onSuspend)
   electron.powerMonitor.on('resume', onResume)
 
@@ -183,7 +191,7 @@ function destroyWindowOfId (id) {
   for (let i = 0, l = backgroundWindow.length; i < l; ++i) {
     if (backgroundWindow[i].id !== id) continue
 
-    backgroundWindow[i].destroy()
+    backgroundWindow[i].close()
     backgroundWindow[i] = null
     backgroundWindow.splice(i, 1)
     ipcHandler.removeCachedId(id)
@@ -192,7 +200,7 @@ function destroyWindowOfId (id) {
 }
 
 function makeBackgroundWindow (type, display) {
-  const bounds = display.bounds
+  const bounds = win32 ? display.workArea : display.bounds
   const url = type === 'background' ? backgroundUrl : backgroundCloneUrl
 
   let win = new electron.BrowserWindow({
@@ -205,11 +213,12 @@ function makeBackgroundWindow (type, display) {
     resizable: false,
     movable: false,
     minimizable: false,
-    maximizable: false,
+    maximizable: true,
     fullscreenable: false,
     show: false,
     frame: false,
     transparent: true,
+    thickFrame: false,
     enableLargerThanScreen: true,
     webPreferences: {
       webAudio: false,
@@ -223,16 +232,27 @@ function makeBackgroundWindow (type, display) {
 
   win.display = display
   win.setVisibleOnAllWorkspaces(true)
+
+  // Remove app icon from the taskbar
   win.setSkipTaskbar(true)
-  win.once('ready-to-show', win.showInactive)
-  win.once('closed', function () {
-    win = null
+
+  // This is required for windows to ignore mouse clicks
+  if (win32) win.setIgnoreMouseEvents(true)
+
+  // showInactive won't focus the window
+  win.once('ready-to-show', function () {
+    win.showInactive()
   })
+
+  win.once('closed', function () { win = null })
+
   win.loadURL(url)
 
-  win.on('move', onBackgroundMove)
+  // Moving the taskbar on windows can jolt the background out of place
+  win.on('move', resizeBackgrounds)
+  win.on('resize', resizeBackgrounds)
 
-  if (process.env.NODE_ENV === 'development') {
+  if (dev) {
     require('electron-debug')()
     win.openDevTools({ mode: 'detach' })
   }
@@ -245,23 +265,11 @@ function makeBackgroundWindow (type, display) {
   backgroundWindow.push(win)
 }
 
-function onBackgroundMove () {
-  console.log('BOOOOOOOOOOOOO')
-  return setTimeout(() => {
-    const { width, height } = screen.getPrimaryDisplay().size
-
-    this.setSize(width, height + 5)
-    this.setPosition(0, 0)
-  }, 200)
-}
-
 function resizeBackgrounds () {
   setTimeout(function () {
-    for (let win, bounds, i = 0, l = backgroundWindow.length; i < l; ++i) {
+    for (let win, i = 0, l = backgroundWindow.length; i < l; ++i) {
       win = backgroundWindow[i]
-      bounds = win.display.bounds
-      win.setPosition(bounds.x, bounds.y)
-      win.setSize(bounds.width, bounds.height)
+      win.setBounds(win.display.bounds)
     }
   })
 }
