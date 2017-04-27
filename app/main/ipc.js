@@ -4,7 +4,7 @@ const ipc = electron.ipcMain
 const getAllWindows = electron.BrowserWindow.getAllWindows
 const getWindowFromId = electron.BrowserWindow.fromId
 
-let aboutWindow, tray, menubarID
+let aboutWindow, tray, menubarID, storedArtwork
 let backgroundIDs = []
 
 function cacheTray (t) {
@@ -21,16 +21,14 @@ function cacheId (name, id) {
   }
 }
 
-function removeCachedId (name, id) {
-  if (name === 'background') {
-    let newIds = []
+function removeCachedId (id) {
+  let newIds = []
 
-    for (let i = 0, l = backgroundIDs.length; i < l; ++i) {
-      if (backgroundIDs[i] !== id) newIds.push(backgroundIDs[i])
-    }
-
-    backgroundIDs = newIds
+  for (let i = 0, l = backgroundIDs.length; i < l; ++i) {
+    if (backgroundIDs[i] !== id) newIds.push(backgroundIDs[i])
   }
+
+  backgroundIDs = newIds
 }
 
 function sendToWindows (msg, arg) {
@@ -50,36 +48,43 @@ function sendToMenubar (msg, arg) {
 }
 
 ipc.on('play', function () {
-  return sendToBackground('play')
+  sendToBackground('play')
 })
 
 ipc.on('pause', function () {
-  return sendToBackground('pause')
+  sendToBackground('pause')
 })
 
 ipc.on('preferences-to-background', function (e, data) {
-  return sendToBackground('preferences-to-background', data)
+  sendToBackground('preferences-to-background', data)
 })
 
 ipc.on('preferences-to-menubar', function (e, data) {
-  return sendToMenubar('preferences-to-menubar', data)
+  sendToMenubar('preferences-to-menubar', data)
 })
 
 ipc.on('menubar-needs-preferences', function () {
-  return sendToBackground('menubar-needs-preferences')
+  sendToBackground('menubar-needs-preferences')
 })
 
-ipc.on('artwork', function (e, arg) {
-  tray.setToolTip(`${arg.title}\n${arg.text}\n${arg.source}`)
-  return sendToWindows('artwork', arg)
+ipc.on('artwork', function (e, artwork) {
+  storedArtwork = artwork
+  tray.setToolTip(`${artwork.title}\n${artwork.text}\n${artwork.source}`)
+  sendToWindows('artwork', artwork)
 })
 
 ipc.on('artwork-updated', function () {
-  return sendToMenubar('artwork-updated')
+  sendToMenubar('artwork-updated')
 })
 
 ipc.on('background-loaded', function () {
-  return sendToMenubar('background-loaded')
+  sendToMenubar('background-loaded')
+})
+
+ipc.on('background-clone-loaded', function () {
+  if (storedArtwork) {
+    sendToBackground('artwork-to-clone', storedArtwork)
+  }
 })
 
 ipc.on('open-about-window', function () {
