@@ -4,13 +4,14 @@ const electron = require('electron')
 const config = require('./config')
 const win32 = process.platform === 'win32'
 const REGEX_ZIP_URL = /\/(v)?(\d+\.\d+\.\d+)\/.*\.zip/
-const reqObj = Object.assign(
-  require('url').parse(config.GITHUB_RELEASE_API),
-  { headers: { 'User-Agent': 'michealparks' } }
-)
+const req = require('url').parse(config.GITHUB_RELEASE_API)
+req.headers = { 'User-Agent': 'michealparks' }
 
-if (process.platform === 'linux') initLinux()
-else initDarwinWin32()
+if (process.platform === 'linux') {
+  initLinux()
+} else {
+  initDarwinWin32()
+}
 
 function initLinux () {
   // autoupdating features don't exist...
@@ -21,7 +22,7 @@ function isValid (tag) {
 }
 
 function getLatestTag (next) {
-  return https.get(reqObj, function (res) {
+  return https.get(req, function (res) {
     let body = ''
     res.on('error', next)
     res.on('data', function (d) { body += d })

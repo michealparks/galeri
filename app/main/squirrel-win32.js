@@ -1,6 +1,8 @@
+module.exports = check
+
 const dev = process.env.NODE_ENV === 'development'
 const path = require('path')
-const app = require('electron').app
+const {app} = require('electron')
 // var debug = require('debug')('windows-squirrel-startup')
 
 function run (args, done) {
@@ -8,9 +10,9 @@ function run (args, done) {
 
   if (dev) console.log('Spawning `%s` with args `%s`', updateExe, args)
 
-  require('child_process').spawn(updateExe, args, {
-    detached: true
-  }).on('close', done)
+  require('child_process')
+    .spawn(updateExe, args, { detached: true })
+    .on('close', done)
 }
 
 function check (cmd) {
@@ -32,5 +34,3 @@ function check (cmd) {
 
   return false
 }
-
-module.exports = check

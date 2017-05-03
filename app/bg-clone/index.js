@@ -1,13 +1,15 @@
-const ipc = require('electron').ipcRenderer
+const {ipcRenderer} = require('electron')
 const fillBackground = require('../../core/src/js/renderer/background')
 
-ipc.on('artwork', onArtwork)
-ipc.once('artwork-to-clone', onArtwork)
+ipcRenderer.on('artwork', onArtwork)
+ipcRenderer.once('artwork-to-clone', onArtwork)
 
 function onArtwork (e, data) {
-  fillBackground(data, function (err, data) {
-    if (err) return
-  })
+  fillBackground(data, onFill)
 }
 
-ipc.send('background-clone-loaded')
+function onFill (err) {
+  if (err) {}
+}
+
+ipcRenderer.send('background-clone-loaded')

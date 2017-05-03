@@ -43,8 +43,7 @@ if (!shouldQuit) {
   initMenubar = require('./app/main/menubar')
 
   app.commandLine.appendSwitch('disable-renderer-backgrounding')
-  app.commandLine.appendSwitch('aggressive-cache-discard')
-  app.commandLine.appendSwitch('js-flags', '--max_old_space_size=128 --use_strict')
+  app.commandLine.appendSwitch('js-flags', '--use_strict')
 
   // Hide the app from the MacOS dock
   if (darwin) app.dock.hide()
@@ -167,8 +166,8 @@ function destroyWindowOfId (id) {
   for (let i = 0, l = backgroundWindow.length; i < l; ++i) {
     if (backgroundWindow[i].id !== id) continue
 
-    // allow the window to fire onbeforeunload internally
-    backgroundWindow[i].close()
+    // don't allow beforeunload to fire, we've already saved config
+    backgroundWindow[i].destory()
 
     // remove references
     backgroundWindow[i] = null
