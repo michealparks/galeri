@@ -18,6 +18,7 @@
     "build": "node webpack.js prod",
     "package": "cross-env NODE_ENV=production node ./bin/package",
     "package:mac": "node webpack.js && node ./bin/package darwin --sign",
+    "package:win": "node webpack.js && node ./bin/package win32",
     "analytics": "open -a \"Google Chrome\" bin/analytics.html"
   },
   "repository": {

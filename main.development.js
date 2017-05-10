@@ -168,19 +168,29 @@ function makeWindow (type, display) {
     y: bounds.y,
     width: bounds.width,
     height: bounds.height + 5,
+    x: bounds.x,
+    y: bounds.y,
     resizable: false,
     movable: false,
     minimizable: false,
     maximizable: true,
+    focusable: !win32,
     fullscreenable: false,
+    skipTaskbar: true,
+    title: 'Galeri',
     show: false,
     frame: false,
-    transparent: true,
-    thickFrame: false,
     enableLargerThanScreen: true,
+    hasShadow: false,
+    thickFrame: false,
+    transparent: true,
+    // mac/linux: sets window behind all others and ignores clicks
+    type: 'desktop',
     webPreferences: {
-      webAudio: false,
+      // share session data among all backgrounds
+      partition: 'persist:galeri',
       webgl: false,
+      webAudio: false,
       backgroundThrottling: false
     }
   })
@@ -197,9 +207,6 @@ function makeWindow (type, display) {
 
   win.setVisibleOnAllWorkspaces(true)
 
-  // Remove app icon from the taskbar
-  win.setSkipTaskbar(true)
-
   // This is required for windows to ignore mouse clicks
   if (win32) win.setIgnoreMouseEvents(true)
 
@@ -210,6 +217,7 @@ function makeWindow (type, display) {
   // Moving the taskbar on windows can jolt the background out of place
   win.on('move', resizeBackgrounds)
   win.on('resize', resizeBackgrounds)
+  win.on('focus', win.blur)
 
   win.loadURL(format({
     protocol: 'file',
@@ -232,7 +240,7 @@ function resizeBackgrounds () {
   setTimeout(() => {
     for (let win, i = 0, l = windows.length; i < l; ++i) {
       win = windows[i]
-      win.setBounds(win.display.bounds)
+      win.setBounds(win.display.bounds, false)
     }
   })
 }
