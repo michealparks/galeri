@@ -23,13 +23,10 @@ const minify = require('html-minifier').minify
 const inline = require('inline-source')
 
 const config = require('../app/main/config')
-const mainWpCfg = require('../webpack.config.electron')
-const rendererWpCfg = require('../webpack.config.production')
 const pkg = require('../package.json')
 
 const resolve = path.resolve
 const BUILD_NAME = config.APP_NAME + '-v' + config.APP_VERSION
-const BUILD_PATH = path.join(config.ROOT_PATH, 'build')
 const DIST_PATH = path.join(config.ROOT_PATH, 'dist')
 const ROOT = config.ROOT_PATH
 
@@ -46,20 +43,10 @@ const argv = minimist(process.argv.slice(2), {
   ]
 })
 
-Promise.all([del(BUILD_PATH), del(DIST_PATH)])
-.then(function () {
-  return Promise.all([
-    webpackBuild(mainWpCfg),
-    webpackBuild(rendererWpCfg)
-  ])
-})
-.then(function () {
-  return html()
-})
+del(DIST_PATH)
+.then(() => html())
 .then(build)
-.catch(function (e) {
-  console.error(e)
-})
+.catch(e => console.error(e))
 
 function html () {
   return Promise.all([
@@ -100,14 +87,6 @@ function inlinePage (path) {
   })
 }
 
-function webpackBuild (c) {
-  return new Promise(function (resolve, reject) {
-    webpack(c, function (err, stats) {
-      return err ? reject(err) : resolve(stats)
-    })
-  })
-}
-
 function build () {
   console.log('Starting build...')
 
@@ -116,9 +95,9 @@ function build () {
     case 'win32' : return buildWin32(printDone)
     case 'linux' : return buildLinux(printDone)
     default:
-      buildDarwin(err => {
+      buildDarwin((err) => {
         printDone(err)
-        buildWin32(err => {
+        buildWin32((err) => {
           printDone(err)
           buildLinux(printDone)
         })

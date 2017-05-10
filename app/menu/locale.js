@@ -1,4 +1,4 @@
-const getLocale = require('electron').remote.app.getLocale
+const {getLocale} = require('electron').remote.app
 let currentLocale = 'en'
 
 function checkLocale () {
@@ -12,12 +12,12 @@ function checkLocale () {
     const lang = require('./i18n')(locale)
 
     if (lang) {
-      const sel = document.getElementById.bind(document)
-      sel('source__text').textContent = lang.source
-      sel('learn__text').textContent = lang.learnMore
-      sel('updating__text').textContent = lang.updating
-      sel('about__text').textContent = lang.about
-      sel('quit__text').textContent = lang.quit
+      const $ = document.getElementById.bind(document)
+      $('source__text').textContent = lang.source
+      $('learn__text').textContent = lang.learnMore
+      $('updating__text').textContent = lang.updating
+      $('about__text').textContent = lang.about
+      $('quit__text').textContent = lang.quit
     }
   }
 }

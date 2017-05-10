@@ -1,4 +1,4 @@
-const path = require('path')
+const {join} = require('path')
 
 module.exports = Object.seal({
   HOME_PAGE_URL: 'https://galeri.io',
@@ -15,10 +15,10 @@ module.exports = Object.seal({
   APP_TEAM: 'Space Egg, LLC',
   APP_VERSION: require('../../package.json').version,
   APP_COPYRIGHT: `Copyright © 2016 - ${(new Date()).getFullYear()} Space Egg, LLC`,
-  APP_ICON: path.join(__dirname, '../..', 'assets', 'Galeri'),
+  APP_ICON: join(__dirname, '../..', 'assets', 'Galeri'),
 
-  ROOT_PATH: path.join(__dirname, '../..'),
-  STATIC_PATH: path.join(__dirname, '../..', 'assets'),
+  ROOT_PATH: join(__dirname, '../..'),
+  STATIC_PATH: join(__dirname, '../..', 'assets'),
 
   CHECK_UPDATE_INTERVAL: 6 * 1000 * 60 * 60 // 6 hours
 })

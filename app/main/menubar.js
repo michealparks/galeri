@@ -2,14 +2,15 @@ module.exports = initMenubar
 
 const dev = process.env.NODE_ENV === 'development'
 const electron = require('electron')
+const {systemPreferences, Tray} = require('electron')
 const calculatePosition = require('./positioner')
 const ipcHandler = require('./ipc')
 const win32 = process.platform === 'win32'
 
 let tray, win, cachedBounds
 
-if ('subscribeNotification' in electron.systemPreferences) {
-  electron.systemPreferences.subscribeNotification(
+if ('subscribeNotification' in systemPreferences) {
+  systemPreferences.subscribeNotification(
     'AppleInterfaceThemeChangedNotification',
     function () {
       if (tray) tray.setImage(getImage())
@@ -17,7 +18,7 @@ if ('subscribeNotification' in electron.systemPreferences) {
 }
 
 function getImage () {
-  const icon = electron.systemPreferences.isDarkMode() ? 'icon-dark' : 'icon'
+  const icon = systemPreferences.isDarkMode() ? 'icon-dark' : 'icon'
 
   return dev
     ? `${__dirname}/../../assets/${icon}_32x32.png`
@@ -25,7 +26,7 @@ function getImage () {
 }
 
 function initMenubar (next) {
-  tray = new electron.Tray(getImage())
+  tray = new Tray(getImage())
 
   tray.on('click', onClick)
   tray.on('double-click', onClick)

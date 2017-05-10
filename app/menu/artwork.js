@@ -1,4 +1,4 @@
-const ipc = require('electron').ipcRenderer
+const {ipcRenderer} = require('electron')
 const AppClassList = document.getElementById('app').classList
 const ArtSource = document.getElementById('artwork-source')
 const ArtLink = document.getElementById('artwork-link')
@@ -7,12 +7,12 @@ const Text = document.getElementById('artwork-text')
 
 let artwork
 
-ipc.on('artwork', function (e, data) {
+ipcRenderer.on('artwork', function (e, data) {
   artwork = data
   AppClassList.add('app--updating')
 })
 
-ipc.on('artwork-updated', function () {
+ipcRenderer.on('artwork-updated', function () {
   ArtSource.textContent = artwork.source
   ArtLink.href = artwork.href
   Title.textContent = truncate(artwork.title, 50)

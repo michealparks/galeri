@@ -1,4 +1,6 @@
-module.exports = function (screen, browserWindow, position, trayPosition) {
+module.exports = calculatePosition
+
+function calculatePosition (screen, browserWindow, position, trayPosition) {
   const screenSize = screen.getDisplayNearestPoint(screen.getCursorScreenPoint()).workArea
   const windowSize = browserWindow.getSize()
   const basePosition = getPosition(position, trayPosition || {}, screenSize, windowSize)

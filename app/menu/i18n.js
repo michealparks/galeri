@@ -1,4 +1,6 @@
-module.exports = function i18n (locale) {
+module.exports = i18n
+
+function i18n (locale) {
   if (locale.indexOf('en') > -1) {
     return {
       source: 'This work was provided by',

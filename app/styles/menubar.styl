@@ -1,0 +1,274 @@
+::selection
+  background: transparent
+
+@font-face
+  font-family: 'Reem Kufi'
+  font-style: normal
+  src: local('Reem Kufi Regular'), local('ReemKufi-Regular'), url('../assets/reem-kufi.woff2') format('woff2')
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2212, U+2215, U+E0FF, U+EFFD, U+F000
+
+@font-face
+  font-family: 'icomoon'
+  src: url('../assets/icomoon.woff') format('woff')
+  font-weight: normal
+  font-style: normal
+
+[class^="icon-"], [class*=" icon-"]
+  font-family: 'icomoon' !important
+  speak: none
+  font-style: normal
+  font-weight: normal
+  font-variant: normal
+  text-transform: none
+  line-height: 1
+
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased
+  -moz-osx-font-smoothing: grayscale
+
+.icon-image:before
+  content: "\e010"
+
+.icon-clock:before
+  content: "\e014"
+
+.icon-monitor:before
+  content: "\e021"
+
+.icon-cog:before
+  content: "\e023"
+
+.icon-heart:before
+  content: "\e024"
+
+.icon-play:before
+  content: "\e052"
+
+.icon-pause:before
+  content: "\e053"
+
+.icon-speech:before
+  content: "\e076"
+
+::selection
+  background: transparent
+
+*
+  cursor: default
+  -webkit-user-select: none
+  user-select: none
+  box-sizing: border-box
+
+body
+  overflow: hidden
+  margin: 0
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica Neue, helvetica
+  font-weight: 200
+  font-size: 12px
+  color: #666 /* Hail satan! */
+
+a
+  color: #aaa
+  text-decoration: none
+  transition: 200ms
+
+a:hover
+  text-decoration: underline
+  color: #555
+
+select
+  outline: none !important
+
+.no-margin
+  margin: 0 !important
+
+.float-right
+  float: right
+
+.title
+  position: relative
+  display: flex
+  height: 80px
+  width: 100%
+  justify-content: center
+  align-items: center
+
+.title__bg
+.title__mask
+  position: absolute
+  top: 0
+  left: 0
+  height: 100%
+  width: 100%
+
+.title__bg
+  background-image: url('../assets/title-bg.jpg')
+  background-size: cover
+  background-position: center
+
+.title__mask
+  background-color: rgba(0, 0, 0, 0.2)
+
+.title__text
+  z-index: 1
+  color: #fff
+  text-align: center
+
+.title__h2
+  margin: 0
+  font-weight: 300
+  font-family: Reem Kufi, helvetica
+  font-size: 44px
+  line-height: 0.9
+
+.title__version
+  position: absolute
+  left: 0
+  width: 100%
+  bottom: 5px
+  margin: 0
+  font-size: 11px
+
+.panel
+  position: absolute
+  width: 100%
+  height: calc(100% - 80px)
+  padding: 10px
+  background-color: rgba(255,255,255,0.96)
+
+.icon
+  font-size: 16px
+  margin: 5px
+
+.nav
+  position: relative
+  height: 30px
+  border-bottom: 1px solid #aaa
+
+.active-arrow
+  position: absolute
+  bottom: 0
+  width: 0
+  height: 0
+  border-left: 5px solid transparent
+  border-right: 5px solid transparent
+  border-bottom: 5px solid #aaa
+  transition: transform 300ms
+
+.active-arrow--tab-0
+  transform: translate3d(9.5px, 0, 0)
+
+.active-arrow--tab-1
+  transform: translate3d(44px, 0, 0)
+
+.nav__border
+  position: absolute
+  width: 50%
+
+.btn
+  position: absolute
+  top: -5px
+  width: 22px
+  height: 22px
+  padding: 14px
+  border-radius: 100%
+  transition: 1000ms
+
+.btn:active
+  background-color: #ccc
+  transition: 0ms
+
+.btn-toggle
+  right: -5px
+  perspective: 40px
+  perspective-origin: center
+  transition: transform 2000ms, opacity 300ms
+
+.btn__icon
+  position: absolute
+  top: 6px
+  left: 6px
+  margin: 0
+  transition: 500ms transform cubic-bezier(0.165, 0.840, 0.440, 1.000)
+  backface-visibility: hidden
+  transform-origin: center
+
+.artwork-source
+  margin: 0
+
+#artwork-title
+  font-size: 1.25em
+  margin: 0 0 2px 0
+
+#artwork-text
+  margin: 0 0 10px 0
+  font-size: 10px
+
+#btn-prefs-tab
+  left: 35px
+
+.btn-toggle .icon-play
+  left: 8px
+  transform: rotate3d(0, 1, 0, 180deg)
+
+.btn-toggle--paused .icon-pause
+  transform: rotate3d(0, 1, 0, 180deg)
+
+.btn-toggle--paused .icon-play
+  transform: rotate3d(0, 0, 0, 0)
+
+.tab
+  position: absolute
+  top: 50px
+  left: 0
+  width: 100%
+  height: 164px
+  padding: 10px
+  transition: transform 300ms cubic-bezier(0.165, 0.840, 0.440, 1.000)
+
+#description.tab--hidden
+  transform: translate3d(-110%, 0, 0)
+
+#preferences.tab--hidden
+  transform: translate3d(110%, 0, 0)
+
+#updating
+  position: absolute
+
+#updating, #source, #artwork-link
+  transition: opacity 300ms
+
+.additional
+  position: absolute
+  bottom: 5px
+
+.about
+.quit
+  position: fixed
+  bottom: 0
+  padding: 3px 10px 5px 10px
+  font-size: 12px
+
+.about
+  left: 0
+  width: 100%
+  background-color: rgba(0, 0, 0, 0.11)
+
+.quit
+  right: 0
+
+.quit:hover
+.about:hover
+  text-decoration: underline
+
+.app #updating
+  opacity: 0
+
+.app--updating #updating
+  opacity: 1
+
+.app--updating #artwork-link,
+.app--updating #source,
+.app--updating #btn-toggle
+  opacity: 0
+  pointer-events: none

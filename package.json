@@ -1,7 +1,7 @@
 {
   "name": "Galeri",
   "productName": "Galeri",
-  "version": "0.0.22",
+  "version": "0.0.23",
   "author": "Micheal Parks",
   "description": "F.A.R.T. - Fantastic Art Rendering Technology",
   "main": "main.js",
@@ -10,16 +10,14 @@
     "test": "depcheck",
     "start:dev": "cross-env NODE_ENV=development electron ./main.development",
     "start": "cross-env NODE_ENV=production electron ./",
-    "webpack:dev": "webpack --config webpack.config.development.js --watch --progress --profile --colors",
-    "dev": "concurrently --kill-others \"npm run start:dev\" \"npm run webpack:dev\"",
-    "dev:prod": "concurrently --kill-others \"cross-env HOT=1 NODE_ENV=production electron ./main.development\" \"cross-env NODE_ENV=production node server\"",
-    "build:main": "cross-env NODE_ENV=production webpack --config webpack.config.electron.js --progress --profile --colors",
-    "build:renderers": "cross-env NODE_ENV=production webpack --config webpack.config.production.js --progress --profile --colors",
-    "build": "npm run build:main & npm run build:renderers",
+    "webpack:dev": "node webpack.js dev",
+    "dev": "concurrently --kill-others \"npm run start:dev\" \"node ./bin/stylus dev\" \"npm run webpack:dev\"",
+    "dev:prod": "concurrently --kill-others \"cross-env NODE_ENV=production electron ./main.development\" \"node ./bin/stylus dev\"",
+    "build": "node webpack.js",
     "package": "cross-env NODE_ENV=production node package.js",
-    "package:mac": "node ./bin/package.js darwin --sign",
-    "package:win": "node ./bin/package.js win32",
-    "analytics": "open -a \"Safari\" bin/analytics.html"
+    "package:mac": "node webpack.js && node ./bin/package.js darwin --sign",
+    "package:win": "node webpack.js && node ./bin/package.js win32",
+    "analytics": "open -a \"Google Chrome\" bin/analytics.html"
   },
   "repository": {
     "type": "git",
@@ -57,7 +55,7 @@
     "electron-debug": "^1.1.0",
     "electron-devtools-installer": "^2.2.0",
     "electron-osx-sign": "^0.4.4",
-    "electron-packager": "^8.6.0",
+    "electron-packager": "^8.7.0",
     "electron-winstaller": "^2.5.2",
     "html-minifier": "^3.4.3",
     "inline-source": "^5.2.2",
@@ -65,8 +63,8 @@
     "mkdirp": "^0.5.1",
     "nobin-debian-installer": "0.0.10",
     "run-series": "^1.1.4",
-    "webpack": "^2.4.1",
-    "webpack-merge": "^4.1.0"
+    "stylus": "^0.54.5",
+    "webpack": "^2.4.1"
   },
   "dependencies": {
     "auto-launch": "5.0.1",
