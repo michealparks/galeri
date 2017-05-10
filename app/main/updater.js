@@ -22,13 +22,11 @@ function isValid (tag) {
 }
 
 function getLatestTag (next) {
-  return https.get(req, function (res) {
+  return https.get(req, (res) => {
     let body = ''
     res.on('error', next)
-    res.on('data', function (d) { body += d })
-    res.on('end', function () {
-      next(null, JSON.parse(body).tag_name)
-    })
+    res.on('data', (d) => { body += d })
+    res.on('end', () => next(undefined, JSON.parse(body).tag_name))
   })
   .on('error', next)
   .setTimeout(10000)
@@ -51,13 +49,11 @@ function isNewerVersionAvailable (latest) {
 function getFeedURL (tag, next) {
   return win32
     ? next(`${config.GITHUB_URL}/releases/download/${tag}`)
-    : https.get(`${config.GITHUB_URL_RAW}/updater.json`, function (res) {
+    : https.get(`${config.GITHUB_URL_RAW}/updater.json`, (res) => {
       let body = ''
       res.on('error', next)
-      res.on('data', function (d) {
-        body += d
-      })
-      res.on('end', function () {
+      res.on('data', (d) => { body += d })
+      res.on('end', () => {
         if (res.statusCode === 404) {
           return next({
             type: 'error',
@@ -98,38 +94,32 @@ function getFeedURL (tag, next) {
           })
         }
 
-        return next(null, `${config.GITHUB_URL_RAW}/updater.json`)
+        return next(undefined, `${config.GITHUB_URL_RAW}/updater.json`)
       })
     }).on('error', next)
 }
 
 function check (next) {
-  return getLatestTag(function (err, tag) {
-    if (err) return next(err)
-
-    if (!tag || !isValid(tag)) {
-      return next({ type: 'error', msg: 'Could not find a valid release tag.' })
-    }
-
-    if (!isNewerVersionAvailable(tag)) {
-      return next({ type: 'warn', msg: 'There is no newer version.' })
-    }
-
-    return getFeedURL(tag, next)
-  })
+  return getLatestTag((err, tag) => err
+    ? next(err)
+    : (!tag || !isValid(tag))
+    ? next({ type: 'error', msg: 'Could not find a valid release tag.' })
+    : !isNewerVersionAvailable(tag)
+    ? next({ type: 'warn', msg: 'There is no newer version.' })
+    : getFeedURL(tag, next))
 }
 
 function initDarwinWin32 () {
   const updater = electron.autoUpdater
 
   if (dev) {
-    updater.on('error', console.error.bind(console))
-    updater.on('checking-for-update', console.log.bind(console))
-    updater.on('update-available', console.log.bind(console))
-    updater.on('update-not-available', console.log.bind(console))
+    updater.on('error', e => console.error(e))
+    updater.on('checking-for-update', e => console.log(e))
+    updater.on('update-available', e => console.log(e))
+    updater.on('update-not-available', e => console.log(e))
   }
 
-  updater.on('update-downloaded', function (msg) {
+  updater.on('update-downloaded', (msg) => {
     if (dev) console.log('update-downloaded', msg)
     return updater.quitAndInstall()
   })
@@ -144,7 +134,5 @@ function initDarwinWin32 () {
 
   check(onCheck)
 
-  return setInterval(function () {
-    return check(onCheck)
-  }, config.CHECK_UPDATE_INTERVAL)
+  return setInterval(() => check(onCheck), config.CHECK_UPDATE_INTERVAL)
 }

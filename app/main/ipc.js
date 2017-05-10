@@ -1,8 +1,15 @@
-const dev = process.env.NODE_ENV === 'development'
-const {ipcMain, BrowserWindow} = require('electron')
-const {getAllWindows, fromId} = BrowserWindow
+module.exports = { cacheTray, cacheId, removeCachedId, toMenubar }
 
-let aboutWin, favoritesWin, tray, menubarID, storedArtwork
+const electron = require('electron')
+const config = require('application-config')('Galeri Favorites')
+const {openFavorites, openAbout} = require('./windows')
+const {makeThumb, removeThumb} = require('./thumb')
+const {getAllWindows, fromId} = electron.BrowserWindow
+const ipc = electron.ipcMain
+
+let tray, menubarID, favoritesId, storedArt
+
+let favorites = []
 let backgroundIDs = []
 
 function cacheTray (t) {
@@ -29,130 +36,111 @@ function removeCachedId (id) {
   backgroundIDs = newIds
 }
 
-function sendToWindows (msg, arg) {
+function toWindows (msg, arg) {
   for (let i = 0, arr = getAllWindows(), l = arr.length; i < l; ++i) {
     arr[i].webContents.send(msg, arg)
   }
 }
 
-function sendToBackground (msg, arg) {
+function toBackground (msg, arg) {
   for (let i = 0, l = backgroundIDs.length; i < l; ++i) {
     fromId(backgroundIDs[i]).webContents.send(msg, arg)
   }
 }
 
-function sendToMenubar (msg, arg) {
-  return fromId(menubarID).webContents.send(msg, arg)
+function toMenubar (msg, arg) {
+  fromId(menubarID).webContents.send(msg, arg)
 }
 
-ipcMain.on('play', function () {
-  sendToBackground('play')
-})
+function toFavorites (msg, arg) {
+  const win = favoritesId && fromId(favoritesId)
+  if (win) win.webContents.send(msg, arg)
+}
 
-ipcMain.on('pause', function () {
-  sendToBackground('pause')
-})
+function onFavoriteChange (isFavorited, item) {
+  if (isFavorited) {
+    favorites.push(item)
+    makeThumb(
+      `${item.title} - ${item.text} - ${item.source}`, item.img,
+      (err, d) => {
+        if (err) return console.error(err)
+        toFavorites('main:favorites', favorites)
+      })
+  } else {
+    let found
 
-ipcMain.on('preferences-to-background', function (e, data) {
-  sendToBackground('preferences-to-background', data)
-})
+    favorites = favorites.filter(f => {
+      if (f.href === item.href) found = f
+      return f.href !== item.href
+    })
 
-ipcMain.on('preferences-to-menubar', function (e, data) {
-  sendToMenubar('preferences-to-menubar', data)
-})
-
-ipcMain.on('menubar-needs-preferences', function () {
-  sendToBackground('menubar-needs-preferences')
-})
-
-ipcMain.on('artwork', function (e, artwork) {
-  storedArtwork = artwork
-  tray.setToolTip(`${artwork.title}\n${artwork.text}\n${artwork.source}`)
-  sendToWindows('artwork', artwork)
-})
-
-ipcMain.on('artwork-updated', function () {
-  sendToMenubar('artwork-updated')
-})
-
-ipcMain.on('background-loaded', function () {
-  sendToMenubar('background-loaded')
-})
-
-ipcMain.on('background-clone-loaded', function () {
-  if (storedArtwork) {
-    sendToBackground('artwork-to-clone', storedArtwork)
+    if (found) {
+      removeThumb(`${found.title} - ${found.text} - ${found.source}`)
+      toFavorites('main:favorites', favorites)
+    }
   }
-})
 
-ipcMain.on('open-favorites-window', function (name) {
-  favoritesWin = new BrowserWindow({
-    title: 'Galeri Favorites',
-    center: true,
-    show: false,
-    width: 600,
-    height: 500,
-    resizable: false,
-    maximizable: false,
-    fullscreenable: false,
-    webPreferences: {
-      webAudio: false,
-      webgl: false
-    }
-  })
-
-  favoritesWin.once('ready-to-show', favoritesWin.show)
-
-  favoritesWin.on('close', function () {
-    favoritesWin = null
-  })
-
-  favoritesWin.loadURL(require('url').format({
-    protocol: 'file',
-    slashes: true,
-    pathname: dev
-      ? require('path').join(__dirname, '..', 'about.html')
-      : require('path').join(__dirname, 'build', 'about.html')
-  }))
-})
-
-ipcMain.on('open-about-window', function () {
-  aboutWin = new BrowserWindow({
-    title: 'Galeri About',
-    center: true,
-    show: false,
-    width: 400,
-    height: 300,
-    resizable: false,
-    minimizable: false,
-    maximizable: false,
-    fullscreenable: false,
-    webPreferences: {
-      webAudio: false,
-      webgl: false
-    }
-  })
-
-  aboutWin.once('ready-to-show', aboutWin.show)
-
-  aboutWin.on('close', function () {
-    aboutWin = null
-  })
-
-  return aboutWin.loadURL(require('url').format({
-    protocol: 'file',
-    slashes: true,
-    pathname: dev
-      ? require('path').join(__dirname, '..', 'about.html')
-      : require('path').join(__dirname, 'build', 'about.html')
-  }))
-})
-
-module.exports = {
-  cacheTray: cacheTray,
-  cacheId: cacheId,
-  removeCachedId: removeCachedId,
-  sendToWindows: sendToWindows,
-  sendToBackground: sendToBackground,
-  sendToMenubar: sendToMenubar
+  config.write({ favorites }, () => {})
 }
+
+function hasSameHref (item) {
+  return item.href === storedArt.href
+}
+
+config.read((err, data) => {
+  if (err) return
+  favorites = data.favorites || []
+})
+
+electron.app.once('ready', () => {
+  electron.powerMonitor.on('suspend', () => toWindows('main:suspend'))
+  electron.powerMonitor.on('resume', () => toWindows('main:resume'))
+})
+
+// Menubar events
+ipc.on('menubar:get-settings', () =>
+  toBackground('menubar:get-settings'))
+ipc.on('menubar:is-paused', (e, paused) =>
+  toBackground('menubar:is-paused', paused))
+ipc.on('menubar:label-location', (e, l) =>
+  toBackground('menubar:label-location', l))
+ipc.on('menubar:update-rate', (e, rate) =>
+  toBackground('menubar:update-rate', rate))
+ipc.on('menubar:is-favorited', (e, isFavorited) =>
+  onFavoriteChange(isFavorited, storedArt))
+ipc.on('open-about-window', () =>
+  openAbout())
+ipc.on('open-favorites-window', () => {
+  favoritesId = openFavorites()
+})
+
+// Background events
+ipc.on('background:is-paused', (e, paused) =>
+  toMenubar('background:is-paused', paused))
+ipc.on('background:label-location', (e, l) =>
+  toMenubar('background:label-location', l))
+ipc.on('background:update-rate', (e, rate) =>
+  toMenubar('background:update-rate', rate))
+ipc.on('background:updated', () =>
+  toMenubar('background:updated'))
+ipc.on('background:loaded', () =>
+  toMenubar('background:loaded'))
+ipc.on('background:artwork', (e, artwork) => {
+  storedArt = artwork
+  tray.setToolTip(`${artwork.title}\n${artwork.text}\n${artwork.source}`)
+  toWindows('background:artwork', artwork)
+  toMenubar('main:is-favorited', favorites
+    .findIndex(favorite => favorite.href === storedArt.href) > -1)
+})
+
+// Clone events
+ipc.on('clone:loaded', () =>
+  storedArt && toBackground('main:artwork', storedArt))
+
+// Favorites events
+ipc.on('favorites:loaded', () =>
+  toFavorites('main:favorites', favorites))
+ipc.on('favorites:delete', (e, href) => {
+  onFavoriteChange(false, { href })
+  toMenubar('main:is-favorited', favorites.findIndex(hasSameHref) > -1)
+})

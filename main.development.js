@@ -1,23 +1,19 @@
-const dev = process.env.NODE_ENV === 'development'
+const __dev__ = process.env.NODE_ENV === 'development'
 const darwin = process.platform === 'darwin'
 const win32 = process.platform === 'win32'
 
-if (dev) console.time('init')
+if (__dev__) console.time('init')
 
 require('./app/main/crash-reporter')
 
+const {resolve} = require('path')
+const {format} = require('url')
 const electron = require('electron')
 const ipcHandler = require('./app/main/ipc')
-const app = electron.app
-const backgroundUrl = dev
-  ? `file://${__dirname}/core/public/index.html`
-  : `file://${__dirname}/build/index.html`
-const backgroundCloneUrl = dev
-  ? `file://${__dirname}/app/bg-clone.html`
-  : `file://${__dirname}/build/bg-clone.html`
+const {app, BrowserWindow} = electron
 
 let screen, initMenubar, lastWinId, currentWinId
-let backgroundWindow = []
+let windows = []
 
 // Handle restart due to windows updates
 let shouldQuit
@@ -27,11 +23,11 @@ if (process.platform === 'win32') {
 
 // Handle possible other instances of the app
 if (!shouldQuit) {
-  shouldQuit = app.makeSingleInstance(function () {
+  shouldQuit = app.makeSingleInstance(() => {
     // Someone tried to run a second instance, we should focus our window.
-    if (backgroundWindow[0]) {
-      if (backgroundWindow[0].isMinimized()) backgroundWindow[0].restore()
-      backgroundWindow[0].focus()
+    if (windows[0]) {
+      if (windows[0].isMinimized()) windows[0].restore()
+      windows[0].focus()
     }
   })
 
@@ -50,8 +46,8 @@ if (!shouldQuit) {
 
   app.once('ready', onReady)
 
-  electron.ipcMain.on('browser-reset', onBrowserReset)
-  electron.ipcMain.on('browser-rendered', onBrowserRendered)
+  electron.ipcMain.on('background:reset', onBackgroundReset)
+  electron.ipcMain.on('background:rendered', onBackgroundRendered)
 }
 
 function onReady () {
@@ -61,33 +57,29 @@ function onReady () {
   screen.on('display-added', onDisplayAdded)
   screen.on('display-removed', onDisplayRemoved)
 
-  electron.powerMonitor.on('suspend', onSuspend)
-  electron.powerMonitor.on('resume', onResume)
-
-  initMenubar(function () {
-    makeBackgroundWindow('background', screen.getPrimaryDisplay())
+  initMenubar(() => {
+    makeWindow('background', screen.getPrimaryDisplay())
 
     for (let i = 0, s = getSecondaryDisplays(), l = s.length; i < l; ++i) {
-      makeBackgroundWindow('clone', s[i])
+      makeWindow('clone', s[i])
     }
   })
 
   // To keep app startup fast, some non-essential code is delayed.
-  setTimeout(onDelayedStartup, 3000)
+  setTimeout(() => require('./app/main/autolaunch'), 3000)
 }
 
-function onBrowserReset () {
-  makeBackgroundWindow('background', screen.getPrimaryDisplay())
+function onBackgroundReset () {
+  makeWindow('background', screen.getPrimaryDisplay())
 }
 
-function onBrowserRendered () {
-  if (backgroundWindow.length === 1) {
-    if (dev) console.timeEnd('init')
-  } else {
-    setTimeout(function () {
-      destroyWindowOfId(lastWinId)
-    }, 4000)
+function onBackgroundRendered () {
+  if (windows.length === 1) {
+    if (__dev__) console.timeEnd('init')
+    return
   }
+
+  setTimeout(() => destroyWindowOfId(lastWinId), 4000)
 }
 
 function onDisplayAdded () {
@@ -96,10 +88,10 @@ function onDisplayAdded () {
 
   for (let i = 0, c = getCloneWindows(), d = getSecondaryDisplays(), l = d.length; i < l; ++i) {
     // if a current clone exists, match a display with it
-    if (c[i]) c[i].display = d[i]
+    if (c[i] !== undefined) c[i].display = d[i]
 
     // if no more clones exist, make a new one for the display
-    else makeBackgroundWindow('clone', d[i])
+    else makeWindow('clone', d[i])
   }
 
   resizeBackgrounds()
@@ -111,7 +103,7 @@ function onDisplayRemoved () {
 
   for (let i = 0, c = getCloneWindows(), d = getSecondaryDisplays(), l = c.length; i < l; ++i) {
     // if a display exists, give it a current clone
-    if (d[i]) c[i].display = d[i]
+    if (d[i] !== undefined) c[i].display = d[i]
 
     // if there's a surplus, remove the clone
     else destroyWindowOfId(c[i].id)
@@ -120,31 +112,17 @@ function onDisplayRemoved () {
   resizeBackgrounds()
 }
 
-function onSuspend () {
-  ipcHandler.sendToWindows('suspend')
-}
-
-function onResume () {
-  ipcHandler.sendToWindows('resume')
-}
-
-function onDelayedStartup () {
-  require('./app/main/autolaunch')
-}
-
 function getPrimaryWindow () {
-  for (let i = 0, l = backgroundWindow.length; i < l; ++i) {
-    if (backgroundWindow[i].id === currentWinId) {
-      return backgroundWindow[i]
-    }
+  for (let i = 0, l = windows.length; i < l; ++i) {
+    if (windows[i].id === currentWinId) return windows[i]
   }
 }
 
 function getCloneWindows () {
   const results = []
 
-  for (let i = 0, l = backgroundWindow.length; i < l; ++i) {
-    if (backgroundWindow[i].isClone) results.push(backgroundWindow[i])
+  for (let i = 0, l = windows.length; i < l; ++i) {
+    if (windows[i].isClone) results.push(windows[i])
   }
 
   return results
@@ -163,28 +141,27 @@ function getSecondaryDisplays () {
 }
 
 function destroyWindowOfId (id) {
-  for (let i = 0, l = backgroundWindow.length; i < l; ++i) {
-    if (backgroundWindow[i].id !== id) continue
+  for (let i = 0, l = windows.length; i < l; ++i) {
+    if (windows[i].id !== id) continue
 
     // don't allow beforeunload to fire, we've already saved config
-    backgroundWindow[i].destory()
+    windows[i].destroy()
 
     // remove references
-    backgroundWindow[i] = null
-    backgroundWindow.splice(i, 1)
-    ipcHandler.removeCachedId(id)
-    break
+    windows[i] = null
+    windows.splice(i, 1)
+
+    // exit loop
+    return ipcHandler.removeCachedId(id)
   }
 }
 
-function makeBackgroundWindow (type, display) {
+function makeWindow (type, display) {
   const bounds = win32 ? display.workArea : display.bounds
-  const url = type === 'background' ? backgroundUrl : backgroundCloneUrl
+  const isClone = type !== 'background'
 
-  let win = new electron.BrowserWindow({
+  let win = new BrowserWindow({
     title: 'Galeri',
-    // share session data among all backgrounds
-    partition: 'persist:galeri',
     // mac/linux: sets window behind all others and ignores clicks
     type: 'desktop',
     x: bounds.x,
@@ -208,13 +185,13 @@ function makeBackgroundWindow (type, display) {
     }
   })
 
-  if (type === 'background') {
+  if (!isClone) {
     lastWinId = currentWinId
     currentWinId = win.id
   }
 
   win.display = display
-  win.isClone = type !== 'background'
+  win.isClone = isClone
 
   ipcHandler.cacheId('background', win.id)
 
@@ -227,30 +204,34 @@ function makeBackgroundWindow (type, display) {
   if (win32) win.setIgnoreMouseEvents(true)
 
   // showInactive won't focus the window
-  win.once('ready-to-show', function () {
-    win.showInactive()
-  })
-
-  win.once('closed', function () { win = null })
+  win.once('ready-to-show', win.showInactive)
+  win.once('closed', () => { win = undefined })
 
   // Moving the taskbar on windows can jolt the background out of place
   win.on('move', resizeBackgrounds)
   win.on('resize', resizeBackgrounds)
 
-  win.loadURL(url)
+  win.loadURL(format({
+    protocol: 'file',
+    slashes: true,
+    pathname: resolve(
+      __dirname,
+      __dev__ ? 'app' : 'build',
+      `${isClone ? 'bg-clone' : 'background'}.html`)
+  }))
 
-  if (dev) {
+  if (__dev__) {
     require('electron-debug')()
     win.openDevTools({ mode: 'detach' })
   }
 
-  backgroundWindow.push(win)
+  windows.push(win)
 }
 
 function resizeBackgrounds () {
-  setTimeout(function () {
-    for (let win, i = 0, l = backgroundWindow.length; i < l; ++i) {
-      win = backgroundWindow[i]
+  setTimeout(() => {
+    for (let win, i = 0, l = windows.length; i < l; ++i) {
+      win = windows[i]
       win.setBounds(win.display.bounds)
     }
   })

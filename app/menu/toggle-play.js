@@ -1,26 +1,24 @@
-const {ipcRenderer} = require('electron')
+const ipc = require('electron').ipcRenderer
 const ToggleBtn = document.getElementById('btn-toggle')
 
 let isPaused = false
 let isAnimating = false
 
-ipcRenderer.on('preferences-to-menubar', function (e, data) {
-  if (data.IS_PAUSED === undefined) return
-
-  isPaused = data.IS_PAUSED
-  animateToggle()
+ipc.on('background:is-paused', (e, paused) => {
+  isPaused = paused
+  toggle()
 })
 
-ToggleBtn.onclick = function (e) {
+ToggleBtn.onclick = () => {
   if (isAnimating) return
 
   isPaused = !isPaused
 
-  animateToggle()
-  ipcRenderer.send(isPaused ? 'pause' : 'play')
+  ipc.send('menubar:is-paused', isPaused)
+  toggle()
 }
 
-function animateToggle () {
+function toggle () {
   isAnimating = true
   ToggleBtn.classList.toggle('btn-toggle--paused', isPaused)
   setTimeout(onToggleAnimationEnd, 500)

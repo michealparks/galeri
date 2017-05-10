@@ -1,6 +1,8 @@
 module.exports = initMenubar
 
-const dev = process.env.NODE_ENV === 'development'
+const __dev__ = process.env.NODE_ENV === 'development'
+const {format} = require('url')
+const {resolve} = require('path')
 const electron = require('electron')
 const {systemPreferences, Tray} = require('electron')
 const calculatePosition = require('./positioner')
@@ -10,19 +12,13 @@ const win32 = process.platform === 'win32'
 let tray, win, cachedBounds
 
 if ('subscribeNotification' in systemPreferences) {
-  systemPreferences.subscribeNotification(
-    'AppleInterfaceThemeChangedNotification',
-    function () {
-      if (tray) tray.setImage(getImage())
-    })
+  systemPreferences.subscribeNotification('AppleInterfaceThemeChangedNotification',
+    () => tray && tray.setImage(getImage()))
 }
 
 function getImage () {
   const icon = systemPreferences.isDarkMode() ? 'icon-dark' : 'icon'
-
-  return dev
-    ? `${__dirname}/../../assets/${icon}_32x32.png`
-    : `${__dirname}/assets/${icon}_32x32.png`
+  return `${__dirname}/${__dev__ ? '../../' : ''}assets/${icon}_32x32.png`
 }
 
 function initMenubar (next) {
@@ -42,7 +38,7 @@ function createWindow (next) {
   win = new electron.BrowserWindow({
     title: 'Galeri Menu',
     dir: require('path').resolve(electron.app.getAppPath()),
-    alwaysOnTop: dev,
+    alwaysOnTop: __dev__,
     resizable: false,
     transparent: true,
     show: false,
@@ -59,21 +55,17 @@ function createWindow (next) {
   ipcHandler.cacheId('menubar', win.id)
   win.setSkipTaskbar(true)
   win.setVisibleOnAllWorkspaces(true)
-  if (dev) win.openDevTools({ mode: 'detach' })
+  if (__dev__) win.openDevTools({ mode: 'detach' })
 
-  win.on('blur', function () {
-    return dev ? null : hideWindow()
-  })
-
-  win.on('close', function () {
-    win = null
-  })
-
+  win.on('blur', () => __dev__ ? undefined : hideWindow())
+  win.on('close', () => { win = undefined })
   win.once('ready-to-show', next)
 
-  return win.loadURL(dev
-    ? `file://${__dirname}/../../app/menubar.html`
-    : `file://${__dirname}/build/menubar.html`)
+  return win.loadURL(format({
+    protocol: 'file',
+    slashes: true,
+    pathname: resolve(__dirname, __dev__ ? '../../app' : 'build', 'menubar.html')
+  }))
 }
 
 function onClick (e, bounds) {
@@ -81,7 +73,7 @@ function onClick (e, bounds) {
     return hideWindow()
   }
 
-  if (win && win.isVisible()) {
+  if (win !== undefined && win.isVisible()) {
     return hideWindow()
   }
 
@@ -92,12 +84,12 @@ function onClick (e, bounds) {
 function showWindow (trayPos) {
   tray.setHighlightMode('always')
 
-  if (!win) createWindow()
+  if (win === undefined) createWindow()
 
   if (trayPos && trayPos.x !== 0) {
     // Cache the bounds
     cachedBounds = trayPos
-  } else if (cachedBounds) {
+  } else if (cachedBounds !== undefined) {
     // Cached value will be used if showWindow is called without bounds data
     trayPos = cachedBounds
   } else if (tray.getBounds) {
@@ -122,5 +114,5 @@ function showWindow (trayPos) {
 
 function hideWindow () {
   tray.setHighlightMode('never')
-  return win ? win.hide() : null
+  return win !== undefined && win.hide()
 }

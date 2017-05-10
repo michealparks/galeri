@@ -1,4 +1,6 @@
-const __dev__ = process.argv[2] === 'dev'
+const __devOnce__ = process.argv[2] === 'dev-once'
+const __dev__ = process.argv[2] === 'dev' || __devOnce__
+const env = JSON.stringify(__dev__ ? 'development' : 'production')
 const {resolve} = require('path')
 const webpack = require('webpack')
 const BabiliPlugin = require('babili-webpack-plugin')
@@ -19,11 +21,16 @@ const mainConfig = {
       }
     ]
   },
+  externals: {
+    sharp: {
+      commonjs: 'sharp'
+    }
+  },
   plugins: [
     new BabiliPlugin(),
     new webpack.DefinePlugin({
-      'process.env.NODE_ENV': JSON.stringify('production'),
-      '__dev__': false
+      'process.env.NODE_ENV': env,
+      '__dev__': __dev__
     })
   ],
   node: {
@@ -35,8 +42,10 @@ const mainConfig = {
 const rendererConfig = {
   target: 'electron-renderer',
   entry: {
+    background: ['./app/background'],
     menu: ['./app/menu'],
-    clone: ['./app/bg-clone']
+    clone: ['./app/bg-clone'],
+    favorites: ['./app/favorites']
   },
   output: {
     path: resolve(__dirname, 'build'),
@@ -53,7 +62,7 @@ const rendererConfig = {
   },
   plugins: [
     new webpack.DefinePlugin({
-      'process.env.NODE_ENV': JSON.stringify(__dev__ ? 'development' : 'production'),
+      'process.env.NODE_ENV': env,
       '__VERSION__': JSON.stringify(require('./package.json').version),
       '__dev__': __dev__
     })
@@ -68,7 +77,7 @@ function report (err, stats) {
   if (stats) console.log(stats.toString({ chunks: false, colors: true }))
 }
 
-if (__dev__) {
+if (__dev__ && !__devOnce__) {
   webpack(rendererConfig).watch({ ignored: /node_modules/ }, report)
   webpack(mainConfig).watch({ ignored: /node_modules/ }, report)
 } else {

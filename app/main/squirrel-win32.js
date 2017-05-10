@@ -1,6 +1,6 @@
 module.exports = check
 
-const dev = process.env.NODE_ENV === 'development'
+const __dev__ = process.env.NODE_ENV === 'development'
 const path = require('path')
 const {app} = require('electron')
 // var debug = require('debug')('windows-squirrel-startup')
@@ -8,7 +8,7 @@ const {app} = require('electron')
 function run (args, done) {
   const updateExe = path.resolve(path.dirname(process.execPath), '..', 'Update.exe')
 
-  if (dev) console.log('Spawning `%s` with args `%s`', updateExe, args)
+  if (__dev__) console.log('Spawning `%s` with args `%s`', updateExe, args)
 
   require('child_process')
     .spawn(updateExe, args, { detached: true })
@@ -16,7 +16,7 @@ function run (args, done) {
 }
 
 function check (cmd) {
-  if (dev) console.log('processing squirrel command `%s`', cmd)
+  if (__dev__) console.log('processing squirrel command `%s`', cmd)
   const target = path.basename(process.execPath)
 
   if (cmd === '--squirrel-install' || cmd === '--squirrel-updated') {

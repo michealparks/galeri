@@ -1,40 +1,38 @@
-const {ipcRenderer} = require('electron')
+const ipc = require('electron').ipcRenderer
 const LabelLocationBtn = document.getElementById('label-location')
 const UpdateRateBtn = document.getElementById('update-rate')
 const AutolaunchBtn = document.getElementById('autolaunch')
 
-let preferences = Object.seal({
-  IS_AUTOLAUNCH: undefined,
-  LABEL_LOCATION: undefined,
-  UPDATE_RATE: undefined
+let isAutolaunchEnabled
+let labelLocation
+let updateRate
+
+ipc.once('background:loaded', () =>
+  ipc.send('menubar:get-settings'))
+
+ipc.on('background:label-location', (e, location) => {
+  LabelLocationBtn.value = labelLocation = location
 })
 
-ipcRenderer.on('preferences-to-menubar', function (e, data) {
-  AutolaunchBtn.checked = preferences.IS_AUTOLAUNCH = data.IS_AUTOLAUNCH
-  LabelLocationBtn.value = preferences.LABEL_LOCATION = data.LABEL_LOCATION
-  UpdateRateBtn.value = preferences.UPDATE_RATE = data.UPDATE_RATE
+ipc.on('background:update-rate', (e, rate) => {
+  UpdateRateBtn.value = updateRate = rate
 })
 
-ipcRenderer.on('autolaunch', function (e, data) {
-  preferences.IS_AUTOLAUNCH = data
-  AutolaunchBtn.checked = data
+ipc.on('main:is-autolaunch-enabled', (e, isEnabled) => {
+  AutolaunchBtn.checked = isAutolaunchEnabled = isEnabled
 })
 
-ipcRenderer.once('background-loaded', function () {
-  ipcRenderer.send('menubar-needs-preferences')
-})
-
-LabelLocationBtn.onchange = function () {
-  preferences.LABEL_LOCATION = this.value
-  ipcRenderer.send('preferences-to-background', preferences)
+LabelLocationBtn.onchange = (e) => {
+  labelLocation = e.currentTarget.value
+  ipc.send('menubar:label-location', labelLocation)
 }
 
-UpdateRateBtn.onchange = function () {
-  preferences.UPDATE_RATE = Number(this.value)
-  ipcRenderer.send('preferences-to-background', preferences)
+UpdateRateBtn.onchange = (e) => {
+  updateRate = Number(e.currentTarget.value)
+  ipc.send('menubar:update-rate', updateRate)
 }
 
-AutolaunchBtn.onclick = function () {
-  preferences.IS_AUTOLAUNCH = this.checked
-  ipcRenderer.send('preferences-to-background', preferences)
+AutolaunchBtn.onclick = (e) => {
+  isAutolaunchEnabled = e.currentTarget.checked
+  ipc.send('menubar:is-autolaunch-enabled', isAutolaunchEnabled)
 }

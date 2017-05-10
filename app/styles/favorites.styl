@@ -1,0 +1,129 @@
+::selection
+  background: transparent
+
+*
+  box-sizing: border-box
+  cursor: default
+  -webkit-user-select: none
+  user-select: none
+
+body
+  overflow: hidden
+  margin: 0
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica Neue, helvetica
+  background-color: #333
+  color: #fff
+  font-weight: 300
+  
+.titlebar
+  -webkit-app-region: drag
+  z-index: 20
+  position: absolute
+  height: 40px
+  width: 100%
+  top: 0
+  left: 0
+  display: flex
+  justify-content: center
+  align-items: center
+  background-color: #333
+  font-size: 14px
+  
+.titlebar p
+  margin: 0
+  
+.favorites
+  -webkit-overflow-scrolling: touch
+  overflow-y: auto
+  position: relative
+  display: flex
+  height: 510px
+  flex-wrap: wrap
+  margin: 40px 0
+  
+  
+.no-favorites
+  position: absolute
+  width: 100%
+  height: 100%
+  top: 0
+  display: flex
+  justify-content: center
+  align-items: center
+  
+  h3
+    font-weight: 300
+  
+.no-favorites--hidden
+  display: none
+
+.favorite
+  position: relative
+  width: 250px
+  height: 250px
+  margin: 0 0 10px 10px
+  padding: 35px 20px
+  background-size: cover
+  background-position: center
+  
+.favorite:hover .content
+  opacity: 1
+  
+.content
+  position: absolute
+  width: 100%
+  height: 100%
+  top: 0
+  left: 0
+  background-color: rgba(0, 0, 0, 0.3)
+  opacity: 0
+  transition: 200ms
+  
+.text
+  z-index: 1
+  position: absolute
+  height: 100%
+  width: 180px
+  left: 0
+  top: 0
+  padding: 10px
+  display: flex
+  align-content: space-between
+  flex-wrap: wrap
+  
+.text p
+.text small
+  width: 100%
+  
+.text p
+  margin: 0 0 5px
+  
+.text small
+  display: block
+  
+.icon-delete
+.icon-info
+  position: absolute
+  width: 37px
+  height: 37px
+  padding: 10px
+  fill: #fff
+  stroke: #fff
+  transition: 300ms
+
+.icon-delete
+  top: 0
+  right: 0
+  
+.icon-info
+  bottom: 0
+  right: 0
+  
+.icon-info:hover
+.icon-delete:hover
+  transform: scale(1.3)
+  transition: 50ms
+
+a
+  color: #fff
+  text-decoration: none

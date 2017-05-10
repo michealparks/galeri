@@ -22,4 +22,4 @@ function checkLocale () {
   }
 }
 
-setInterval(checkLocale, 5000)
+setInterval(checkLocale, 10000)

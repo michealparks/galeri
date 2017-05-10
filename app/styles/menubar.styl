@@ -206,6 +206,27 @@ select
 
 #btn-prefs-tab
   left: 35px
+  
+.btn-favorite
+  right: 26px
+  
+.btn-favorite--active
+  color: red
+  animation-name: heartbeat
+  animation-duration: 1000ms
+  animation-iteration-count: infinite
+  
+@keyframes heartbeat
+  0%
+    transform: scale(1)
+  10%
+    transform: scale(1.2)
+  20%
+    transform: scale(1)
+  30%
+    transform: scale(1.2)
+  100%
+    transform: scale(1)
 
 .btn-toggle .icon-play
   left: 8px
@@ -241,24 +262,30 @@ select
 .additional
   position: absolute
   bottom: 5px
-
-.about
-.quit
+  
+.bottom-container
   position: fixed
+  display: flex
+  justify-content: space-between
+  left: 0
   bottom: 0
   padding: 3px 10px 5px 10px
   font-size: 12px
+  width: 100%
+  background-color: rgba(0, 0, 0, 0.11)
 
 .about
   left: 0
-  width: 100%
-  background-color: rgba(0, 0, 0, 0.11)
+  
+.favorited-artworks
+  left: 40px
 
 .quit
   right: 0
 
 .quit:hover
 .about:hover
+.favorited-artworks:hover
   text-decoration: underline
 
 .app #updating
@@ -267,8 +294,9 @@ select
 .app--updating #updating
   opacity: 1
 
-.app--updating #artwork-link,
-.app--updating #source,
+.app--updating #artwork-link
+.app--updating #source
 .app--updating #btn-toggle
+.app--updating #btn-favorite
   opacity: 0
   pointer-events: none

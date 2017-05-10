@@ -11,7 +11,6 @@
 
 const electronPackager = require('electron-packager')
 const fs = require('fs')
-const webpack = require('webpack')
 const minimist = require('minimist')
 const mkdirp = require('mkdirp')
 const os = require('os')
@@ -50,11 +49,12 @@ del(DIST_PATH)
 
 function html () {
   return Promise.all([
-    inlinePage(resolve(ROOT, 'core/public/index.html')),
+    inlinePage(resolve(ROOT, 'app/background.html')),
     inlinePage(resolve(ROOT, 'app/bg-clone.html')),
     inlinePage(resolve(ROOT, 'app/menubar.html')),
-    inlinePage(resolve(ROOT, 'app/about.html'))
-  ]).then(function (pages) {
+    inlinePage(resolve(ROOT, 'app/about.html')),
+    inlinePage(resolve(ROOT, 'app/favorites.html'))
+  ]).then((pages) => {
     const opts = {
       collapseWhitespace: true,
       minifyCSS: true,
@@ -65,25 +65,25 @@ function html () {
     const clonePage = minify(pages[1], opts)
     const menuPage = minify(pages[2], opts)
     const aboutPage = minify(pages[3], opts)
+    const favoritesPage = minify(pages[4], opts)
 
-    fs.writeFileSync(resolve(ROOT, 'build/index.html'), bgPage)
+    fs.writeFileSync(resolve(ROOT, 'build/background.html'), bgPage)
     fs.writeFileSync(resolve(ROOT, 'build/bg-clone.html'), clonePage)
     fs.writeFileSync(resolve(ROOT, 'build/menubar.html'), menuPage)
     fs.writeFileSync(resolve(ROOT, 'build/about.html'), aboutPage)
+    fs.writeFileSync(resolve(ROOT, 'build/favorites.html'), favoritesPage)
 
     return Promise.resolve()
   })
 }
 
 function inlinePage (path) {
-  return new Promise(function (resolve, reject) {
+  return new Promise((resolve, reject) => {
     inline(path, {
       compress: false,
       // rootpath: resolve(ROOT, 'app'),
       ignore: []
-    }, function (err, html) {
-      return err ? reject(err) : resolve(html)
-    })
+    }, (err, html) => err ? reject(err) : resolve(html))
   })
 }
 
@@ -129,7 +129,7 @@ const all = {
 
   // Pattern which specifies which files to ignore when copying files to create the
   // package(s).
-  ignore: /^\/src|^\/core|^\/main.development.js|^\/dist|^\/app|^\/release|\/(appveyor.yml|\.appveyor.yml|\.github|appdmg|AUTHORS|CONTRIBUTORS|bench|benchmark|benchmark\.js|bin|bower\.json|component\.json|coverage|doc|docs|docs\.mli|dragdrop\.min\.js|example|examples|example\.html|example\.js|externs|ipaddr\.min\.js|Makefile|min|minimist|perf|rusha|simplepeer\.min\.js|simplewebsocket\.min\.js|static\/screenshot\.png|test|tests|test\.js|tests\.js|galeri\.min\.js|\.[^\/]*|.*\.md|.*\.markdown)$/,
+  ignore: /^\/src|^\/main.development.js|^\/dist|^\/app|^\/release|\/(appveyor.yml|\.appveyor.yml|\.github|appdmg|AUTHORS|CONTRIBUTORS|bench|benchmark|benchmark\.js|bin|bower\.json|component\.json|coverage|doc|docs|docs\.mli|dragdrop\.min\.js|example|examples|example\.html|example\.js|externs|ipaddr\.min\.js|Makefile|min|minimist|perf|rusha|simplepeer\.min\.js|simplewebsocket\.min\.js|static\/screenshot\.png|test|tests|test\.js|tests\.js|galeri\.min\.js|\.[^\/]*|.*\.md|.*\.markdown)$/,
 
   // The application name.
   name: config.APP_NAME,
@@ -215,7 +215,7 @@ const linux = {
 
 function buildDarwin (cb) {
   console.log('Mac: Packaging electron...')
-  electronPackager(Object.assign({}, all, darwin), function (err, buildPath) {
+  electronPackager(Object.assign({}, all, darwin), (err, buildPath) => {
     if (err) return cb(err)
 
     console.log('Mac: Packaged electron. ' + buildPath)
@@ -224,10 +224,7 @@ function buildDarwin (cb) {
 
     if (process.platform === 'darwin') {
       if (argv.sign) {
-        signApp(function (err) {
-          if (err) return cb(err)
-          pack(cb)
-        })
+        signApp((err) => err ? cb(err) : pack(cb))
       } else {
         printWarning()
         pack(cb)
@@ -259,7 +256,7 @@ function buildDarwin (cb) {
       }
 
       console.log('Mac: Signing app...')
-      sign(signOpts, function (err) {
+      sign(signOpts, (err) => {
         if (err) return cb(err)
         console.log('Mac: Signed app.')
         cb(null)
@@ -316,10 +313,10 @@ function buildDarwin (cb) {
 
         const dmg = appDmg(dmgOpts)
         dmg.once('error', cb)
-        dmg.on('progress', function (info) {
+        dmg.on('progress', (info) => {
           if (info.type === 'step-begin') console.log(info.title + '...')
         })
-        dmg.once('finish', function (info) {
+        dmg.once('finish', (info) => {
           console.log('Mac: Created dmg.')
           cb(null)
         })
@@ -345,7 +342,7 @@ function buildWin32 (cb) {
     CERT_PATH = path.join(os.homedir(), 'Desktop')
   }
 
-  electronPackager(Object.assign({}, all, win32), function (err, buildPath) {
+  electronPackager(Object.assign({}, all, win32), (err, buildPath) => {
     if (err) return cb(err)
     console.log('Windows: Packaged electron. ' + buildPath)
 
@@ -364,7 +361,7 @@ function buildWin32 (cb) {
     }
 
     const tasks = []
-    buildPath.forEach(function (filesPath) {
+    buildPath.forEach((filesPath) => {
       const destArch = filesPath.split('-').pop()
 
       if (argv.package === 'exe' || argv.package === 'all') {
@@ -418,7 +415,7 @@ function buildWin32 (cb) {
         usePackageJson: false,
         version: pkg.version
       })
-      .then(function () {
+      .then(() => {
         console.log(`Windows: Created ${destArch} installer.`)
 
         /**
@@ -491,12 +488,12 @@ function buildWin32 (cb) {
 
 function buildLinux (cb) {
   console.log('Linux: Packaging electron...')
-  electronPackager(Object.assign({}, all, linux), function (err, buildPath) {
+  electronPackager(Object.assign({}, all, linux), (err, buildPath) => {
     if (err) return cb(err)
     console.log('Linux: Packaged electron. ' + buildPath)
 
     const tasks = []
-    buildPath.forEach(function (filesPath) {
+    buildPath.forEach((filesPath) => {
       const destArch = filesPath.split('-').pop()
 
       if (argv.package === 'deb' || argv.package === 'all') {
@@ -537,7 +534,7 @@ function buildLinux (cb) {
       dest: path.join('/usr', 'share'),
       expand: true,
       cwd: path.join(config.STATIC_PATH, 'linux', 'share')
-    }], function (err) {
+    }], (err) => {
       if (err) return cb(err)
       console.log(`Linux: Created ${destArch} deb.`)
       cb(null)
