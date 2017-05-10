@@ -179,32 +179,35 @@ function destroyWindowOfId (id) {
 }
 
 function makeBackgroundWindow (type, display) {
-  const bounds = win32 ? display.workArea : display.bounds
+  const bounds = display.bounds
   const url = type === 'background' ? backgroundUrl : backgroundCloneUrl
 
   let win = new electron.BrowserWindow({
-    title: 'Galeri',
-    // share session data among all backgrounds
-    partition: 'persist:galeri',
-    // mac/linux: sets window behind all others and ignores clicks
-    type: 'desktop',
-    x: bounds.x,
-    y: bounds.y,
     width: bounds.width,
     height: bounds.height + 5,
+    x: bounds.x,
+    y: bounds.y,
     resizable: false,
     movable: false,
     minimizable: false,
     maximizable: true,
+    focusable: !win32,
     fullscreenable: false,
+    skipTaskbar: true,
+    title: 'Galeri',
     show: false,
     frame: false,
-    transparent: true,
-    thickFrame: false,
     enableLargerThanScreen: true,
+    hasShadow: false,
+    thickFrame: false,
+    transparent: true,
+    // mac/linux: sets window behind all others and ignores clicks
+    type: 'desktop',
     webPreferences: {
-      webAudio: false,
+      // share session data among all backgrounds
+      partition: 'persist:galeri',
       webgl: false,
+      webAudio: false,
       backgroundThrottling: false
     }
   })
@@ -221,22 +224,20 @@ function makeBackgroundWindow (type, display) {
 
   win.setVisibleOnAllWorkspaces(true)
 
-  // Remove app icon from the taskbar
-  win.setSkipTaskbar(true)
-
   // This is required for windows to ignore mouse clicks
   if (win32) win.setIgnoreMouseEvents(true)
 
   // showInactive won't focus the window
   win.once('ready-to-show', function () {
     win.showInactive()
+    win.blurWebView()
   })
-
   win.once('closed', function () { win = null })
 
   // Moving the taskbar on windows can jolt the background out of place
   win.on('move', resizeBackgrounds)
   win.on('resize', resizeBackgrounds)
+  win.on('focus', win.blur)
 
   win.loadURL(url)
 
@@ -252,7 +253,7 @@ function resizeBackgrounds () {
   setTimeout(function () {
     for (let win, i = 0, l = backgroundWindow.length; i < l; ++i) {
       win = backgroundWindow[i]
-      win.setBounds(win.display.bounds)
+      win.setBounds(win.display.bounds, false)
     }
   })
 }
