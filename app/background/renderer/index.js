@@ -8,7 +8,7 @@ const {getNextArtwork, saveConfig} = require('../museums-new')
 
 let callbackRef
 let imageCount = 0
-let restartCount = 3
+let restartCount = 10
 let updateRate = get('update-rate') ||
   require('../util/default-values').updateRate
 

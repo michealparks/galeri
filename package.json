@@ -1,7 +1,7 @@
 {
   "name": "Galeri",
   "productName": "Galeri",
-  "version": "0.0.24",
+  "version": "0.0.27",
   "author": "Micheal Parks",
   "description": "F.A.R.T. - Fantastic Art Rendering Technology",
   "main": "main.js",

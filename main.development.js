@@ -17,7 +17,8 @@ let windows = []
 
 // Handle restart due to windows updates
 let shouldQuit
-if (process.platform === 'win32') {
+
+if (win32) {
   shouldQuit = require('./app/main/squirrel-win32')(process.argv[1])
 }
 
@@ -46,8 +47,12 @@ if (!shouldQuit) {
 
   app.once('ready', onReady)
 
-  electron.ipcMain.on('background:reset', onBackgroundReset)
-  electron.ipcMain.on('background:rendered', onBackgroundRendered)
+  electron.ipcMain.on('background:reset', () =>
+    makeWindow('background', screen.getPrimaryDisplay()))
+  electron.ipcMain.on('background:rendered', () =>
+    windows.length === 1
+      ? __dev__ && console.timeEnd('init')
+      : setTimeout(() => destroyWindowOfId(lastWinId), 4000))
 }
 
 function onReady () {
@@ -67,19 +72,6 @@ function onReady () {
 
   // To keep app startup fast, some non-essential code is delayed.
   setTimeout(() => require('./app/main/autolaunch'), 3000)
-}
-
-function onBackgroundReset () {
-  makeWindow('background', screen.getPrimaryDisplay())
-}
-
-function onBackgroundRendered () {
-  if (windows.length === 1) {
-    if (__dev__) console.timeEnd('init')
-    return
-  }
-
-  setTimeout(() => destroyWindowOfId(lastWinId), 4000)
 }
 
 function onDisplayAdded () {

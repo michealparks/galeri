@@ -1,13 +1,14 @@
 const ipc = require('electron').ipcRenderer
 const updateImage = require('./renderer')
+const {clamp} = require('./util')
 const {get, set} = require('./util/storage')
 
-let lastUpdateTime, totalSuspendTime, startSuspendTime
-
+let lastUpdateTime = 0
+let totalSuspendTime = 0
+let startSuspendTime = 0
 let updateId = -1
 let isUpdating = false
 let isSuspended = false
-
 let isPaused = get('is-paused') || false
 let updateRate = get('update-rate') ||
   require('./util/default-values').updateRate
@@ -37,9 +38,14 @@ function clearFutureUpdate () {
 }
 
 function remainingTime () {
-  // time until next fetch minus the amount of time elapsed since last fetch
-  // time while suspended is given back to the time until next fetch
-  return updateRate - (Date.now() - lastUpdateTime) + totalSuspendTime
+  const elapsedTime = Date.now() - lastUpdateTime
+  const elapsedAwakeTime = elapsedTime - totalSuspendTime
+  const timeLeft = updateRate - elapsedAwakeTime
+
+  console.log('time left', timeLeft)
+
+  // Just for good measure
+  return clamp(timeLeft, 0, updateRate)
 }
 
 function shouldNotUpdate () {

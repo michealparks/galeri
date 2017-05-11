@@ -7,7 +7,7 @@ const Guggenheim = require('./guggenheim')
 const Wikipedia = require('./wikipedia')
 
 function getNextArtwork (next) {
-  if (Math.floor(Math.random() * 6) === 0) {
+  if (Math.floor(Math.random() * 7) === 0) {
     return getNextRareImage(next)
   }
 

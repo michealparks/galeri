@@ -36,8 +36,7 @@ const mainConfig = {
       'process.env.NODE_ENV': env,
       '__dev__': __dev__
     })
-  ],
-  // .concat(__dev__ ? [] : new BabiliPlugin()),
+  ].concat(__dev__ ? [] : new BabiliPlugin()),
   node: {
     __dirname: false,
     __filename: false

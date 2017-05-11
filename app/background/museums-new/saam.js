@@ -21,6 +21,7 @@ function getNextArtwork (category, next) {
     callbackRef = next
   } else {
     validate(artwork, next)
+    callbackRef = undefined
   }
 
   if (artwork === undefined || artworks[category].length === 0) {
@@ -77,7 +78,6 @@ function onGetCollection (err, response, category) {
 
   if (callbackRef) {
     getNextArtwork(category, callbackRef)
-    callbackRef = undefined
   }
 }
 

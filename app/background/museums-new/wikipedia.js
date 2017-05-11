@@ -25,6 +25,7 @@ function getNextArtwork (category, next) {
     const size = `${Math.floor(screenWidth() + 500)}px`
     artwork.img = artwork.img.replace(pixelRegex, size)
     validate(artwork, next)
+    callbackRef = undefined
   }
 
   if (artwork === undefined || artworks[category].length === 0) {
@@ -69,7 +70,6 @@ function onGetCollection (err, response, category) {
 
   if (callbackRef) {
     getNextArtwork(category, callbackRef)
-    callbackRef = undefined
   }
 }
 
