@@ -7,8 +7,6 @@ const LabelCL = Label.classList
 const Title = Label.children[0]
 const Text = Label.children[1]
 
-let title
-let text
 let labelLocation = get('label-location') ||
   require('../util/default-values').labelLocation
 
@@ -21,7 +19,7 @@ function onTextHide () {
   LabelCL.add('description--bottom')
 }
 
-function onTextReplace () {
+function onTextReplace (title, text) {
   Title.textContent = truncate(title, 50)
   Text.textContent = truncate(text, 90)
   LabelCL.add('no-transition', 'description--left')
@@ -29,16 +27,14 @@ function onTextReplace () {
 }
 
 function onTextShow () {
-  LabelCL.remove('no-transition', 'description--left')
+  LabelCL.remove('description--hidden', 'no-transition', 'description--left')
 }
 
 function startTextLifecycle (data) {
   setTimeout(onTextHide, 1000)
 
   if (data !== undefined) {
-    title = data.title
-    text = data.text
-    setTimeout(onTextReplace, 2200)
+    setTimeout(onTextReplace, 2200, data.title, data.text)
     setTimeout(onTextShow, 3500)
   }
 }
@@ -46,9 +42,6 @@ function startTextLifecycle (data) {
 function truncate (str, len) {
   return str.length > len ? str.slice(0, len - 3) + '...' : str
 }
-
-ipc.once('background:updated', () =>
-  LabelCL.remove('description--hidden'))
 
 ipc.on('menubar:get-settings', () =>
   ipc.send('background:label-location', labelLocation))

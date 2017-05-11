@@ -55,6 +55,7 @@ function onGetCollection (err, response, category) {
     art = r[i]
 
     if (isNullUndefined(art.image) ||
+        isNullUndefined(art.subTitle) ||
         art.image.indexOf('.ashx') > -1 ||
         art.image.indexOf('NoImageAvailableIcon.png') > -1) continue
 

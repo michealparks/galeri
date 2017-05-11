@@ -36,11 +36,10 @@ function initMenubar (next) {
 
 function createWindow (next) {
   win = new electron.BrowserWindow({
-    title: 'Galeri Menu',
-    dir: require('path').resolve(electron.app.getAppPath()),
     alwaysOnTop: __dev__,
     resizable: false,
     transparent: true,
+    skipTaskbar: true,
     show: false,
     frame: false,
     width: 250,
@@ -53,8 +52,9 @@ function createWindow (next) {
   })
 
   ipcHandler.cacheId('menubar', win.id)
-  win.setSkipTaskbar(true)
+
   win.setVisibleOnAllWorkspaces(true)
+
   if (__dev__) win.openDevTools({ mode: 'detach' })
 
   win.on('blur', () => __dev__ ? undefined : hideWindow())

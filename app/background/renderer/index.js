@@ -8,7 +8,7 @@ const {getNextArtwork, saveConfig} = require('../museums-new')
 
 let callbackRef
 let imageCount = 0
-let restartCount = 10
+let restartCount = 3
 let updateRate = get('update-rate') ||
   require('../util/default-values').updateRate
 
@@ -37,7 +37,10 @@ function onImageFill (err) {
     ipc.send('background:rendered')
   }
 
-  if (++imageCount >= restartCount) {
+  imageCount += 1
+
+  if (imageCount === restartCount) {
+    ipc.send('background:updated')
     return setTimeout(prepareExit, updateRate)
   }
 
@@ -55,6 +58,5 @@ function handleError (err) {
 function prepareExit () {
   saveConfig()
   startTextLifecycle()
-  ipc.send('background:updated')
   ipc.send('background:reset')
 }

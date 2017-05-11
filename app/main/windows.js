@@ -16,6 +16,7 @@ const config = {
   maximizable: false,
   fullscreenable: false,
   titleBarStyle: 'hidden-inset',
+  skipTaskbar: true,
   webPreferences: {
     webAudio: false,
     webgl: false

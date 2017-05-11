@@ -3,7 +3,7 @@ module.exports = {restoreData, getCollection, getNextPages}
 const shuffle = require('../util/shuffle')
 
 const museumData = (function () {
-  const configVersion = '0.0.1'
+  const configVersion = '0.0.2'
   const config = require('../util/storage').get('MUSEUMS') || {}
   return config.version === configVersion ? config : {}
 })()

@@ -40,7 +40,7 @@ function getNextRareImage (next) {
 
 function saveConfig () {
   set('MUSEUMS', {
-    version: '0.0.1',
+    version: '0.0.2',
     'met_oil': Met.getConfig('oil on canvas'),
     'met_acrylic': Met.getConfig('acrylic on canvas'),
     'met_ink': Met.getConfig('ink and color on paper'),

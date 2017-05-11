@@ -1,8 +1,6 @@
 {
   "presets": [],
-  "plugins": [
-    "transform-strict-mode"
-  ],
+  "plugins": [],
   "env": {
     "development": {
       "presets": [],

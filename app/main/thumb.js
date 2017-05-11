@@ -8,18 +8,23 @@ const configPath = require('application-config-path')('Galeri Favorites')
 
 function makeThumb (name, href, next) {
   const protocol = href.indexOf('https://') > -1 ? https : http
-  let buffer = Buffer.from([])
+  let buf = Buffer.from([])
 
   protocol.get(href, res => {
     res.on('data', data => {
-      buffer = Buffer.concat([buffer, data])
+      buf = Buffer.concat([buf, data])
     })
-    res.on('end', () => {
-      sharp(buffer)
-        .resize(750)
-        .toFile(`${configPath}/${name}.jpeg`, (err, info) => next(err, info))
-    })
+    res.on('end', () =>
+      writeThumb(name, buf, next))
   })
+}
+
+function writeThumb (name, buffer, next) {
+  sharp(buffer)
+    .resize(750)
+    .toFile(`${configPath}/${name}.jpeg`, (err, info) => {
+      next(err, info)
+    })
 }
 
 function removeThumb (name) {

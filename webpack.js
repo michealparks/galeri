@@ -5,6 +5,15 @@ const {resolve} = require('path')
 const webpack = require('webpack')
 const BabiliPlugin = require('babili-webpack-plugin')
 
+const IGNORES = ['sharp', 'open']
+
+const externals = [
+  (context, request, callback) =>
+    IGNORES.indexOf(request) >= 0
+      ? callback(null, `require('${request}')`)
+      : callback()
+]
+
 const mainConfig = {
   target: 'electron-main',
   entry: resolve(__dirname, 'main.development'),
@@ -21,18 +30,14 @@ const mainConfig = {
       }
     ]
   },
-  externals: {
-    sharp: {
-      commonjs: 'sharp'
-    }
-  },
+  externals: externals,
   plugins: [
-    new BabiliPlugin(),
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': env,
       '__dev__': __dev__
     })
   ],
+  // .concat(__dev__ ? [] : new BabiliPlugin()),
   node: {
     __dirname: false,
     __filename: false
@@ -60,6 +65,7 @@ const rendererConfig = {
       }
     ]
   },
+  externals: externals,
   plugins: [
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': env,

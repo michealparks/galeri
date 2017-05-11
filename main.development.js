@@ -162,14 +162,10 @@ function makeWindow (type, display) {
 
   let win = new BrowserWindow({
     title: 'Galeri',
-    // mac/linux: sets window behind all others and ignores clicks
-    type: 'desktop',
     x: bounds.x,
     y: bounds.y,
     width: bounds.width,
     height: bounds.height + 5,
-    x: bounds.x,
-    y: bounds.y,
     resizable: false,
     movable: false,
     minimizable: false,
@@ -177,18 +173,14 @@ function makeWindow (type, display) {
     focusable: !win32,
     fullscreenable: false,
     skipTaskbar: true,
-    title: 'Galeri',
     show: false,
     frame: false,
     enableLargerThanScreen: true,
     hasShadow: false,
     thickFrame: false,
     transparent: true,
-    // mac/linux: sets window behind all others and ignores clicks
     type: 'desktop',
     webPreferences: {
-      // share session data among all backgrounds
-      partition: 'persist:galeri',
       webgl: false,
       webAudio: false,
       backgroundThrottling: false
