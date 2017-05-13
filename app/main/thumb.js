@@ -1,9 +1,9 @@
 module.exports = {makeThumb, removeThumb}
 
-const {unlink} = require('fs')
+const {nativeImage} = require('electron')
+const {unlink, writeFile} = require('fs')
 const http = require('http')
 const https = require('https')
-const sharp = require('sharp')
 const configPath = require('application-config-path')('Galeri Favorites')
 
 function makeThumb (name, href, next) {
@@ -20,15 +20,15 @@ function makeThumb (name, href, next) {
 }
 
 function writeThumb (name, buffer, next) {
-  sharp(buffer)
-    .resize(750)
-    .toFile(`${configPath}/${name}.jpeg`, (err, info) => {
-      next(err, info)
-    })
+  const imgBuffer = nativeImage
+    .createFromBuffer(buffer)
+    .resize({ width: 750 })
+    .toJPEG(100)
+
+  writeFile(`${configPath}/${name}.jpeg`, imgBuffer, next)
 }
 
 function removeThumb (name) {
-  unlink(`${configPath}/${name}.jpeg`, (err) => {
-    if (err) return console.error(err)
-  })
+  unlink(`${configPath}/${name}.jpeg`, (err) =>
+    err && console.warn(err))
 }

@@ -1,9 +1,10 @@
-module.exports = { cacheTray, cacheId, removeCachedId, toMenubar }
+module.exports = {cacheTray, cacheId, removeCachedId}
 
 const electron = require('electron')
 const config = require('application-config')('Galeri Favorites')
 const {openFavorites, openAbout} = require('./windows')
 const {makeThumb, removeThumb} = require('./thumb')
+const launcher = require('./autolaunch')
 const {getAllWindows, fromId} = electron.BrowserWindow
 const ipc = electron.ipcMain
 
@@ -97,9 +98,16 @@ electron.app.once('ready', () => {
   electron.powerMonitor.on('resume', () => toWindows('main:resume'))
 })
 
+launcher.isEnabled().then(isEnabled =>
+  setTimeout(() =>
+    toMenubar('main:is-autolaunch-enabled', isEnabled), 3000))
+
 // Menubar events
+
 ipc.on('menubar:get-settings', () =>
   toBackground('menubar:get-settings'))
+ipc.on('menubar:is-autolaunch-enabled', (e, isEnabled) =>
+  isEnabled ? launcher.enable() : launcher.disable())
 ipc.on('menubar:is-paused', (e, paused) =>
   toBackground('menubar:is-paused', paused))
 ipc.on('menubar:label-location', (e, l) =>

@@ -5,33 +5,27 @@ const calculator = require('./calculator')
 const {isNullUndefined} = require('../index')
 const {screenWidth, screenHeight} = require('../screen')
 const img = document.createElement('img')
+img.onload = onImageLoad
+img.onerror = onImageError
 
 let count = 0
 let artworkRef, callbackRef, reader, buffer
 
-img.onload = onload
-img.onerror = onerror
+function validate (artwork, next) {
+  artworkRef = artwork
+  callbackRef = next
 
-function onError (e) {
-  if (__dev__) console.warn('error validating image:', e)
-  return callbackRef(1)
+  // Awkwardly set a timeout for the request
+  Promise.race([
+    new Promise(timeout),
+    fetch(artwork.img, { cache: 'no-cache' })
+  ])
+    .then(onFetch)
+    .catch(onError)
 }
 
-function onload () {
-  artworkRef.naturalWidth = this.naturalWidth
-  artworkRef.naturalHeight = this.naturalHeight
-
-  if (artworkRef.naturalWidth < screenWidth() ||
-      artworkRef.naturalHeight < screenHeight()) {
-    return onError(`error validating image (size): ${artworkRef.naturalWidth}x${artworkRef.naturalHeight}`)
-  }
-
-  return callbackRef(undefined, artworkRef)
-}
-
-function onerror (e) {
-  if (__dev__) console.warn('error validating image:', e)
-  return callbackRef(1)
+function timeout (resolve, reject) {
+  return setTimeout(resolve, 7000)
 }
 
 function onFetch (res) {
@@ -46,8 +40,9 @@ function onFetch (res) {
   return search()
 }
 
-function getEntireImage () {
-  img.src = artworkRef.img
+function onError (e) {
+  if (__dev__) console.warn('error validating image:', e)
+  return callbackRef(1)
 }
 
 function search () {
@@ -55,7 +50,8 @@ function search () {
 
   if (count > 2) {
     reader.cancel('No metadata found.')
-    return getEntireImage()
+    img.src = artworkRef.img
+    return
   }
 
   return reader.read().then(onRead)
@@ -110,19 +106,19 @@ function onRead (res) {
   return callbackRef(undefined, artworkRef)
 }
 
-function timeout (resolve, reject) {
-  return setTimeout(resolve, 7000)
+function onImageLoad () {
+  artworkRef.naturalWidth = this.naturalWidth
+  artworkRef.naturalHeight = this.naturalHeight
+
+  if (artworkRef.naturalWidth < screenWidth() ||
+      artworkRef.naturalHeight < screenHeight()) {
+    return onError(`error validating image (size): ${artworkRef.naturalWidth}x${artworkRef.naturalHeight}`)
+  }
+
+  return callbackRef(undefined, artworkRef)
 }
 
-function validate (artwork, next) {
-  artworkRef = artwork
-  callbackRef = next
-
-  // Awkwardly set a timeout for the request
-  Promise.race([
-    new Promise(timeout),
-    fetch(artwork.img, { cache: 'no-cache' })
-  ])
-    .then(onFetch)
-    .catch(onError)
+function onImageError (e) {
+  if (__dev__) console.warn('error validating image:', e)
+  return callbackRef(1)
 }

@@ -60,6 +60,7 @@
     "electron-devtools-installer": "^2.2.0",
     "electron-osx-sign": "^0.4.4",
     "electron-packager": "^8.7.0",
+    "electron-rebuild": "^1.5.11",
     "electron-winstaller": "^2.5.2",
     "html-minifier": "^3.4.4",
     "inline-source": "^5.2.2",
@@ -71,8 +72,7 @@
     "webpack": "^2.5.1"
   },
   "dependencies": {
-    "open": "0.0.5",
-    "sharp": "^0.17.3"
+    "open": "0.0.5"
   },
   "build": {
     "appId": "galeri.by.micheal.parks",
