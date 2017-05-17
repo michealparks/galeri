@@ -96,23 +96,6 @@ ipc.on('main:resume', () => {
 })
 
 /**
- * Screensaver events
- */
-ipc.on('main:start-screensaver', () => {
-  window.onmousemove = window.onclick = window.onkeypress = () => {
-    ipc.send('background:end-screensaver')
-    window.onmousemove = window.onclick = window.onkeypress = undefined
-  }
-})
-
-navigator.getBattery().then(battery => {
-  ipc.send('background:is-battery-charging', battery.charging)
-
-  battery.addEventListener('chargingchange', () =>
-    ipc.send('background:is-battery-charging', battery.charging))
-})
-
-/**
  * Offline events
  */
 window.addEventListener('online', () => {
