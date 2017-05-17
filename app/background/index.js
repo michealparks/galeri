@@ -1,7 +1,7 @@
 const ipc = require('electron').ipcRenderer
 const updateImage = require('./renderer')
 const {clamp} = require('./util')
-const {get, set} = require('./util/storage')
+const storage = require('./util/storage')
 
 let lastUpdateTime = 0
 let totalSuspendTime = 0
@@ -9,8 +9,8 @@ let startSuspendTime = 0
 let updateId = -1
 let isUpdating = false
 let isSuspended = false
-let isPaused = get('is-paused') || false
-let updateRate = get('update-rate') ||
+let isPaused = storage('is-paused') || false
+let updateRate = storage('update-rate') ||
   require('./util/default-values').updateRate
 
 function startUpdateCycle () {
@@ -42,9 +42,6 @@ function remainingTime () {
   const elapsedAwakeTime = elapsedTime - totalSuspendTime
   const timeLeft = updateRate - elapsedAwakeTime
 
-  console.log('time left', timeLeft)
-
-  // Just for good measure
   return clamp(timeLeft, 0, updateRate)
 }
 
@@ -52,6 +49,9 @@ function shouldNotUpdate () {
   return isPaused || isSuspended || isUpdating
 }
 
+/**
+ * Settings change events
+ */
 ipc.on('menubar:get-settings', () => {
   ipc.send('background:is-paused', isPaused)
   ipc.send('background:update-rate', updateRate)
@@ -59,7 +59,7 @@ ipc.on('menubar:get-settings', () => {
 
 ipc.on('menubar:is-paused', (e, paused) => {
   isPaused = paused
-  set('is-paused', isPaused)
+  storage('is-paused', isPaused)
   clearFutureUpdate()
 
   if (!isPaused) {
@@ -69,7 +69,7 @@ ipc.on('menubar:is-paused', (e, paused) => {
 
 ipc.on('menubar:update-rate', (e, rate) => {
   updateRate = rate
-  set('update-rate', updateRate)
+  storage('update-rate', updateRate)
 
   if (shouldNotUpdate()) return
 
@@ -77,6 +77,9 @@ ipc.on('menubar:update-rate', (e, rate) => {
   updateId = setTimeout(startUpdateCycle, remainingTime())
 })
 
+/**
+ * Suspend events
+ */
 ipc.on('main:suspend', () => {
   isSuspended = true
   startSuspendTime = Date.now()
@@ -92,6 +95,26 @@ ipc.on('main:resume', () => {
   updateId = setTimeout(startUpdateCycle, remainingTime())
 })
 
+/**
+ * Screensaver events
+ */
+ipc.on('main:start-screensaver', () => {
+  window.onmousemove = window.onclick = window.onkeypress = () => {
+    ipc.send('background:end-screensaver')
+    window.onmousemove = window.onclick = window.onkeypress = undefined
+  }
+})
+
+navigator.getBattery().then(battery => {
+  ipc.send('background:is-battery-charging', battery.charging)
+
+  battery.addEventListener('chargingchange', () =>
+    ipc.send('background:is-battery-charging', battery.charging))
+})
+
+/**
+ * Offline events
+ */
 window.addEventListener('online', () => {
   if (!navigator.onLine) return
 
@@ -112,6 +135,8 @@ window.addEventListener('offline', () => {
   clearFutureUpdate()
 })
 
+/**
+ * Init
+ */
 startUpdateCycle()
-
 ipc.send('background:loaded')

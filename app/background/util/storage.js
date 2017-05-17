@@ -1,4 +1,4 @@
-module.exports = {get, set}
+module.exports = storage
 
 const hasStorage = (() => {
   try {
@@ -10,10 +10,12 @@ const hasStorage = (() => {
   }
 })()
 
-function get (key) {
-  return hasStorage ? JSON.parse(localStorage.getItem(key)) : undefined
-}
+function storage (key, val) {
+  if (!hasStorage) return
 
-function set (key, val) {
-  return hasStorage ? localStorage.setItem(key, JSON.stringify(val)) : undefined
+  if (val !== undefined) {
+    return localStorage.setItem(key, JSON.stringify(val))
+  } else {
+    return JSON.parse(localStorage.getItem(key))
+  }
 }

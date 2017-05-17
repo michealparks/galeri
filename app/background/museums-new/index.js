@@ -1,17 +1,19 @@
 module.exports = {getNextArtwork, saveConfig}
 
-const {set} = require('../util/storage')
+const storage = require('../util/storage')
 const Met = require('./met')
 const Rijks = require('./rijks')
 const Guggenheim = require('./guggenheim')
 const Wikipedia = require('./wikipedia')
+const Walters = require('./walters')
+const Harvard = require('./harvard')
 
 function getNextArtwork (next) {
-  if (Math.floor(Math.random() * 7) === 0) {
+  if (Math.floor(Math.random() * 8) === 0) {
     return getNextRareImage(next)
   }
 
-  const n = Math.floor(Math.random() * 4)
+  const n = Math.floor(Math.random() * 6)
 
   if (__dev__) console.log('getArtwork', n)
 
@@ -20,6 +22,8 @@ function getNextArtwork (next) {
     case 1: return Met.getNextArtwork('acrylic on canvas', next)
     case 2: return Rijks.getNextArtwork('type=painting', next)
     case 3: return Wikipedia.getNextArtwork('Paintings', next)
+    case 4: return Walters.getNextArtwork('classification=painting', next)
+    case 5: return Harvard.getNextArtwork('Oil|Ink and color|Watercolor|Mixed media|Ink and opaque watercolor', next)
     default: next(1)
   }
 }
@@ -39,7 +43,7 @@ function getNextRareImage (next) {
 }
 
 function saveConfig () {
-  set('MUSEUMS', {
+  storage('MUSEUMS', {
     version: '0.0.2',
     'met_oil': Met.getConfig('oil on canvas'),
     'met_acrylic': Met.getConfig('acrylic on canvas'),

@@ -2,9 +2,9 @@ module.exports = {restoreData, getCollection, getNextPages}
 
 const shuffle = require('../util/shuffle')
 
-const museumData = (function () {
+const museumData = (() => {
   const configVersion = '0.0.2'
-  const config = require('../util/storage').get('MUSEUMS') || {}
+  const config = require('../util/storage')('MUSEUMS') || {}
   return config.version === configVersion ? config : {}
 })()
 
@@ -12,8 +12,11 @@ function restoreData (types, artworks, nextPages, page, max) {
   for (let i = 0, l = types.length; i < l; ++i) {
     const [storeKey, dataKey] = types[i].split(':')
     const data = museumData[storeKey] || {}
+
     artworks[dataKey] = data.artworks || []
-    nextPages[dataKey] = data.nextPages || []
+
+    if (nextPages) nextPages[dataKey] = data.nextPages || []
+
     page[dataKey] = data.page || Math.ceil(Math.random() * max)
   }
 }

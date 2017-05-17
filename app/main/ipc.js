@@ -5,10 +5,11 @@ const config = require('application-config')('Galeri Favorites')
 const {openFavorites, openAbout} = require('./windows')
 const {makeThumb, removeThumb} = require('./thumb')
 const launcher = require('./autolaunch')
-const {getAllWindows, fromId} = electron.BrowserWindow
+const {powerSaveBlocker, BrowserWindow} = electron
+const {getAllWindows, fromId} = BrowserWindow
 const ipc = electron.ipcMain
 
-let tray, menubarID, favoritesId, storedArt
+let tray, menubarID, favoritesId, storedArt, blockerId
 
 let favorites = []
 let backgroundIDs = []
@@ -88,14 +89,37 @@ function hasSameHref (item) {
   return item.href === storedArt.href
 }
 
+function toggleScreenSaver (flag) {
+  for (let i = 0, l = backgroundIDs.length; i < l; ++i) {
+    fromId(backgroundIDs[i]).setFullScreen(true)
+    // fromId(backgroundIDs[i]).setAlwaysOnTop(flag, flag ? 'screen-saver' : 'floating')
+  }
+}
+
+function startScreenSaver () {
+  blockerId = powerSaveBlocker.start('prevent-display-sleep')
+  toggleScreenSaver(true)
+  toBackground('main:start-screensaver')
+
+  return false
+}
+
+function endScreenSaver () {
+  powerSaveBlocker.stop(blockerId)
+  toggleScreenSaver(false)
+}
+
+electron.app.once('ready', () => {
+  electron.powerMonitor.on('suspend', () => true
+    ? startScreenSaver()
+    : toWindows('main:suspend'))
+  electron.powerMonitor.on('resume', () =>
+    toWindows('main:resume'))
+})
+
 config.read((err, data) => {
   if (err) return
   favorites = data.favorites || []
-})
-
-electron.app.once('ready', () => {
-  electron.powerMonitor.on('suspend', () => toWindows('main:suspend'))
-  electron.powerMonitor.on('resume', () => toWindows('main:resume'))
 })
 
 launcher.isEnabled().then(isEnabled =>
@@ -103,7 +127,6 @@ launcher.isEnabled().then(isEnabled =>
     toMenubar('main:is-autolaunch-enabled', isEnabled), 3000))
 
 // Menubar events
-
 ipc.on('menubar:get-settings', () =>
   toBackground('menubar:get-settings'))
 ipc.on('menubar:is-autolaunch-enabled', (e, isEnabled) =>
@@ -123,6 +146,8 @@ ipc.on('open-favorites-window', () => {
 })
 
 // Background events
+ipc.on('background:end-screensaver', () =>
+  endScreenSaver())
 ipc.on('background:is-paused', (e, paused) =>
   toMenubar('background:is-paused', paused))
 ipc.on('background:label-location', (e, l) =>

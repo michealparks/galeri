@@ -3,7 +3,6 @@
 <head>
 
 <meta charset='utf-8'>
-
 <link inline rel='stylesheet' href='../build/about.css' />
 
 </head>
@@ -23,21 +22,18 @@
 </body>
 
 <script async>
+document.getElementById('img').ondragstart = () => false
+
 document.getElementById('copyright').textContent = (
   'Copyright © 2016 - ' + new Date().getFullYear() + ' Space Egg LLC'
 )
 
-document.getElementById('img').ondragstart = function () {
-  return false
-}
-
-document.getElementById('devtools').onclick = function () {
+document.getElementById('devtools').onclick = () => {
   for (let i = 0, w = require('electron').remote.BrowserWindow.getAllWindows(), l = w.length; i < l; ++i) {
     w[i].openDevTools({ mode: 'detach' })
   }
 }
 
-document.getElementById('reset').onclick = function () {
+document.getElementById('reset').onclick = () =>
   require('electron').ipcRenderer.send('reset-all-data')
-}
 </script>

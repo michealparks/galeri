@@ -1,7 +1,7 @@
 module.exports = updateImage
 
 const ipc = require('electron').ipcRenderer
-const {get} = require('../util/storage')
+const storage = require('../util/storage')
 const fill = require('./background')
 const startTextLifecycle = require('./text')
 const {getNextArtwork, saveConfig} = require('../museums-new')
@@ -9,7 +9,7 @@ const {getNextArtwork, saveConfig} = require('../museums-new')
 let callbackRef
 let imageCount = 0
 let restartCount = 10
-let updateRate = get('update-rate') ||
+let updateRate = storage('update-rate') ||
   require('../util/default-values').updateRate
 
 ipc.on('menubar:update-rate', (e, rate) => {

@@ -1,13 +1,13 @@
 module.exports = startTextLifecycle
 
 const ipc = require('electron').ipcRenderer
-const {get, set} = require('../util/storage')
+const storage = require('../util/storage')
 const Label = document.getElementById('description')
 const LabelCL = Label.classList
 const Title = Label.children[0]
 const Text = Label.children[1]
 
-let labelLocation = get('label-location') ||
+let labelLocation = storage('label-location') ||
   require('../util/default-values').labelLocation
 
 function setTextFeatures (location) {
@@ -49,7 +49,7 @@ ipc.on('menubar:get-settings', () =>
 ipc.on('menubar:label-location', (e, location) => {
   labelLocation = location
   setTextFeatures(location)
-  set('label-location', location)
+  storage('label-location', location)
 })
 
 setTextFeatures(labelLocation)
