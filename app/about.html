@@ -13,27 +13,15 @@
     <img class='logo__img' id='img' src='../assets/galeri-256.png' />
     <h1 class='logo__title'>Galeri</h1>
   </div>
+  <p>v<span id='version'></span></p>
 
   <p>A perpetual artwork streaming app</p>
   <small id='copyright'></small>
+  
 
   <small id='devtools'>Open Devtools</small>
   <small id='reset' hidden>Reset User Data</small>
+
+  <script async inline src='../build/about.js'></script>
 </body>
-
-<script async>
-document.getElementById('img').ondragstart = () => false
-
-document.getElementById('copyright').textContent = (
-  'Copyright © 2016 - ' + new Date().getFullYear() + ' Space Egg LLC'
-)
-
-document.getElementById('devtools').onclick = () => {
-  for (let i = 0, w = require('electron').remote.BrowserWindow.getAllWindows(), l = w.length; i < l; ++i) {
-    w[i].openDevTools({ mode: 'detach' })
-  }
-}
-
-document.getElementById('reset').onclick = () =>
-  require('electron').ipcRenderer.send('reset-all-data')
-</script>
+</html>

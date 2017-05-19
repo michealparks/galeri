@@ -18,16 +18,12 @@ const path = require('path')
 const del = require('del')
 const series = require('run-series')
 const zip = require('cross-zip')
-const minify = require('html-minifier').minify
-const inline = require('inline-source')
-
+const html = require('./html')
 const config = require('../app/main/config')
 const pkg = require('../package.json')
 
-const resolve = path.resolve
 const BUILD_NAME = config.APP_NAME + '-v' + config.APP_VERSION
 const DIST_PATH = path.join(config.ROOT_PATH, 'dist')
-const ROOT = config.ROOT_PATH
 
 const argv = minimist(process.argv.slice(2), {
   boolean: [
@@ -46,46 +42,6 @@ del(DIST_PATH)
 .then(() => html())
 .then(build)
 .catch(e => console.error(e))
-
-function html () {
-  return Promise.all([
-    inlinePage(resolve(ROOT, 'app/background.html')),
-    inlinePage(resolve(ROOT, 'app/bg-clone.html')),
-    inlinePage(resolve(ROOT, 'app/menubar.html')),
-    inlinePage(resolve(ROOT, 'app/about.html')),
-    inlinePage(resolve(ROOT, 'app/favorites.html'))
-  ]).then((pages) => {
-    const opts = {
-      collapseWhitespace: true,
-      minifyCSS: true,
-      minifyJS: true
-    }
-
-    const bgPage = minify(pages[0], opts)
-    const clonePage = minify(pages[1], opts)
-    const menuPage = minify(pages[2], opts)
-    const aboutPage = minify(pages[3], opts)
-    const favoritesPage = minify(pages[4], opts)
-
-    fs.writeFileSync(resolve(ROOT, 'build/background.html'), bgPage)
-    fs.writeFileSync(resolve(ROOT, 'build/bg-clone.html'), clonePage)
-    fs.writeFileSync(resolve(ROOT, 'build/menubar.html'), menuPage)
-    fs.writeFileSync(resolve(ROOT, 'build/about.html'), aboutPage)
-    fs.writeFileSync(resolve(ROOT, 'build/favorites.html'), favoritesPage)
-
-    return Promise.resolve()
-  })
-}
-
-function inlinePage (path) {
-  return new Promise((resolve, reject) => {
-    inline(path, {
-      compress: false,
-      // rootpath: resolve(ROOT, 'app'),
-      ignore: []
-    }, (err, html) => err ? reject(err) : resolve(html))
-  })
-}
 
 function build () {
   console.log('Starting build...')

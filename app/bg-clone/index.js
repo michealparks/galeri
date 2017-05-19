@@ -1,8 +1,14 @@
 const ipc = require('electron').ipcRenderer
 const fillBackground = require('../background/renderer/background')
 
+let currentHref
+
 function onArtwork (e, data) {
-  fillBackground(data, onFill)
+  if (data.href !== currentHref) {
+    fillBackground(data, onFill)
+  }
+
+  currentHref = data.href
 }
 
 function onFill () {}

@@ -1,5 +1,5 @@
 const ipc = require('electron').ipcRenderer
-const open = require('open')
+const open = require('../shared/open')
 const configPath = require('application-config-path')('Galeri Favorites')
 
 const metStr = /^https:\/\/metmuseum.org\/art\/collection\/search\//

@@ -7,49 +7,6 @@
   src: local('Reem Kufi Regular'), local('ReemKufi-Regular'), url('../assets/reem-kufi.woff2') format('woff2')
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2212, U+2215, U+E0FF, U+EFFD, U+F000
 
-@font-face
-  font-family: 'icomoon'
-  src: url('../assets/icomoon.woff') format('woff')
-  font-weight: normal
-  font-style: normal
-
-[class^="icon-"], [class*=" icon-"]
-  font-family: 'icomoon' !important
-  speak: none
-  font-style: normal
-  font-weight: normal
-  font-variant: normal
-  text-transform: none
-  line-height: 1
-
-  /* Better Font Rendering =========== */
-  -webkit-font-smoothing: antialiased
-  -moz-osx-font-smoothing: grayscale
-
-.icon-image:before
-  content: "\e010"
-
-.icon-clock:before
-  content: "\e014"
-
-.icon-monitor:before
-  content: "\e021"
-
-.icon-cog:before
-  content: "\e023"
-
-.icon-heart:before
-  content: "\e024"
-
-.icon-play:before
-  content: "\e052"
-
-.icon-pause:before
-  content: "\e053"
-
-.icon-speech:before
-  content: "\e076"
-
 ::selection
   background: transparent
 
@@ -61,11 +18,27 @@
 
 body
   overflow: hidden
+  height: 320px
   margin: 0
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica Neue, helvetica
   font-weight: 200
   font-size: 12px
   color: #666 /* Hail satan! */
+  
+  opacity: 0
+  transform: scale(0.9)
+  transform-origin: 50% 0%
+  animation-name: fadein
+  animation-duration: 200ms
+  animation-fill-mode: forwards
+  
+@keyframes fadein
+  0%
+    opacity: 0
+    transform: scale(0.95)
+  100%
+    opacity: 1
+    transform: scale(1.0)
 
 a
   color: #aaa
@@ -137,8 +110,11 @@ select
   background-color: rgba(255,255,255,0.96)
 
 .icon
+  height: 16px
+  width: 16px
   font-size: 16px
   margin: 5px
+  fill: #666
 
 .nav
   position: relative
@@ -209,9 +185,9 @@ select
   
 .btn-favorite
   right: 26px
-  
-.btn-favorite--active
-  color: red
+
+.btn-favorite--active svg
+  fill: red
   animation-name: heartbeat
   animation-duration: 1000ms
   animation-iteration-count: infinite
@@ -253,10 +229,7 @@ select
 #preferences.tab--hidden
   transform: translate3d(110%, 0, 0)
 
-#updating
-  position: absolute
-
-#updating, #source, #artwork-link
+#source, #artwork-link
   transition: opacity 300ms
 
 .additional
@@ -274,25 +247,10 @@ select
   width: 100%
   background-color: rgba(0, 0, 0, 0.11)
 
-.about
-  left: 0
-  
-.favorited-artworks
-  left: 40px
-
-.quit
-  right: 0
-
 .quit:hover
 .about:hover
 .favorited-artworks:hover
   text-decoration: underline
-
-.app #updating
-  opacity: 0
-
-.app--updating #updating
-  opacity: 1
 
 .app--updating #artwork-link
 .app--updating #source

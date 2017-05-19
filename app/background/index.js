@@ -52,7 +52,7 @@ function shouldNotUpdate () {
 /**
  * Settings change events
  */
-ipc.on('menubar:get-settings', () => {
+ipc.on('menubar:loaded', () => {
   ipc.send('background:is-paused', isPaused)
   ipc.send('background:update-rate', updateRate)
 })

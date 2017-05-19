@@ -4,8 +4,9 @@ const env = JSON.stringify(__dev__ ? 'development' : 'production')
 const {resolve} = require('path')
 const webpack = require('webpack')
 const BabiliPlugin = require('babili-webpack-plugin')
+const html = require('./bin/html')
 
-const IGNORES = ['sharp', 'open']
+const IGNORES = []
 
 const externals = [
   (context, request, callback) =>
@@ -49,7 +50,8 @@ const rendererConfig = {
     background: ['./app/background'],
     menu: ['./app/menu'],
     clone: ['./app/bg-clone'],
-    favorites: ['./app/favorites']
+    favorites: ['./app/favorites'],
+    about: ['./app/about']
   },
   output: {
     path: resolve(__dirname, 'build'),
@@ -88,4 +90,5 @@ if (__dev__ && !__devOnce__) {
 } else {
   webpack(rendererConfig).run(report)
   webpack(mainConfig).run(report)
+  html()
 }

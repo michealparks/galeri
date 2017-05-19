@@ -7,15 +7,14 @@ const https = require('https')
 const configPath = require('application-config-path')('Galeri Favorites')
 
 function makeThumb (name, href, next) {
-  const protocol = href.indexOf('https://') > -1 ? https : http
+  const protocol = href.indexOf('https://') !== -1 ? https : http
   let buf = Buffer.from([])
 
   protocol.get(href, res => {
     res.on('data', data => {
       buf = Buffer.concat([buf, data])
     })
-    res.on('end', () =>
-      writeThumb(name, buf, next))
+    res.on('end', () => writeThumb(name, buf, next))
   })
 }
 

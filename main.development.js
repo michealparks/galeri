@@ -62,16 +62,13 @@ function onReady () {
   screen.on('display-added', onDisplayAdded)
   screen.on('display-removed', onDisplayRemoved)
 
-  initMenubar(() => {
-    makeWindow('background', screen.getPrimaryDisplay())
+  initMenubar()
 
-    for (let i = 0, s = getSecondaryDisplays(), l = s.length; i < l; ++i) {
-      makeWindow('clone', s[i])
-    }
-  })
+  makeWindow('background', screen.getPrimaryDisplay())
 
-  // To keep app startup fast, some non-essential code is delayed.
-  setTimeout(() => require('./app/main/autolaunch'), 3000)
+  for (let i = 0, s = getSecondaryDisplays(), l = s.length; i < l; ++i) {
+    makeWindow('clone', s[i])
+  }
 }
 
 function onDisplayAdded () {
@@ -187,7 +184,7 @@ function makeWindow (type, display) {
   win.display = display
   win.isClone = isClone
 
-  ipcHandler.cacheId('background', win.id)
+  ipcHandler.cacheId(win.id)
 
   win.setVisibleOnAllWorkspaces(true)
 

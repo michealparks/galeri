@@ -1,7 +1,11 @@
-const {getLocale} = require('electron').remote.app
+let getLocale
 let currentLocale = 'en'
 
 function checkLocale () {
+  if (!getLocale) {
+    getLocale = require('electron').remote.app.getLocale
+  }
+
   const locale = getLocale()
 
   if (locale.indexOf(currentLocale) > -1) return

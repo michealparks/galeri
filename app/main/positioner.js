@@ -1,16 +1,15 @@
 module.exports = calculatePosition
 
-function calculatePosition (screen, browserWindow, position, trayPosition) {
+function calculatePosition (screen, width, height, position, trayPosition) {
   const screenSize = screen.getDisplayNearestPoint(screen.getCursorScreenPoint()).workArea
-  const windowSize = browserWindow.getSize()
-  const basePosition = getPosition(position, trayPosition || {}, screenSize, windowSize)
+  const basePosition = getPosition(position, trayPosition || {}, screenSize, width, height)
 
   // Default to right if the window is bigger than the space left.
   // Because on Windows the window might get out of bounds and dissappear.
   if (position.substr(0, 4) === 'tray' &&
-     (basePosition[0] + windowSize[0]) > (screenSize.width + screenSize.x)) {
+     (basePosition[0] + width) > (screenSize.width + screenSize.x)) {
     return [
-      getPosition('topRight', trayPosition || {}, screenSize, windowSize)[0],
+      getPosition('topRight', trayPosition || {}, screenSize, width, height)[0],
       basePosition[1]
     ]
   }
@@ -18,27 +17,27 @@ function calculatePosition (screen, browserWindow, position, trayPosition) {
   return basePosition
 }
 
-function getPosition (location, trayPosition, screenSize, windowSize) {
+function getPosition (location, trayPosition, screenSize, width, height) {
   switch (location) {
     case 'trayCenter':
       return [
-        Math.floor(trayPosition.x - ((windowSize[0] / 2)) + (trayPosition.width / 2)),
+        Math.floor(trayPosition.x - ((width / 2)) + (trayPosition.width / 2)),
         screenSize.y
       ]
     case 'trayBottomCenter':
       return [
-        Math.floor(trayPosition.x - ((windowSize[0] / 2)) + (trayPosition.width / 2)),
-        Math.floor(screenSize.height - (windowSize[1] - screenSize.y))
+        Math.floor(trayPosition.x - ((width / 2)) + (trayPosition.width / 2)),
+        Math.floor(screenSize.height - (height - screenSize.y))
       ]
     case 'topRight':
       return [
-        Math.floor(screenSize.x + (screenSize.width - windowSize[0])),
+        Math.floor(screenSize.x + (screenSize.width - width)),
         screenSize.y
       ]
     case 'bottomRight':
       return [
-        Math.floor(screenSize.x + (screenSize.width - windowSize[0])),
-        Math.floor(screenSize.height - (windowSize[1] - screenSize.y))
+        Math.floor(screenSize.x + (screenSize.width - width)),
+        Math.floor(screenSize.height - (height - screenSize.y))
       ]
   }
 }

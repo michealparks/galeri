@@ -43,7 +43,7 @@ function truncate (str, len) {
   return str.length > len ? str.slice(0, len - 3) + '...' : str
 }
 
-ipc.on('menubar:get-settings', () =>
+ipc.on('menubar:loaded', () =>
   ipc.send('background:label-location', labelLocation))
 
 ipc.on('menubar:label-location', (e, location) => {

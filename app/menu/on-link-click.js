@@ -1,14 +1,13 @@
-const open = require('open')
-const metStr = /^https:\/\/metmuseum.org\/art\/collection\/search\//
+const open = require('../shared/open')
 
-for (let i = 0, links = document.querySelectorAll('a[href]'), l = links.length; i < l; ++i) {
-  links[i].onclick = onLinkClick
+for (let i = 0, a = document.getElementsByTagName('a'), l = a.length; i < l; ++i) {
+  a[i].onclick = onLinkClick
 }
 
 function onLinkClick (e) {
   e.preventDefault()
 
-  return open(metStr.test(this.href)
+  return open(this.href.indexOf('https://metmuseum.org') !== -1
     ? this.href.replace('https', 'http')
     : this.href)
 }
