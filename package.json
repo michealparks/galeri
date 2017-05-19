@@ -40,8 +40,6 @@
     "appdmg": "^0.4.5"
   },
   "devDependencies": {
-    "application-config": "^1.0.1",
-    "application-config-path": "^0.1.0",
     "asar": "^0.13.0",
     "babel-core": "^6.24.1",
     "babel-loader": "^7.0.0",

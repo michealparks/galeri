@@ -4,7 +4,7 @@ const {nativeImage} = require('electron')
 const {unlink, writeFile} = require('fs')
 const http = require('http')
 const https = require('https')
-const configPath = require('application-config-path')('Galeri Favorites')
+const configPath = require('../shared/app-config-path')('Galeri Favorites')
 
 function makeThumb (name, href, next) {
   const protocol = href.indexOf('https://') !== -1 ? https : http

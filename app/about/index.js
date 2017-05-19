@@ -4,7 +4,7 @@ document.getElementById('copyright').textContent = (
   `Copyright © 2016 - ${new Date().getFullYear()} Space Egg LLC`
 )
 
-document.getElementById('version').textContent = __VERSION__ || '0.0.28'
+document.getElementById('version').textContent = __VERSION__
 
 document.getElementById('devtools').onclick = () => {
   for (let i = 0, w = require('electron').remote.BrowserWindow.getAllWindows(), l = w.length; i < l; ++i) {

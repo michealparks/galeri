@@ -2,7 +2,7 @@ module.exports = {isArtFavorited}
 
 const __dev__ = process.env.NODE_ENV === 'development'
 const {BrowserWindow} = require('electron')
-const cache = require('application-config')('Galeri Favorites')
+const cache = require('../shared/app-config')('Galeri Favorites')
 const {getArt, addListener} = require('./ipc')
 const {makeThumb, removeThumb} = require('./thumb')
 const {getUrl} = require('./util')

@@ -1,8 +1,6 @@
 const ipc = require('electron').ipcRenderer
 const open = require('../shared/open')
-const configPath = require('application-config-path')('Galeri Favorites')
-
-const metStr = /^https:\/\/metmuseum.org\/art\/collection\/search\//
+const configPath = require('../shared/app-config-path')('Galeri Favorites')
 const Favorites = document.getElementById('favorites')
 const NoFavorites = document.getElementById('no-favorites')
 
@@ -15,14 +13,16 @@ document.body.onclick = (e) => {
 
   if (target.classList.contains('info')) {
     const href = target.getAttribute('data-href')
-    return open(metStr.test(href) ? href.replace('https', 'http') : href)
+    return open(href.indexOf('https://metmuseum.org') !== -1
+      ? href.replace('https', 'http')
+      : href)
   }
 }
 
 ipc.on('main:favorites', (e, favorites) => {
   const frag = document.createDocumentFragment()
 
-  NoFavorites.classList.toggle('no-favorites--hidden', favorites.length > 0)
+  NoFavorites.classList.toggle('no-favorites--hidden', favorites.length !== 0)
 
   for (let item, url, i = favorites.length - 1; i > -1; --i) {
     item = favorites[i]

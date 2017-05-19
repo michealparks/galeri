@@ -44,9 +44,8 @@ ipc.on('background:update-rate', (e, rate) => {
 ipc.on('background:is-paused', (e, paused) =>
   togglePlay(paused))
 
-ipc.on('favorites:delete', () => {
-  toggleFavorite(false)
-})
+ipc.on('favorites:delete', () =>
+  toggleFavorite(false))
 
 ipc.send('menubar:loaded')
 
