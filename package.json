@@ -3,7 +3,7 @@
   "productName": "Galeri",
   "version": "0.0.25",
   "author": "Micheal Parks",
-  "description": "F.A.R.T. - Fantastic Art Rendering Technology",
+  "description": "A perpetual artwork streaming app.",
   "main": "main.js",
   "private": true,
   "scripts": {
@@ -30,7 +30,7 @@
   "bugs": {
     "url": "https://github.com/michealparks/galeri/issues"
   },
-  "homepage": "https://github.com/michealparks/galeri#readme",
+  "homepage": "https://www.galeri.io",
   "bin": {
     "electron": "./node_modules/.bin/electron"
   },
@@ -69,14 +69,6 @@
     "webpack": "^2.5.1"
   },
   "dependencies": {},
-  "build": {
-    "appId": "galeri.by.micheal.parks",
-    "category": "public.app-category.lifestyle",
-    "copyright": "Copyright © 2016 Micheal Parks",
-    "linux": {
-      "fpm": ["--depends", "libappindicator1"]
-    }
-  },
   "standard": {
     "globals": [
       "__VERSION__",
@@ -86,5 +78,14 @@
       "fetch",
       "localStorage"
     ]
-  }
+  },
+  "build": {
+    "appId": "galeri.by.micheal.parks",
+    "category": "public.app-category.lifestyle",
+    "copyright": "Copyright © 2016 Micheal Parks",
+    "linux": {
+      "fpm": ["--depends", "libappindicator1"]
+    }
+  },
+  "productName": "Galeri"
 }

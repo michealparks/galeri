@@ -9,6 +9,7 @@ require('./app/main/crash-reporter')
 const {resolve} = require('path')
 const {format} = require('url')
 const electron = require('electron')
+const config = require('./app/main/config')
 const ipcHandler = require('./app/main/ipc')
 const initMenubar = require('./app/main/menubar')
 const {app, BrowserWindow} = electron
@@ -155,6 +156,7 @@ function makeWindow (type, display) {
 
   let win = new BrowserWindow({
     title: 'Galeri',
+    icon: config.APP_ICON,
     x: bounds.x,
     y: bounds.y,
     width: bounds.width,

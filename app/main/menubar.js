@@ -2,6 +2,7 @@ module.exports = initMenubar
 
 const __dev__ = process.env.NODE_ENV === 'development'
 const electron = require('electron')
+const config = require('./config')
 const calculatePosition = require('./positioner')
 const initUpdater = require('./updater')
 const {getArt, addListener} = require('./ipc')
@@ -10,7 +11,9 @@ const {getUrl} = require('./util')
 const win32 = process.platform === 'win32'
 const linux = process.platform === 'linux'
 
-const config = {
+const winConfig = {
+  title: 'Galeri Menu',
+  icon: config.APP_ICON,
   alwaysOnTop: __dev__,
   resizable: false,
   transparent: true,
@@ -68,10 +71,9 @@ initUpdater().onUpdateAvailable((version) => {
 })
 
 function getImage () {
-  const icon = electron.systemPreferences.isDarkMode() || linux
-    ? 'icon-dark'
-    : 'icon'
-  return `${__dirname}/${__dev__ ? '../../' : ''}assets/${icon}_32x32.png`
+  return electron.systemPreferences.isDarkMode() || linux
+    ? config.TRAY_ICON_DARK
+    : config.TRAY_ICON
 }
 
 function initMenubar () {
@@ -80,12 +82,22 @@ function initMenubar () {
   tray.on('double-click', onClick)
 
   if (linux) {
-    tray.setToolTip('Settings')
+    tray.setContextMenu(electron.Menu.buildFromTemplate([
+      {
+        label: 'Menu',
+        click: e => onClick(
+          e,
+          electron.screen.getCursorScreenPoint())
+      }, {
+        label: 'Quit',
+        click: electron.app.quit
+      }
+    ]))
   }
 }
 
 function createWindow () {
-  win = new electron.BrowserWindow(config)
+  win = new electron.BrowserWindow(winConfig)
 
   win.setVisibleOnAllWorkspaces(true)
 

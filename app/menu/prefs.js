@@ -1,6 +1,6 @@
-const path = require('path')
-const electron = require('electron')
-const ipc = electron.ipcRenderer
+const linux = process.platform === 'linux'
+const ipc = require('electron').ipcRenderer
+const autolaunch = require('./autolaunch')
 const LabelLocationBtn = document.getElementById('label-location')
 const UpdateRateBtn = document.getElementById('update-rate')
 const AutolaunchBtn = document.getElementById('autolaunch')
@@ -11,18 +11,11 @@ const ArtSource = document.getElementById('artwork-source')
 const ArtLink = document.getElementById('artwork-link')
 const Title = document.getElementById('artwork-title')
 const Text = document.getElementById('artwork-text')
-const appPath = process.platform.indexOf('win32') !== -1
-  ? path.resolve(path.dirname(process.execPath), '..', 'Update.exe')
-  : process.execPath
-const startArgs = process.platform.indexOf('win32') !== -1
-  ? [
-    '--processStart', `"${path.basename(process.execPath)}"`,
-    '--process-start-args', `"--hidden"`
-  ]
-  : undefined
 
 let isFavorited = false
 let isPaused = false
+
+if (linux) document.body.classList.add('linux')
 
 ipc.on('main:update-available', (e, feedUrl) => {
   console.log(feedUrl)
@@ -60,12 +53,9 @@ LabelLocationBtn.onchange = (e) =>
 UpdateRateBtn.onchange = (e) =>
   ipc.send('menubar:update-rate', Number(e.currentTarget.value))
 
-AutolaunchBtn.onclick = (e) =>
-  electron.remote.app.setLoginItemSettings({
-    openAtLogin: e.currentTarget.checked,
-    path: appPath,
-    args: startArgs
-  }, appPath, startArgs)
+AutolaunchBtn.onclick = (e) => e.currentTarget.checked
+  ? autolaunch.enable()
+  : autolaunch.disable()
 
 FavoriteBtn.onclick = () => {
   toggleFavorite(!isFavorited)
@@ -77,11 +67,10 @@ PlayPauseBtn.onclick = () => {
   ipc.send('menubar:is-paused', isPaused)
 }
 
-setTimeout(() => {
-  AutolaunchBtn.checked = electron.remote.app.getLoginItemSettings({
-    path: appPath
-  }).openAtLogin
-}, 500)
+setTimeout(() =>
+  autolaunch.isEnabled(isEnabled => {
+    AutolaunchBtn.checked = isEnabled
+  }), 500)
 
 function toggleFavorite (flag) {
   isFavorited = flag

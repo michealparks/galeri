@@ -2,6 +2,7 @@ module.exports = openAbout
 
 const __dev__ = process.env.NODE_ENV === 'development'
 const {BrowserWindow} = require('electron')
+const config = require('./config')
 const {getUrl} = require('./util')
 
 let aboutWin
@@ -15,6 +16,7 @@ function openAbout () {
 
   aboutWin = new BrowserWindow({
     title: 'About Galeri',
+    icon: config.APP_ICON,
     center: true,
     show: false,
     width: 400,

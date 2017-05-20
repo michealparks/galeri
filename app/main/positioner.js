@@ -21,12 +21,12 @@ function getPosition (location, trayPosition, screenSize, width, height) {
   switch (location) {
     case 'trayCenter':
       return [
-        Math.floor(trayPosition.x - ((width / 2)) + (trayPosition.width / 2)),
+        Math.floor(trayPosition.x - ((width / 2)) + (trayPosition.width || 30 / 2)),
         screenSize.y
       ]
     case 'trayBottomCenter':
       return [
-        Math.floor(trayPosition.x - ((width / 2)) + (trayPosition.width / 2)),
+        Math.floor(trayPosition.x - ((width / 2)) + (trayPosition.width || 30 / 2)),
         Math.floor(screenSize.height - (height - screenSize.y))
       ]
     case 'topRight':

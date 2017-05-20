@@ -3,6 +3,7 @@ module.exports = {isArtFavorited}
 const __dev__ = process.env.NODE_ENV === 'development'
 const {BrowserWindow} = require('electron')
 const cache = require('../shared/app-config')('Galeri Favorites')
+const config = require('./config')
 const {getArt, addListener} = require('./ipc')
 const {makeThumb, removeThumb} = require('./thumb')
 const {getUrl} = require('./util')
@@ -24,8 +25,9 @@ addListener('favorites:delete', (href) =>
 addListener('favorites:loaded', () =>
   win.webContents.send('main:favorites', favorites))
 
-const config = {
+const winConfig = {
   title: 'Favorited Artworks',
+  icon: config.APP_ICON,
   center: true,
   show: false,
   width: 790,
@@ -56,7 +58,7 @@ function openFavorites () {
     return
   }
 
-  win = new BrowserWindow(config)
+  win = new BrowserWindow(winConfig)
   win.once('ready-to-show', win.show)
   win.on('close', onClose)
   win.loadURL(getUrl('favorites'))

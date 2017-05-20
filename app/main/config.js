@@ -15,7 +15,10 @@ module.exports = Object.seal({
   APP_TEAM: 'Space Egg, LLC',
   APP_VERSION: require('../../package.json').version,
   APP_COPYRIGHT: `Copyright © 2016 - ${(new Date()).getFullYear()} Space Egg, LLC`,
-  APP_ICON: join(__dirname, '../..', 'assets', 'Galeri'),
+  APP_ICON: join(__dirname, '../..', 'assets', 'galeri-256.png'),
+
+  TRAY_ICON: join(__dirname, '../..', 'assets', 'icon_32x32.png'),
+  TRAY_ICON_DARK: join(__dirname, '../..', 'assets', 'icon-dark_32x32.png'),
 
   ROOT_PATH: join(__dirname, '../..'),
   STATIC_PATH: join(__dirname, '../..', 'assets'),
