@@ -1,5 +1,5 @@
 const electron = require('electron')
-const config = require('./config')
+const config = require('../../config')
 
 electron.crashReporter.start({
   companyName: config.APP_TEAM,

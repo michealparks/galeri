@@ -18,15 +18,17 @@ function calculatePosition (screen, width, height, position, trayPosition) {
 }
 
 function getPosition (location, trayPosition, screenSize, width, height) {
+  const trayIconWidth = trayPosition.width || 30
+
   switch (location) {
     case 'trayCenter':
       return [
-        Math.floor(trayPosition.x - ((width / 2)) + (trayPosition.width || 30 / 2)),
+        Math.floor(trayPosition.x - ((width / 2)) + (trayIconWidth / 2)),
         screenSize.y
       ]
     case 'trayBottomCenter':
       return [
-        Math.floor(trayPosition.x - ((width / 2)) + (trayPosition.width || 30 / 2)),
+        Math.floor(trayPosition.x - ((width / 2)) + (trayIconWidth / 2)),
         Math.floor(screenSize.height - (height - screenSize.y))
       ]
     case 'topRight':

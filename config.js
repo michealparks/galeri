@@ -1,7 +1,4 @@
 const {resolve} = require('path')
-const pathName = process.env.NODE_ENV === 'development'
-  ? '../..'
-  : ''
 
 module.exports = {
   HOME_PAGE_URL: 'https://galeri.io',
@@ -16,15 +13,15 @@ module.exports = {
 
   APP_NAME: 'Galeri',
   APP_TEAM: 'Space Egg, LLC',
-  APP_VERSION: require('../../package.json').version,
+  APP_VERSION: require('./package.json').version,
   APP_COPYRIGHT: `Copyright © 2016 - ${(new Date()).getFullYear()} Space Egg, LLC`,
-  APP_ICON: resolve(__dirname, pathName, 'assets', 'galeri-256.png'),
+  APP_ICON: resolve(__dirname, 'assets', 'galeri-256.png'),
 
-  TRAY_ICON: resolve(__dirname, pathName, 'assets', 'icon_32x32.png'),
-  TRAY_ICON_DARK: resolve(__dirname, pathName, 'assets', 'icon-dark_32x32.png'),
+  TRAY_ICON: resolve(__dirname, 'assets', 'icon_32x32.png'),
+  TRAY_ICON_DARK: resolve(__dirname, 'assets', 'icon-dark_32x32.png'),
 
-  ROOT_PATH: resolve(__dirname, '../..'),
-  STATIC_PATH: resolve(__dirname, pathName, 'assets'),
+  ROOT_PATH: __dirname,
+  STATIC_PATH: resolve(__dirname, 'assets'),
 
   CHECK_UPDATE_INTERVAL: 6 * 1000 * 60 * 60 // 6 hours
 }

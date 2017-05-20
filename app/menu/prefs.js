@@ -17,8 +17,7 @@ let isPaused = false
 
 if (linux) document.body.classList.add('linux')
 
-ipc.on('main:update-available', (e, feedUrl) => {
-  console.log(feedUrl)
+ipc.on('main:update-available', (e, version) => {
   document.body.classList.add('update-message')
 })
 

@@ -19,7 +19,7 @@ const del = require('del')
 const series = require('run-series')
 const zip = require('cross-zip')
 const html = require('./html')
-const config = require('../app/main/config')
+const config = require('../config')
 const pkg = require('../package.json')
 
 const BUILD_NAME = config.APP_NAME + '-v' + config.APP_VERSION

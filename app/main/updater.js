@@ -4,7 +4,7 @@ const __dev__ = process.env.NODE_ENV === 'development'
 const win32 = process.platform === 'win32'
 const https = require('https')
 const {autoUpdater} = require('electron')
-const config = require('./config')
+const config = require('../../config')
 const req = require('url').parse(config.GITHUB_RELEASE_API)
 const REGEX_ZIP_URL = /\/(v)?(\d+\.\d+\.\d+)\/.*\.zip/
 

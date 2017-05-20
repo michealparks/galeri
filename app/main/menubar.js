@@ -2,7 +2,7 @@ module.exports = initMenubar
 
 const __dev__ = process.env.NODE_ENV === 'development'
 const electron = require('electron')
-const config = require('./config')
+const config = require('../../config')
 const calculatePosition = require('./positioner')
 const initUpdater = require('./updater')
 const {getArt, addListener} = require('./ipc')
@@ -133,8 +133,8 @@ function showWindow (bounds) {
   const winPosition = win32 ? 'trayBottomCenter' : 'trayCenter'
   const position = calculatePosition(
     electron.screen,
-    config.width,
-    config.height,
+    winConfig.width,
+    winConfig.height,
     noBoundsPosition || winPosition,
     bounds)
 
