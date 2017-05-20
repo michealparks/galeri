@@ -14,6 +14,7 @@ function openAbout () {
   }
 
   aboutWin = new BrowserWindow({
+    title: 'About Galeri',
     center: true,
     show: false,
     width: 400,

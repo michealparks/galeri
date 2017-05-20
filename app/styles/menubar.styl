@@ -12,6 +12,7 @@
   -webkit-user-select: none
   user-select: none
   box-sizing: border-box
+  outline: none !important
 
 body
   overflow: hidden
@@ -28,7 +29,7 @@ body
   animation-name: fadein
   animation-duration: 200ms
   animation-fill-mode: forwards
-
+  
 @keyframes fadein
   0%
     opacity: 0
@@ -54,8 +55,38 @@ select
 
 .float-right
   float: right
+  
+#update-message
+  display: none
+  z-index: 100
+  position: absolute
+  width: 100%
+  height: 80px
+  color: #fff
+  background-color: rgba(0,0,0,0.4)
+  text-align: center
+  
+  p
+    margin: 10px 0 0 0
+    font-weight: 600
+    font-size: 14px
+    
+  small
+    display: block
+    font-size: 10px
+    margin: 5px
+    
+  button
+    border: 0
+    padding: 4px 8px
+    border-radius: 3px
+    color: #fff
+    background-color: #27ae60
+    
+body.update-message #update-message
+  display: block
 
-.title
+#title
   position: relative
   display: flex
   height: 80px
@@ -84,12 +115,15 @@ select
   color: #fff
   text-align: center
 
-.title__h2
+#title__h2
   margin: 0
   font-weight: 300
   font-family: Reem Kufi, helvetica
   font-size: 44px
   line-height: 0.9
+  
+body.update-message #title__h2
+  display: none
 
 .title__version
   position: absolute

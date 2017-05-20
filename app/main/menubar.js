@@ -3,10 +3,12 @@ module.exports = initMenubar
 const __dev__ = process.env.NODE_ENV === 'development'
 const electron = require('electron')
 const calculatePosition = require('./positioner')
+const initUpdater = require('./updater')
 const {getArt, addListener} = require('./ipc')
 const {isArtFavorited} = require('./favorites')
 const {getUrl} = require('./util')
 const win32 = process.platform === 'win32'
+const linux = process.platform === 'linux'
 
 const config = {
   alwaysOnTop: __dev__,
@@ -27,6 +29,7 @@ const config = {
 
 let tray
 let win
+let updateVersion
 
 if (electron.systemPreferences.subscribeNotification !== undefined) {
   electron.systemPreferences.subscribeNotification(
@@ -34,24 +37,40 @@ if (electron.systemPreferences.subscribeNotification !== undefined) {
     () => tray && tray.setImage(getImage()))
 }
 
+if (!linux) {
+  addListener('background:artwork', (art) =>
+    tray.setToolTip(`${art.title}\n${art.text}\n${art.source}`))
+}
+
 addListener('favorites:delete', (href) =>
   getArt().href === href && win.webContents.send('favorites:delete'))
-addListener('background:artwork', (art) =>
-  tray.setToolTip(`${art.title}\n${art.text}\n${art.source}`))
 addListener('background:is-paused', (paused) =>
-  win && win.webContents.send('background:is-paused', paused))
+  win !== undefined &&
+  win.webContents.send('background:is-paused', paused))
 addListener('background:label-location', (l) =>
-  win && win.webContents.send('background:label-location', l))
+  win !== undefined &&
+  win.webContents.send('background:label-location', l))
 addListener('background:update-rate', (rate) =>
-  win && win.webContents.send('background:update-rate', rate))
+  win !== undefined &&
+  win.webContents.send('background:update-rate', rate))
 addListener('menubar:loaded', () => {
   const art = getArt()
   art.isFavorited = isArtFavorited(art.href)
   win.webContents.send('background:artwork', art)
+
+  if (linux && updateVersion !== undefined) {
+    win.webContents.send('main:update-available', updateVersion)
+  }
+})
+
+initUpdater().onUpdateAvailable((version) => {
+  updateVersion = version
 })
 
 function getImage () {
-  const icon = electron.systemPreferences.isDarkMode() ? 'icon-dark' : 'icon'
+  const icon = electron.systemPreferences.isDarkMode() || linux
+    ? 'icon-dark'
+    : 'icon'
   return `${__dirname}/${__dev__ ? '../../' : ''}assets/${icon}_32x32.png`
 }
 
@@ -59,6 +78,10 @@ function initMenubar () {
   tray = new electron.Tray(getImage())
   tray.on('click', onClick)
   tray.on('double-click', onClick)
+
+  if (linux) {
+    tray.setToolTip('Settings')
+  }
 }
 
 function createWindow () {
@@ -69,10 +92,14 @@ function createWindow () {
   if (__dev__) win.openDevTools({ mode: 'detach' })
 
   win.once('ready-to-show', win.show)
-  win.on('blur', () => !__dev__ && hideWindow())
-  win.on('close', () => { win = undefined })
+  win.on('close', onClose)
+  if (!__dev__) win.on('blur', hideWindow)
 
   return win.loadURL(getUrl('menubar'))
+}
+
+function onClose () {
+  win = undefined
 }
 
 function onClick (e, bounds) {

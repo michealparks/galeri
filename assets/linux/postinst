@@ -1,0 +1,4 @@
+#!/bin/sh
+set -e
+chmod +x /opt/galeri/Galeri
+ln -s -f /opt/galeri/Galeri /usr/bin/galeri

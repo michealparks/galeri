@@ -4,6 +4,8 @@ const configPath = require('../shared/app-config-path')('Galeri Favorites')
 const Favorites = document.getElementById('favorites')
 const NoFavorites = document.getElementById('no-favorites')
 
+if (process.platform === 'linux') document.body.classList.add('linux')
+
 document.body.onclick = (e) => {
   const {target} = e
 

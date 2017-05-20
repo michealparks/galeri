@@ -25,6 +25,7 @@ addListener('favorites:loaded', () =>
   win.webContents.send('main:favorites', favorites))
 
 const config = {
+  title: 'Favorited Artworks',
   center: true,
   show: false,
   width: 790,

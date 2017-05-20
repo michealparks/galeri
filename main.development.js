@@ -1,6 +1,6 @@
 const __dev__ = process.env.NODE_ENV === 'development'
-const darwin = process.platform === 'darwin'
 const win32 = process.platform === 'win32'
+const linux = process.platform === 'linux'
 
 if (__dev__) console.time('init')
 
@@ -10,9 +10,10 @@ const {resolve} = require('path')
 const {format} = require('url')
 const electron = require('electron')
 const ipcHandler = require('./app/main/ipc')
+const initMenubar = require('./app/main/menubar')
 const {app, BrowserWindow} = electron
 
-let screen, initMenubar, lastWinId, currentWinId
+let screen, lastWinId, currentWinId
 let windows = []
 
 // Handle restart due to windows updates
@@ -36,33 +37,36 @@ if (!shouldQuit) {
 }
 
 if (!shouldQuit) {
-  require('./app/main/updater')
-  initMenubar = require('./app/main/menubar')
-
   app.commandLine.appendSwitch('disable-renderer-backgrounding')
   app.commandLine.appendSwitch('js-flags', '--use_strict')
 
+  // This is appended due to a chromium bug that disables transparent
+  // windows on linux. Peridically check to see if it can be removed.
+  if (linux) {
+    app.commandLine.appendSwitch('enable-transparent-visuals')
+    app.commandLine.appendSwitch('disable-gpu')
+  }
+
   // Hide the app from the MacOS dock
-  if (darwin) app.dock.hide()
+  if (app.dock !== undefined) app.dock.hide()
 
   app.once('ready', onReady)
 
   electron.ipcMain.on('background:reset', () =>
     makeWindow('background', screen.getPrimaryDisplay()))
-  electron.ipcMain.on('background:rendered', () =>
-    windows.length === 1
-      ? __dev__ && console.timeEnd('init')
-      : setTimeout(() => destroyWindowOfId(lastWinId), 4000))
+  electron.ipcMain.on('background:rendered', () => windows.length === 1
+    ? __dev__ && console.timeEnd('init')
+    : setTimeout(() => destroyWindowOfId(lastWinId), 4000))
 }
 
 function onReady () {
   screen = electron.screen
 
+  initMenubar()
+
   screen.on('display-metrics-changed', resizeBackgrounds)
   screen.on('display-added', onDisplayAdded)
   screen.on('display-removed', onDisplayRemoved)
-
-  initMenubar()
 
   makeWindow('background', screen.getPrimaryDisplay())
 
@@ -137,7 +141,7 @@ function destroyWindowOfId (id) {
     windows[i].destroy()
 
     // remove references
-    windows[i] = null
+    windows[i] = undefined
     windows.splice(i, 1)
 
     // exit loop
@@ -146,7 +150,7 @@ function destroyWindowOfId (id) {
 }
 
 function makeWindow (type, display) {
-  const bounds = win32 ? display.workArea : display.bounds
+  const {bounds} = display
   const isClone = type !== 'background'
 
   let win = new BrowserWindow({
@@ -165,7 +169,6 @@ function makeWindow (type, display) {
     show: false,
     frame: false,
     enableLargerThanScreen: true,
-    hasShadow: false,
     thickFrame: false,
     transparent: true,
     type: 'desktop',
@@ -198,7 +201,6 @@ function makeWindow (type, display) {
   // Moving the taskbar on windows can jolt the background out of place
   win.on('move', resizeBackgrounds)
   win.on('resize', resizeBackgrounds)
-  win.on('focus', win.blur)
 
   win.loadURL(format({
     protocol: 'file',
@@ -215,6 +217,9 @@ function makeWindow (type, display) {
   }
 
   windows.push(win)
+
+  // why do we need this???
+  if (linux) resizeBackgrounds()
 }
 
 function resizeBackgrounds () {

@@ -1,24 +1,64 @@
-const dev = process.env.NODE_ENV === 'development'
-const https = require('https')
-const electron = require('electron')
-const config = require('./config')
+module.exports = initUpdater
+
+const __dev__ = process.env.NODE_ENV === 'development'
 const win32 = process.platform === 'win32'
-const REGEX_ZIP_URL = /\/(v)?(\d+\.\d+\.\d+)\/.*\.zip/
+const https = require('https')
+const {autoUpdater} = require('electron')
+const config = require('./config')
 const req = require('url').parse(config.GITHUB_RELEASE_API)
+const REGEX_ZIP_URL = /\/(v)?(\d+\.\d+\.\d+)\/.*\.zip/
+
+let updateListener
+
 req.headers = { 'User-Agent': 'michealparks' }
 
-if (process.platform === 'linux') {
-  initLinux()
-} else {
-  initDarwinWin32()
+function initUpdater () {
+  if (__dev__) {
+    autoUpdater.on('error', e =>
+      console.error('update error: ', e))
+    autoUpdater.on('checking-for-update', e =>
+      console.log('checking for update: ', e))
+    autoUpdater.on('update-available', e =>
+      console.log('update available: ', e))
+    autoUpdater.on('update-not-available', e =>
+      console.log('update not available: ', e))
+  }
+
+  autoUpdater.on('update-downloaded', (msg) =>
+    autoUpdater.quitAndInstall())
+
+  check(onCheck)
+
+  setInterval(() =>
+    check(onCheck), config.CHECK_UPDATE_INTERVAL)
+
+  return {onUpdateAvailable}
 }
 
-function initLinux () {
-  // autoupdating features don't exist...
+function onUpdateAvailable (listener) {
+  updateListener = listener
 }
 
-function isValid (tag) {
-  return tag.slice(1).split('.').length === 3
+function check (next) {
+  return getLatestTag((err, tag) => {
+    if (err) next(err)
+
+    if (tag === undefined || !isValid(tag)) {
+      next({ type: 'error', msg: 'Could not find a valid release tag.' })
+    }
+
+    if (!isNewerVersionAvailable(tag)) {
+      next({ type: 'warn', msg: 'There is no newer version.' })
+    }
+
+    getFeedURL(tag, next)
+  })
+}
+
+function onCheck (err, feedUrl) {
+  if (err) return console.error(err)
+  autoUpdater.setFeedURL(feedUrl)
+  autoUpdater.checkForUpdates()
 }
 
 function getLatestTag (next) {
@@ -32,14 +72,26 @@ function getLatestTag (next) {
   .setTimeout(10000)
 }
 
+function isValid (tag) {
+  return tag.slice(1).split('.').length === 3
+}
+
 function isNewerVersionAvailable (latest) {
   const latestArr = latest.slice(1).split('.')
   const currentArr = config.APP_VERSION.slice(1).split('.')
 
   // Major version update
-  if (Number(latestArr[0]) > Number(currentArr[0])) return true
+  if (Number(latestArr[0]) > Number(currentArr[0])) {
+    if (updateListener) updateListener(latest)
+    return true
+  }
+
   // Minor version update
-  if (Number(latestArr[1]) > Number(currentArr[1])) return true
+  if (Number(latestArr[1]) > Number(currentArr[1])) {
+    if (updateListener) updateListener(latest)
+    return true
+  }
+
   // Patch update
   if (Number(latestArr[2]) > Number(currentArr[2])) return true
   // No update
@@ -96,43 +148,7 @@ function getFeedURL (tag, next) {
 
         return next(undefined, `${config.GITHUB_URL_RAW}/updater.json`)
       })
-    }).on('error', next)
-}
-
-function check (next) {
-  return getLatestTag((err, tag) => err
-    ? next(err)
-    : (!tag || !isValid(tag))
-    ? next({ type: 'error', msg: 'Could not find a valid release tag.' })
-    : !isNewerVersionAvailable(tag)
-    ? next({ type: 'warn', msg: 'There is no newer version.' })
-    : getFeedURL(tag, next))
-}
-
-function initDarwinWin32 () {
-  const updater = electron.autoUpdater
-
-  if (dev) {
-    updater.on('error', e => console.error(e))
-    updater.on('checking-for-update', e => console.log(e))
-    updater.on('update-available', e => console.log(e))
-    updater.on('update-not-available', e => console.log(e))
-  }
-
-  updater.on('update-downloaded', (msg) => {
-    if (dev) console.log('update-downloaded', msg)
-    return updater.quitAndInstall()
-  })
-
-  function onCheck (err, feedUrl) {
-    if (err) return console.error(err)
-
-    if (dev) console.log('feed-url', feedUrl)
-    updater.setFeedURL(feedUrl)
-    updater.checkForUpdates()
-  }
-
-  check(onCheck)
-
-  return setInterval(() => check(onCheck), config.CHECK_UPDATE_INTERVAL)
+    })
+    .on('error', next)
+    .setTimeout(10000)
 }

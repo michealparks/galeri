@@ -24,6 +24,11 @@ const startArgs = process.platform.indexOf('win32') !== -1
 let isFavorited = false
 let isPaused = false
 
+ipc.on('main:update-available', (e, feedUrl) => {
+  console.log(feedUrl)
+  document.body.classList.add('update-message')
+})
+
 ipc.on('background:artwork', (e, artwork) => {
   toggleFavorite(artwork.isFavorited || false)
   ArtSource.textContent = artwork.source

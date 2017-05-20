@@ -1,5 +1,6 @@
 module.exports = updateImage
 
+const linux = process.platform === 'linux'
 const ipc = require('electron').ipcRenderer
 const storage = require('../util/storage')
 const fill = require('./background')
@@ -37,7 +38,7 @@ function onImageFill (err) {
     ipc.send('background:rendered')
   }
 
-  imageCount += 1
+  if (!linux) imageCount += 1
 
   if (imageCount === restartCount) {
     ipc.send('background:updated')
