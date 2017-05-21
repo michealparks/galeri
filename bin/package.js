@@ -19,6 +19,7 @@ const del = require('del')
 const series = require('run-series')
 const zip = require('cross-zip')
 const html = require('./html')
+const packLinux = require('./pack.linux')
 const config = require('../config')
 const pkg = require('../package.json')
 
@@ -49,13 +50,13 @@ function build () {
   switch (argv._[0]) {
     case 'darwin': return buildDarwin(printDone)
     case 'win32' : return buildWin32(printDone)
-    case 'linux' : return buildLinux(printDone)
+    case 'linux' : return packLinux(printDone)
     default:
       buildDarwin((err) => {
         printDone(err)
         buildWin32((err) => {
           printDone(err)
-          buildLinux(printDone)
+          packLinux(printDone)
         })
       })
   }

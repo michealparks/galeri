@@ -2,7 +2,11 @@
   "name": "Galeri",
   "productName": "Galeri",
   "version": "0.0.28",
-  "author": "Micheal Parks",
+  "author": {
+    "name": "Micheal Parks",
+    "email": "michealparks1989@gmail.com",
+    "url": "https://www.galeri.io"
+  },
   "description": "A perpetual artwork streaming app.",
   "main": "main.js",
   "private": true,
@@ -35,7 +39,8 @@
     "electron": "./node_modules/.bin/electron"
   },
   "engines": {
-    "node": ">=6.0.0"
+    "node": ">=6.0.0",
+    "npm": ">=4.0.0"
   },
   "optionalDependencies": {
     "appdmg": "^0.4.5"
@@ -54,6 +59,7 @@
     "depcheck": "^0.6.7",
     "devtron": "^1.4.0",
     "electron": "^1.6.8",
+    "electron-builder": "^17.10.0",
     "electron-debug": "^1.1.0",
     "electron-devtools-installer": "^2.2.0",
     "electron-osx-sign": "^0.4.4",
@@ -78,14 +84,5 @@
       "fetch",
       "localStorage"
     ]
-  },
-  "build": {
-    "appId": "galeri.by.micheal.parks",
-    "category": "public.app-category.lifestyle",
-    "copyright": "Copyright © 2016 Micheal Parks",
-    "linux": {
-      "fpm": ["--depends", "libappindicator1"]
-    }
-  },
-  "productName": "Galeri"
+  }
 }
