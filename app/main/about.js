@@ -5,16 +5,16 @@ const {BrowserWindow} = require('electron')
 const config = require('../../config')
 const {getUrl} = require('./util')
 
-let aboutWin
+let win
 
 function openAbout () {
-  if (aboutWin !== undefined) {
-    aboutWin.focus()
-    aboutWin.restore()
-    return aboutWin.id
+  if (win !== undefined) {
+    win.focus()
+    win.restore()
+    return win.id
   }
 
-  aboutWin = new BrowserWindow({
+  win = new BrowserWindow({
     title: 'About Galeri',
     icon: config.APP_ICON,
     center: true,
@@ -32,15 +32,16 @@ function openAbout () {
     }
   })
 
-  aboutWin.once('ready-to-show', aboutWin.show)
-  aboutWin.on('close', onClose)
-  aboutWin.loadURL(getUrl('about'))
+  win.setMenuBarVisibility(false)
+  win.once('ready-to-show', win.show)
+  win.on('close', onClose)
+  win.loadURL(getUrl('about'))
 
-  if (__dev__) aboutWin.openDevTools({ mode: 'detach' })
+  if (__dev__) win.openDevTools({ mode: 'detach' })
 
-  return aboutWin.id
+  return win.id
 }
 
 function onClose () {
-  aboutWin = undefined
+  win = undefined
 }

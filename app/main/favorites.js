@@ -59,6 +59,8 @@ function openFavorites () {
   }
 
   win = new BrowserWindow(winConfig)
+
+  win.setMenuBarVisibility(false)
   win.once('ready-to-show', win.show)
   win.on('close', onClose)
   win.loadURL(getUrl('favorites'))
