@@ -1,35 +1,46 @@
-const __dev__ = process.argv[2] === 'dev'
+module.exports = runStylus
+
 const stylus = require('stylus')
 const fs = require('fs')
-const resolve = require('path').resolve
-const root = resolve(__dirname, '..')
+const r = require('path').resolve
+const root = r(__dirname, '..')
 
-function getFilePath (file) {
-  return resolve(root, 'app/styles', file)
+function runStylus (args) {
+  return new Promise((resolve, reject) =>
+    fs.readdir(r(root, 'app/styles'), (err, files) => err
+      ? reject(err)
+      : resolve(files))
+  ).then(files => {
+    if (args.watch) {
+      files.forEach(file => {
+        console.log('watching', file)
+        fs.watch(getFilePath(file), () => compile(file))
+      })
+      return Promise.resolve()
+    }
+
+    return Promise.all(files.map(compile))
+  })
 }
 
 function compile (file) {
-  const name = file.replace('.styl', '.css')
-  console.log('compiling', name)
-  fs.readFile(getFilePath(file), 'utf-8', (err, str) => {
-    if (err) return console.error(err)
-    stylus.render(str, { filename: name }, (err, css) => {
-      if (err) return console.error(err)
-      fs.writeFile(resolve(root, 'build', name), css, () => {
-        if (err) return console.error(err)
-      })
-    })
-  })
+  const filename = file.replace('.styl', '.css')
+  console.log('compiling', filename)
+
+  return new Promise((resolve, reject) =>
+    fs.readFile(getFilePath(file), 'utf-8', (err, str) => err
+      ? reject(err)
+      : stylus.render(str, { filename }, (err, css) => err
+        ? reject(err)
+        : fs.writeFile(r(root, 'build', filename), css, () => err
+          ? reject(err)
+          : resolve(filename)
+        )
+      )
+    )
+  )
 }
 
-fs.readdir(resolve(root, 'app/styles'), (err, files) => {
-  if (err) return console.error(err)
-
-  if (!__dev__) return files.forEach(compile)
-
-  files.forEach((file) => {
-    console.log('watching', file)
-    compile(file)
-    fs.watch(getFilePath(file), () => compile(file))
-  })
-})
+function getFilePath (file) {
+  return r(root, 'app/styles', file)
+}

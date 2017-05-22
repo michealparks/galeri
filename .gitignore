@@ -1,10 +1,12 @@
 node_modules/
-bower_components/
-release/
+dist/
+
 *.log
 
-build/
-dist/
+build/*.css
+build/*.html
+build/*.js
+
 main.js
 
 .DS_Store

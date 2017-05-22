@@ -1,10 +1,11 @@
-const __devOnce__ = process.argv[2] === 'dev-once'
-const __dev__ = process.argv[2] === 'dev' || __devOnce__
+const __dev__ = process.argv[2] === 'dev'
+const __watch__ = process.argv[3] === 'watch'
 const env = JSON.stringify(__dev__ ? 'development' : 'production')
 const {resolve} = require('path')
 const webpack = require('webpack')
 const BabiliPlugin = require('babili-webpack-plugin')
 const html = require('./bin/html')
+const runStylus = require('./bin/stylus')
 
 const IGNORES = []
 
@@ -79,16 +80,42 @@ const rendererConfig = {
   }
 }
 
+if (__dev__) {
+  webpackRun({ watch: __watch__ })
+    .catch(err => console.error(err))
+} else {
+  webpackRun({ watch: false })
+    .then(html)
+    .then(() => console.log('finished compiling'))
+    .catch(err => console.error(err))
+}
+
+function webpackRun ({ watch }) {
+  return Promise.all([
+    pack(rendererConfig, watch),
+    pack(mainConfig, watch),
+    runStylus({ watch })
+  ])
+}
+
+function pack (config, watch) {
+  return new Promise((resolve, reject) => {
+    const compiler = webpack(config)
+
+    if (watch) {
+      compiler.watch({}, report)
+      resolve()
+    }
+
+    compiler.run((err, stats) => err
+      ? report(err) && reject(err)
+      : report(null, stats) && resolve()
+    )
+  })
+}
+
 function report (err, stats) {
   if (err) console.error(err)
   if (stats) console.log(stats.toString({ chunks: false, colors: true }))
-}
-
-if (__dev__ && !__devOnce__) {
-  webpack(rendererConfig).watch({ ignored: /node_modules/ }, report)
-  webpack(mainConfig).watch({ ignored: /node_modules/ }, report)
-} else {
-  webpack(rendererConfig).run(report)
-  webpack(mainConfig).run(report)
-  html()
+  return true
 }

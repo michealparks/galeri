@@ -11,19 +11,18 @@
   "main": "main.js",
   "private": true,
   "scripts": {
-    "rebuild": "./node_modules/.bin/electron-rebuild",
     "test": "depcheck",
     "start:dev": "cross-env NODE_ENV=development electron ./main.development",
+    "start:prod": "cross-env NODE_ENV=production electron ./main.development",
     "start": "cross-env NODE_ENV=production electron ./main",
-    "webpack:dev": "node webpack.js dev",
-    "webpack:dev-once": "node webpack.js dev-once && node ./bin/stylus",
-    "dev": "npm run webpack:dev-once && concurrently --kill-others \"npm run start:dev\" \"node ./bin/stylus dev\" \"npm run webpack:dev\"",
-    "dev:prod": "concurrently --kill-others \"cross-env NODE_ENV=production electron ./main.development\" \"node ./bin/stylus dev\"",
-    "build": "node webpack.js prod",
+    "wp:dev": "node webpack.js dev",
+    "dev": "npm run wp:dev && concurrently -k \"npm run wp:dev watch\" \"npm run start:dev\"",
+    "build": "node webpack.js",
     "package": "cross-env NODE_ENV=production node ./bin/package",
     "package:mac": "node webpack.js && node ./bin/package darwin --sign",
     "package:win": "node webpack.js && node ./bin/package win32",
-    "package:linux": "node webpack.js && node ./bin/package linux",
+    "pack:mac": "node webpack && build --mac",
+    "pack:linux": "node webpack && build --linux",
     "analytics": "open -a \"Google Chrome\" bin/analytics.html"
   },
   "repository": {
@@ -62,7 +61,7 @@
     "electron-builder": "^17.10.0",
     "electron-debug": "^1.1.0",
     "electron-devtools-installer": "^2.2.0",
-    "electron-osx-sign": "^0.4.4",
+    "electron-osx-sign": "^0.4.5",
     "electron-packager": "^8.7.0",
     "electron-winstaller": "^2.5.2",
     "html-minifier": "^3.5.0",
@@ -84,5 +83,55 @@
       "fetch",
       "localStorage"
     ]
+  },
+  "build": {
+    "appId": "io.galeri.app",
+    "copyright": "Copyright © 2016 - 2017 Micheal Parks",
+    "productName": "Galeri",
+    "files": [
+      "package.json",
+      "LICENSE",
+      "main.js",
+      "build/**/*",
+      "assets"
+    ],
+    "compression": "maximum",
+    "mac": {
+      "category": "public.app-category.education"
+    },
+    "linux": {
+      "target": [
+        "deb",
+        "snap"
+      ],
+      "category": "Education",
+      "synopsis": "A perpetual artwork streaming app.",
+      "desktop": {
+        "Type": "Application",
+        "Encoding": "UTF-8",
+        "Name": "Galeri",
+        "Version": "1.0",
+        "X-GNOME-FullName": "Galeri",
+        "Comment": "A perpetual artwork streaming app.",
+        "Icon": "Galeri",
+        "Terminal": "false",
+        "Path": "/opt/galeri",
+        "Exec": "/opt/galeri/Galeri %U",
+        "TryExec": "/opt/galeri/Galeri",
+        "StartupNotify": "false",
+        "Categories": "Productivity;Education"
+      }
+    },
+    "snap": {
+      "plugs": [
+        "home",
+        "x11",
+        "unity7",
+        "browser-support",
+        "network",
+        "gsettings",
+        "opengl"
+      ]
+    }
   }
 }
