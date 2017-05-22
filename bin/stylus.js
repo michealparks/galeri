@@ -1,6 +1,7 @@
 module.exports = runStylus
 
 const stylus = require('stylus')
+const autoprefixer = require('autoprefixer-stylus')
 const fs = require('fs')
 const r = require('path').resolve
 const root = r(__dirname, '..')
@@ -30,7 +31,10 @@ function compile (file) {
   return new Promise((resolve, reject) =>
     fs.readFile(getFilePath(file), 'utf-8', (err, str) => err
       ? reject(err)
-      : stylus.render(str, { filename }, (err, css) => err
+      : stylus(str)
+        .use(autoprefixer({ browsers: ['last 1 Chrome versions'] }))
+        .set('filename', filename)
+        .render((err, css) => err
         ? reject(err)
         : fs.writeFile(r(root, 'build', filename), css, () => err
           ? reject(err)
