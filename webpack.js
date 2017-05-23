@@ -105,12 +105,11 @@ function pack (config, watch) {
     if (watch) {
       compiler.watch({}, report)
       resolve()
+    } else {
+      compiler.run((err, stats) => err
+        ? report(err) && reject(err)
+        : report(null, stats) && resolve())
     }
-
-    compiler.run((err, stats) => err
-      ? report(err) && reject(err)
-      : report(null, stats) && resolve()
-    )
   })
 }
 

@@ -18,7 +18,6 @@ const winConfig = {
   resizable: false,
   transparent: true,
   skipTaskbar: !linux,
-  hasShadow: false,
   thickFrame: false,
   show: false,
   frame: linux,

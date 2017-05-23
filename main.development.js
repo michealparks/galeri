@@ -15,6 +15,7 @@ const initMenubar = require('./app/main/menubar')
 const {app, BrowserWindow} = electron
 
 let screen, lastWinId, currentWinId
+let isAllowedResize = true
 let windows = []
 
 // Handle restart due to windows updates
@@ -65,7 +66,15 @@ function onReady () {
 
   initMenubar()
 
-  screen.on('display-metrics-changed', resizeBackgrounds)
+  screen.on('display-metrics-changed', (e, display) => {
+    for (let i = 0, l = windows.length; i < l; ++i) {
+      if (windows[i].display.id === display.id) {
+        isAllowedResize = false
+        return windows[i].setBounds(display.bounds, false)
+      }
+    }
+  })
+
   screen.on('display-added', onDisplayAdded)
   screen.on('display-removed', onDisplayRemoved)
 
@@ -225,6 +234,11 @@ function makeWindow (type, display) {
 }
 
 function resizeBackgrounds () {
+  if (!isAllowedResize) {
+    isAllowedResize = true
+    return
+  }
+
   setTimeout(() => {
     for (let win, i = 0, l = windows.length; i < l; ++i) {
       win = windows[i]
