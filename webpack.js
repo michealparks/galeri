@@ -7,11 +7,9 @@ const BabiliPlugin = require('babili-webpack-plugin')
 const html = require('./bin/html')
 const runStylus = require('./bin/stylus')
 
-const IGNORES = []
-
-const externals = [
+const makeExternals = (ignores) => [
   (context, request, callback) =>
-    IGNORES.indexOf(request) >= 0
+    ignores.indexOf(request) >= 0
       ? callback(null, `require('${request}')`)
       : callback()
 ]
@@ -32,7 +30,7 @@ const mainConfig = {
       }
     ]
   },
-  externals: externals,
+  externals: makeExternals([]),
   plugins: [
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': env,
@@ -67,7 +65,7 @@ const rendererConfig = {
       }
     ]
   },
-  externals: externals,
+  externals: makeExternals([]),
   plugins: [
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': env,

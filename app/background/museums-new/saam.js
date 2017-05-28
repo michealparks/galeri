@@ -76,7 +76,7 @@ function onGetCollection (err, response, category) {
 
   page[category] = nextPages[category].pop()
 
-  if (callbackRef) {
+  if (callbackRef !== undefined) {
     getNextArtwork(category, callbackRef)
   }
 }

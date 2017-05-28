@@ -5,16 +5,14 @@ const shuffle = require('../util/shuffle')
 const parseHTML = require('../util/html-parser')
 const {screenWidth} = require('../util/screen')
 const {restoreData, getCollection} = require('./helpers')
+
 const pixelRegex = /[0-9]{3,4}px/
 const parenRegex = / *\([^)]*\) */g
+const artworks = {}
 
 let callbackRef
 
-const nextPages = {}
-const page = {}
-const artworks = {}
-
-restoreData(['wikipedia:Paintings'], artworks, nextPages, page, 20)
+restoreData(['wikipedia:Paintings'], artworks)
 
 function getNextArtwork (category, next) {
   const artwork = artworks[category].pop()
@@ -35,9 +33,7 @@ function getNextArtwork (category, next) {
 
 function getConfig (category) {
   return {
-    artworks: artworks[category],
-    nextPages: nextPages[category],
-    page: page[category]
+    artworks: artworks[category]
   }
 }
 

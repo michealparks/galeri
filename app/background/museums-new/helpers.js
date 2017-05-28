@@ -15,9 +15,13 @@ function restoreData (types, artworks, nextPages, page, max) {
 
     artworks[dataKey] = data.artworks || []
 
-    if (nextPages) nextPages[dataKey] = data.nextPages || []
+    if (nextPages !== undefined) {
+      nextPages[dataKey] = data.nextPages || []
+    }
 
-    page[dataKey] = data.page || Math.ceil(Math.random() * max)
+    if (page !== undefined) {
+      page[dataKey] = data.page || Math.ceil(Math.random() * max)
+    }
   }
 }
 

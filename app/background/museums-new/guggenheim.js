@@ -21,12 +21,14 @@ restoreData([
 function getNextArtwork (category, next) {
   let artwork
 
-  if (artworks[category].length > 0) {
-    do {
-      if (artworks[category].length === 0) break
-      artwork = artworks[category].pop()
-    } while (artwork.naturalWidth < screenWidth() ||
-             artwork.naturalHeight < screenHeight())
+  while (artworks[category].length > 0) {
+    const pending = artworks[category].pop()
+
+    if (pending.naturalWidth >= screenWidth() &&
+        pending.naturalHeight >= screenHeight()) {
+      artwork = pending
+      break
+    }
   }
 
   if (artwork === undefined) {

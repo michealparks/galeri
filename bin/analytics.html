@@ -62,17 +62,16 @@ let totalUpdates = 0
 
 const endpoint = 'https://api.github.com/repos/michealparks/galeri-www/releases'
 const body = document.createDocumentFragment()
-const xhr = new window.XMLHttpRequest()
+const xhr = new XMLHttpRequest()
 
 xhr.open('GET', endpoint, true)
 xhr.responseType = 'json'
 xhr.timeout = 10000
 xhr.ontimeout = xhr.onerror = writeError
 
-xhr.onload = () => {
-  if (xhr.status === 200) return writeVersionStats()
-  return writeError()
-}
+xhr.onload = () => xhr.status === 200
+  ? writeVersionStats()
+  : writeError()
 
 xhr.send()
 
