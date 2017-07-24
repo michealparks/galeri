@@ -4,7 +4,9 @@ const configPath = require('../shared/app-config-path')('Galeri Favorites')
 const Favorites = document.getElementById('favorites')
 const NoFavorites = document.getElementById('no-favorites')
 
-if (process.platform === 'linux') document.body.classList.add('linux')
+if (process.platform === 'linux') {
+  document.body.classList.add('linux')
+}
 
 document.body.onclick = (e) => {
   const {target} = e
@@ -15,6 +17,7 @@ document.body.onclick = (e) => {
 
   if (target.classList.contains('info')) {
     const href = target.getAttribute('data-href')
+
     return open(href.indexOf('https://metmuseum.org') !== -1
       ? href.replace('https', 'http')
       : href)

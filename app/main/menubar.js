@@ -11,7 +11,7 @@ const {getUrl} = require('./util')
 const win32 = process.platform === 'win32'
 const linux = process.platform === 'linux'
 
-const winConfig = {
+const opts = {
   title: '',
   icon: config.APP_ICON,
   alwaysOnTop: __dev__,
@@ -102,7 +102,7 @@ function createWindow () {
     return
   }
 
-  win = new electron.BrowserWindow(winConfig)
+  win = new electron.BrowserWindow(opts)
 
   win.setVisibleOnAllWorkspaces(true)
   win.setMenuBarVisibility(false)
@@ -150,8 +150,8 @@ function showWindow (bounds) {
   const winPosition = win32 ? 'trayBottomCenter' : 'trayCenter'
   const position = calculatePosition(
     electron.screen,
-    winConfig.width,
-    winConfig.height,
+    opts.width,
+    opts.height,
     noBoundsPosition || winPosition,
     bounds)
 

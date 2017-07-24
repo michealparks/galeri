@@ -1,11 +1,11 @@
 module.exports = {getNextArtwork, getConfig}
 
+const apiKey = require('./api-keys').rijks
 const {isNullUndefined} = require('../util')
-const validate = require('../util/img-size')
 const shuffle = require('../util/shuffle')
+const {screenWidth, screenHeight} = require('../util/screen')
 const {restoreData, getCollection, getNextPages} = require('./helpers')
-const parseHTML = require('../util/html-parser')
-const perPage = 20
+const perPage = 30
 
 let callbackRef
 
@@ -14,18 +14,27 @@ const nextPages = {}
 const page = {}
 
 restoreData([
-  'met_acrylic:acrylic on canvas',
-  'met_oil:oil on canvas',
-  'met_ink:ink and color on paper'
+  'rijks_painting:type=painting',
+  'rijks_drawing:material=paper&type=drawing&technique=brush'
 ], artworks, nextPages, page, 20)
 
 function getNextArtwork (category, next) {
-  const artwork = artworks[category].pop()
+  let artwork
+
+  while (artworks[category].length > 0) {
+    const pending = artworks[category].pop()
+
+    if (pending.naturalWidth >= screenWidth() &&
+        pending.naturalHeight >= screenHeight()) {
+      artwork = pending
+      break
+    }
+  }
 
   if (artwork === undefined) {
     callbackRef = next
   } else {
-    validate(artwork, next)
+    next(undefined, artwork)
     callbackRef = undefined
   }
 
@@ -52,35 +61,29 @@ function onGetCollection (err, response, category) {
     return __dev__ && console.warn(err)
   }
 
-  for (let art, i = 0, r = response.results || [], l = r.length; i < l; ++i) {
+  for (let art, i = 0, r = response.artObjects || [], l = r.length; i < l; ++i) {
     art = r[i]
 
-    if (isNullUndefined(art.image) ||
-        isNullUndefined(art.subTitle) ||
-        art.image.indexOf('.ashx') > -1 ||
-        art.image.indexOf('NoImageAvailableIcon.png') > -1) continue
+    if (isNullUndefined(art.webImage) ||
+        isNullUndefined(art.links)) continue
 
-    if (art.image.indexOf('http') === -1) {
-      art.image = 'http://metmuseum.org/' + art.image
-    }
+    const text = art.longTitle.split(',')
 
     artworks[category].push({
-      source: 'The Metropolitan Museum of Art',
-      href: `http://metmuseum.org${art.url}`,
-      img: art.image.replace('web-thumb', 'original'),
-      title: parseHTML(art.title).textContent,
-      text: parseHTML(art.subTitle).textContent,
-      naturalWidth: 0,
-      naturalHeight: 0,
-      isFavorited: false
+      source: 'Rijksmuseum',
+      href: art.links.web,
+      img: art.webImage.url,
+      naturalWidth: art.webImage.width,
+      naturalHeight: art.webImage.height,
+      title: text[0],
+      text: text.slice(1).join(', ')
     })
   }
 
   shuffle(artworks[category])
 
   if (nextPages[category].length === 0) {
-    const totalPages = Math.ceil(response.totalResults / perPage)
-    nextPages[category] = getNextPages(page[category], totalPages, 0)
+    nextPages[category] = getNextPages(page[category], response.count, perPage)
   }
 
   page[category] = nextPages[category].pop()
@@ -91,8 +94,9 @@ function onGetCollection (err, response, category) {
 }
 
 function makeReqUrl (category) {
-  return 'https://metmuseum.org/api/collection/search' +
-    '?q=' + encodeURIComponent(category) +
-    '&perPage=' + perPage +
-    '&page=' + page[category]
+  return 'https://www.rijksmuseum.nl/api/en/collection' +
+    '?key=' + apiKey +
+    '&format=json&ps=' + perPage +
+    '&p=' + page[category] +
+    '&imgonly=True&' + category
 }
