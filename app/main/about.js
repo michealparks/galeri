@@ -1,6 +1,5 @@
 module.exports = openAbout
 
-const __dev__ = process.env.NODE_ENV === 'development'
 const {BrowserWindow} = require('electron')
 const config = require('../../config')
 const {getUrl} = require('./util')

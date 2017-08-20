@@ -1,4 +1,3 @@
-const linux = process.platform === 'linux'
 const ipc = require('electron').ipcRenderer
 const autolaunch = require('./autolaunch')
 const LabelLocationBtn = document.getElementById('label-location')
@@ -6,7 +5,6 @@ const UpdateRateBtn = document.getElementById('update-rate')
 const AutolaunchBtn = document.getElementById('autolaunch')
 const FavoriteBtn = document.getElementById('btn-favorite')
 const PlayPauseBtn = document.getElementById('btn-toggle')
-const AppClassList = document.getElementById('app').classList
 const ArtSource = document.getElementById('artwork-source')
 const ArtLink = document.getElementById('artwork-link')
 const Title = document.getElementById('artwork-title')
@@ -15,7 +13,9 @@ const Text = document.getElementById('artwork-text')
 let isFavorited = false
 let isPaused = false
 
-if (linux) document.body.classList.add('linux')
+if (__linux__) {
+  document.body.classList.add('linux')
+}
 
 ipc.on('main:update-available', (e, version) => {
   document.body.classList.add('update-message')
@@ -27,7 +27,6 @@ ipc.on('background:artwork', (e, artwork) => {
   ArtLink.href = artwork.href
   Title.textContent = truncate(artwork.title, 50)
   Text.textContent = truncate(artwork.text, 90)
-  AppClassList.remove('app--updating')
 })
 
 ipc.on('background:label-location', (e, location) => {
@@ -69,16 +68,17 @@ PlayPauseBtn.onclick = () => {
 setTimeout(() =>
   autolaunch.isEnabled(isEnabled => {
     AutolaunchBtn.checked = isEnabled
-  }), 500)
+  })
+, 500)
 
 function toggleFavorite (flag) {
   isFavorited = flag
-  FavoriteBtn.classList.toggle('btn-favorite--active', isFavorited)
+  FavoriteBtn.classList.toggle('active', isFavorited)
 }
 
 function togglePlay (flag) {
   isPaused = flag
-  PlayPauseBtn.classList.toggle('btn-toggle--paused', isPaused)
+  PlayPauseBtn.classList.toggle('paused', isPaused)
 }
 
 function truncate (str, len) {

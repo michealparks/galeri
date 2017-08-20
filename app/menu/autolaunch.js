@@ -1,7 +1,5 @@
 module.exports = {enable, disable, isEnabled}
 
-const linux = process.platform === 'linux'
-const win32 = process.platform === 'win32'
 const fs = require('fs')
 const path = require('path')
 const home = require('os').homedir()
@@ -9,18 +7,25 @@ const electron = require('electron')
 const mkdirp = require('../shared/mkdirp')
 const appName = 'Galeri'
 const filePath = `${getDirectory() + appName}.desktop`
-const appPath = win32
-  ? path.resolve(path.dirname(process.execPath), '..', 'Update.exe')
-  : linux
-  ? electron.remote.app.getPath('exe').split('.app/Content')[0] + '.app'
-  : process.execPath
 
-const startArgs = win32
-  ? [
+let appPath
+
+if (__win32__) {
+  appPath = path.resolve(path.dirname(process.execPath), '..', 'Update.exe')
+} else if (__linux__) {
+  appPath = electron.remote.app.getPath('exe').split('.app/Content')[0] + '.app'
+} else {
+  appPath = process.execPath
+}
+
+let startArgs
+
+if (__win32__) {
+  startArgs = [
     '--processStart', `"${path.basename(process.execPath)}"`,
     '--process-start-args', `"--hidden"`
   ]
-  : undefined
+}
 
 const data = (appName, appPath) => `
 [Desktop Entry]
@@ -34,7 +39,7 @@ Terminal=false
 `
 
 function enable () {
-  if (!linux) return toggle(true)
+  if (!__linux__) return toggle(true)
 
   createFile({
     data: data(appName, appPath),
@@ -44,7 +49,7 @@ function enable () {
 }
 
 function disable (next) {
-  if (!linux) return toggle(false)
+  if (!__linux__) return toggle(false)
 
   fs.stat(filePath, (statErr) => statErr
     ? next && next(statErr)
@@ -62,7 +67,7 @@ function toggle (isEnabled) {
 }
 
 function isEnabled (next) {
-  if (linux) {
+  if (__linux__) {
     return fs.stat(filePath, (err, stat) => err
       ? next(false)
       : next(stat !== null && stat !== undefined))

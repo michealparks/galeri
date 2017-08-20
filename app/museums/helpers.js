@@ -1,5 +1,6 @@
 module.exports = {restoreData, getCollection, getNextPages}
 
+const http2 = require('http2')
 const shuffle = require('../util/shuffle')
 
 const museumData = (() => {
@@ -25,17 +26,32 @@ function restoreData (types, artworks, nextPages, page, max) {
   }
 }
 
-function getCollection (next, url, category, responseType) {
-  const xhr = new XMLHttpRequest()
-  const errHandler = onError.bind(xhr, next)
+function tryParse (body) {
+  try {
+    return JSON.parse(body)
+  } catch (e) {
+    return undefined
+  }
+}
 
-  xhr.open('GET', url, true)
-  xhr.responseType = responseType || 'json'
-  xhr.timeout = 10000
-  xhr.onload = onLoad.bind(xhr, next, category)
-  xhr.ontimeout = errHandler
-  xhr.onerror = errHandler
-  xhr.send()
+function getCollection (next, url, category, responseType) {
+  const errHandler = onError.bind(undefined, next)
+
+  const request = http2.get(url, (res) => {
+    if (res.status !== 200) {
+      return next(1)
+    }
+
+    let body = ''
+    res.on('error', errHandler)
+    res.on('data', (d) => { body += d })
+    res.on('end', () => next(undefined, tryParse(body), category))
+  })
+
+  request.on('error', errHandler)
+  request.setTimeout(10000)
+
+  return request
 }
 
 function getNextPages (currentPage, totalPages, startPage) {
@@ -48,15 +64,6 @@ function getNextPages (currentPage, totalPages, startPage) {
   shuffle(nextPages)
 
   return nextPages
-}
-
-function onLoad (next, category) {
-  if (this.status !== 200) {
-    if (__dev__) console.warn(this)
-    return next(1)
-  }
-
-  next(undefined, this.response, category)
 }
 
 function onError (next, e) {

@@ -4,7 +4,7 @@ const configPath = require('../shared/app-config-path')('Galeri Favorites')
 const Favorites = document.getElementById('favorites')
 const NoFavorites = document.getElementById('no-favorites')
 
-if (process.platform === 'linux') {
+if (__linux__) {
   document.body.classList.add('linux')
 }
 

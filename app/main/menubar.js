@@ -1,6 +1,5 @@
 module.exports = initMenubar
 
-const __dev__ = process.env.NODE_ENV === 'development'
 const electron = require('electron')
 const config = require('../../config')
 const calculatePosition = require('./positioner')
@@ -8,8 +7,6 @@ const initUpdater = require('./updater')
 const {getArt, addListener} = require('./ipc')
 const {isArtFavorited} = require('./favorites')
 const {getUrl} = require('./util')
-const win32 = process.platform === 'win32'
-const linux = process.platform === 'linux'
 
 const opts = {
   title: '',
@@ -17,10 +14,10 @@ const opts = {
   alwaysOnTop: __dev__,
   resizable: false,
   transparent: true,
-  skipTaskbar: !linux,
+  skipTaskbar: !__linux__,
   thickFrame: false,
   show: false,
-  frame: linux,
+  frame: __linux__,
   width: 250,
   height: 320,
   webPreferences: {
@@ -39,39 +36,37 @@ if (electron.systemPreferences.subscribeNotification !== undefined) {
     () => tray && tray.setImage(getImage()))
 }
 
-if (!linux) {
+if (!__linux__) {
   addListener('background:artwork', (art) =>
     tray.setToolTip(`${art.title}\n${art.text}\n${art.source}`))
 }
 
-if (linux) {
+if (__linux__) {
   electron.app.on('before-quit', () => {
     if (win) win.destroy()
-  })
-
-  electron.app.on('activate', (e) => {
-    console.log(e)
   })
 }
 
 addListener('favorites:delete', (href) =>
-  getArt().href === href && win.webContents.send('favorites:delete'))
+  getArt().href === href && sendEvent('favorites:delete'))
+
 addListener('background:is-paused', (paused) =>
-  win !== undefined &&
-  win.webContents.send('background:is-paused', paused))
+  sendEvent('background:is-paused', paused))
+
 addListener('background:label-location', (l) =>
-  win !== undefined &&
-  win.webContents.send('background:label-location', l))
+  sendEvent('background:label-location', l))
+
 addListener('background:update-rate', (rate) =>
-  win !== undefined &&
-  win.webContents.send('background:update-rate', rate))
+  sendEvent('background:update-rate', rate))
+
 addListener('menubar:loaded', () => {
   const art = getArt()
   art.isFavorited = isArtFavorited(art.href)
-  win.webContents.send('background:artwork', art)
 
-  if (linux && updateVersion !== undefined) {
-    win.webContents.send('main:update-available', updateVersion)
+  sendEvent('background:artwork', art)
+
+  if (__linux__ && updateVersion !== undefined) {
+    sendEvent('main:update-available', updateVersion)
   }
 })
 
@@ -79,27 +74,29 @@ initUpdater().onUpdateAvailable((version) => {
   updateVersion = version
 })
 
+function sendEvent (e, data) {
+  return win !== undefined && win.webContents.send(e, data)
+}
+
 function getImage () {
-  return electron.systemPreferences.isDarkMode() || linux
+  return electron.systemPreferences.isDarkMode() || __linux__
     ? config.TRAY_ICON_DARK
     : config.TRAY_ICON
 }
 
 function initMenubar () {
-  if (linux) {
-    createWindow()
-  } else {
+  if (!__linux__) {
     tray = new electron.Tray(getImage())
     tray.on('click', onClick)
     tray.on('double-click', onClick)
   }
+
+  createWindow()
 }
 
 function createWindow () {
   if (win !== undefined) {
-    win.focus()
-    win.restore()
-    return
+    return win.focus() && win.restore()
   }
 
   win = new electron.BrowserWindow(opts)
@@ -112,42 +109,41 @@ function createWindow () {
   win.once('ready-to-show', win.show)
 
   win.on('close', onClose)
-  if (!__dev__ && !linux) win.on('blur', hideWindow)
+
+  if (!__dev__ && !__linux__) {
+    win.on('blur', hideWindow)
+  }
 
   return win.loadURL(getUrl('menubar'))
 }
 
 function onClose (e) {
-  if (linux) {
+  if (__linux__) {
     e.preventDefault()
     win.minimize()
-
-    if (electron.app.dock) {
-      electron.app.dock.bounce()
-      setTimeout(electron.app.dock.cancelBounce, 1000)
-    }
   } else {
     win = undefined
   }
 }
 
 function onClick (e, bounds) {
-  return win === undefined
-    ? showWindow(bounds)
-    : hideWindow()
+  return win.isVisible()
+    ? hideWindow()
+    : showWindow(bounds)
 }
 
 function showWindow (bounds) {
   tray.setHighlightMode('always')
-  createWindow()
+
+  if (win === undefined) createWindow()
 
   // Default the window to the right if `trayPos` bounds are undefined or null.
   let noBoundsPosition
   if (bounds === undefined || bounds.x === 0) {
-    noBoundsPosition = win32 ? 'bottomRight' : 'topRight'
+    noBoundsPosition = __win32__ ? 'bottomRight' : 'topRight'
   }
 
-  const winPosition = win32 ? 'trayBottomCenter' : 'trayCenter'
+  const winPosition = __win32__ ? 'trayBottomCenter' : 'trayCenter'
   const position = calculatePosition(
     electron.screen,
     opts.width,
@@ -155,10 +151,11 @@ function showWindow (bounds) {
     noBoundsPosition || winPosition,
     bounds)
 
-  win.setPosition(position[0], position[1] + (win32 ? 0 : 5))
+  win.setPosition(position[0], position[1] + (__win32__ ? 0 : 5))
+  win.show()
 }
 
 function hideWindow () {
   tray.setHighlightMode('never')
-  win.close()
+  win.hide()
 }

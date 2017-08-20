@@ -9,5 +9,5 @@ document.getElementById('quit').onclick = () =>
 document.getElementById('about').onclick = () =>
   require('electron').ipcRenderer.send('open-about-window')
 
-document.getElementById('favorited-artworks').onclick = () =>
+document.getElementById('favorited').onclick = () =>
   require('electron').ipcRenderer.send('open-favorites-window')

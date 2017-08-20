@@ -5,7 +5,7 @@ const r = require('path').resolve
 const del = require('del')
 const minify = require('html-minifier').minify
 const inline = require('inline-source')
-const root = require('../app/main/config').ROOT_PATH
+const root = r(__dirname, '..')
 
 const opts = {
   collapseWhitespace: true,

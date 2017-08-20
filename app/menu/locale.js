@@ -17,11 +17,10 @@ function checkLocale () {
 
     if (lang) {
       const $ = document.getElementById.bind(document)
-      $('source__text').textContent = lang.source
-      $('learn__text').textContent = lang.learnMore
-      $('updating__text').textContent = lang.updating
-      $('about__text').textContent = lang.about
-      $('quit__text').textContent = lang.quit
+      $('text-source').textContent = lang.source
+      $('text-learn').textContent = lang.learnMore
+      $('text-about').textContent = lang.about
+      $('text-quit').textContent = lang.quit
     }
   }
 }

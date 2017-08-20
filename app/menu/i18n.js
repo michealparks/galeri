@@ -5,7 +5,6 @@ function i18n (locale) {
     return {
       source: 'This work was provided by',
       learnMore: 'Learn more about it.',
-      updating: 'Updating...',
       about: 'About',
       quit: 'Quit'
     }
@@ -14,7 +13,6 @@ function i18n (locale) {
     return {
       source: 'Fuente de ilustraciones:',
       learnMore: 'Aprende más',
-      updating: 'Actualizando...',
       about: 'Información',
       quit: 'Dejar'
     }
@@ -23,7 +21,6 @@ function i18n (locale) {
     return {
       source: '艺术品来源',
       learnMore: '学到更多',
-      updating: '更新',
       about: '信息',
       quit: '放弃'
     }
@@ -32,7 +29,6 @@ function i18n (locale) {
     return {
       source: 'Kunstwerk Quelle',
       learnMore: 'Mehr erfahren',
-      updating: 'Aktualisierung...',
       about: 'Information',
       quit: 'Verlassen'
     }

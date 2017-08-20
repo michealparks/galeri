@@ -12,8 +12,8 @@ ArtworkBtn.onclick = () => toggle(0)
 PrefsBtn.onclick = () => toggle(1)
 
 function toggle (n) {
-  activeArrowCL.toggle('active-arrow--tab-0', n === 0)
-  activeArrowCL.toggle('active-arrow--tab-1', n === 1)
+  activeArrowCL.toggle('tab-0', n === 0)
+  activeArrowCL.toggle('tab-1', n === 1)
   btnCL[n].add('btn--active')
   btnCL[n ^ 1].remove('btn--active')
   tabCL[n].remove('tab--hidden')

@@ -1,6 +1,6 @@
 const __dev__ = process.argv[2] === 'dev'
 const __watch__ = process.argv[3] === 'watch'
-const env = JSON.stringify(__dev__ ? 'development' : 'production')
+const __platform__ = process.argv[4] || process.platform
 const {resolve} = require('path')
 const webpack = require('webpack')
 const BabiliPlugin = require('babili-webpack-plugin')
@@ -14,6 +14,15 @@ const makeExternals = (ignores) => [
       : callback()
 ]
 
+const constants = {
+  'process.env.NODE_ENV': JSON.stringify(__dev__ ? 'development' : 'production'),
+  '__VERSION__': JSON.stringify(require('./package.json').version),
+  '__dev__': __dev__,
+  '__darwin__': __platform__ === 'darwin',
+  '__linux__': __platform__ === 'linux',
+  '__win32__': __platform__ === 'win32'
+}
+
 const mainConfig = {
   target: 'electron-main',
   entry: resolve(__dirname, 'main.development'),
@@ -21,21 +30,9 @@ const mainConfig = {
     path: __dirname,
     filename: './main.js'
   },
-  module: {
-    loaders: [
-      {
-        test: /\.js$/,
-        loader: 'babel-loader',
-        exclude: /node_modules/
-      }
-    ]
-  },
   externals: makeExternals([]),
   plugins: [
-    new webpack.DefinePlugin({
-      'process.env.NODE_ENV': env,
-      '__dev__': __dev__
-    })
+    new webpack.DefinePlugin(constants)
   ].concat(__dev__ ? [] : new BabiliPlugin()),
   node: {
     __dirname: false,
@@ -56,22 +53,9 @@ const rendererConfig = {
     path: resolve(__dirname, 'build'),
     filename: '[name].js'
   },
-  module: {
-    loaders: [
-      {
-        test: /\.js$/,
-        loader: 'babel-loader',
-        exclude: /node_modules/
-      }
-    ]
-  },
   externals: makeExternals([]),
   plugins: [
-    new webpack.DefinePlugin({
-      'process.env.NODE_ENV': env,
-      '__VERSION__': JSON.stringify(require('./package.json').version),
-      '__dev__': __dev__
-    })
+    new webpack.DefinePlugin(constants)
   ].concat(__dev__ ? [] : new BabiliPlugin()),
   performance: {
     hints: 'warning'

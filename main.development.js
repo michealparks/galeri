@@ -1,7 +1,3 @@
-const __dev__ = process.env.NODE_ENV === 'development'
-const win32 = process.platform === 'win32'
-const linux = process.platform === 'linux'
-
 if (__dev__) console.time('init')
 
 require('./app/main/crash-reporter')
@@ -9,7 +5,7 @@ require('./app/main/crash-reporter')
 const {resolve} = require('path')
 const {format} = require('url')
 const electron = require('electron')
-const config = require('./app/main/config')
+const config = require('./config')
 const ipcHandler = require('./app/main/ipc')
 const initMenubar = require('./app/main/menubar')
 const {app, BrowserWindow} = electron
@@ -21,7 +17,7 @@ let windows = []
 // Handle restart due to windows updates
 let shouldQuit
 
-if (win32) {
+if (__win32__) {
   shouldQuit = require('./app/main/squirrel-win32')(process.argv[1])
 }
 
@@ -44,7 +40,7 @@ if (!shouldQuit) {
 
   // This is appended due to a chromium bug that disables transparent
   // windows on linux. Peridically check to see if it can be removed.
-  if (linux) {
+  if (__linux__) {
     app.commandLine.appendSwitch('enable-transparent-visuals')
     app.commandLine.appendSwitch('disable-gpu')
   }
@@ -174,7 +170,7 @@ function makeWindow (type, display) {
     movable: false,
     minimizable: false,
     maximizable: true,
-    focusable: !win32,
+    focusable: !__win32__,
     fullscreenable: false,
     skipTaskbar: true,
     show: false,
@@ -203,7 +199,7 @@ function makeWindow (type, display) {
   win.setVisibleOnAllWorkspaces(true)
 
   // This is required for windows to ignore mouse clicks
-  if (win32) win.setIgnoreMouseEvents(true)
+  if (__win32__) win.setIgnoreMouseEvents(true)
 
   // showInactive won't focus the window
   win.once('ready-to-show', win.showInactive)
@@ -230,7 +226,7 @@ function makeWindow (type, display) {
   windows.push(win)
 
   // why do we need this???
-  if (linux) resizeBackgrounds()
+  if (__linux__) resizeBackgrounds()
 }
 
 function resizeBackgrounds () {

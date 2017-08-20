@@ -9,7 +9,6 @@
 
 *
   cursor: default
-  -webkit-user-select: none
   user-select: none
   box-sizing: border-box
   outline: none !important
@@ -21,14 +20,18 @@ body
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica Neue, helvetica
   font-weight: 200
   font-size: 12px
-  color: #666 /* Hail satan! */
-  
+  color: #666
   opacity: 0
   transform: scale(0.9)
   transform-origin: 50% 0%
-  animation-name: fadein
-  animation-duration: 200ms
-  animation-fill-mode: forwards
+  animation: 0.2s ease 0s 1 normal forwards fadein
+  
+body.update-message
+  #update-message
+    display: block !important
+    
+  #head-title
+    display: none !important
   
 @keyframes fadein
   0%
@@ -49,12 +52,12 @@ a:hover
 
 select
   outline: none !important
-
-.no-margin
-  margin: 0 !important
-
-.float-right
+  
+#label-location, #update-rate, #autolaunch
   float: right
+  
+#startup
+  margin: 0
   
 #update-message
   display: none
@@ -82,11 +85,8 @@ select
     border-radius: 3px
     color: #fff
     background-color: #27ae60
-    
-body.update-message #update-message
-  display: block
 
-#title
+header
   position: relative
   display: flex
   height: 80px
@@ -94,65 +94,44 @@ body.update-message #update-message
   justify-content: center
   align-items: center
 
-.title__bg
-.title__mask
+#head-bg
+#head-mask
   position: absolute
   top: 0
   left: 0
   height: 100%
   width: 100%
 
-.title__bg
+#head-bg
   background-image: url('../assets/title-bg.jpg')
   background-size: cover
   background-position: center
 
-.title__mask
+#head-mask
   background-color: rgba(0, 0, 0, 0.2)
 
-.title__text
-  z-index: 1
-  color: #fff
-  text-align: center
-
-#title__h2
+#head-title
   margin: 0
   font-weight: 300
   font-family: Reem Kufi, helvetica
   font-size: 44px
-  line-height: 0.9
-  
-body.update-message #title__h2
-  display: none
+  z-index: 1
+  color: #fff
+  text-align: center
 
-.title__version
-  position: absolute
-  left: 0
-  width: 100%
-  bottom: 5px
-  margin: 0
-  font-size: 11px
-
-.panel
+#panel
   position: absolute
   width: 100%
   height: calc(100% - 80px)
   padding: 10px
   background-color: rgba(255,255,255,0.96)
 
-.icon
-  height: 16px
-  width: 16px
-  font-size: 16px
-  margin: 5px
-  fill: #666
-
-.nav
+nav
   position: relative
   height: 30px
   border-bottom: 1px solid #aaa
 
-.active-arrow
+#active-arrow
   position: absolute
   bottom: 0
   width: 0
@@ -162,15 +141,24 @@ body.update-message #title__h2
   border-bottom: 5px solid #aaa
   transition: transform 300ms
 
-.active-arrow--tab-0
-  transform: translate3d(9.5px, 0, 0)
+  &.tab-0
+    transform: translate3d(9.5px, 0, 0)
 
-.active-arrow--tab-1
-  transform: translate3d(44px, 0, 0)
-
-.nav__border
+  &.tab-1
+    transform: translate3d(44px, 0, 0)
+    
+.icon
   position: absolute
-  width: 50%
+  height: 16px
+  width: 16px
+  top: 6px
+  left: 6px
+  font-size: 16px
+  margin: 0
+  fill: #666
+  transition: 500ms transform cubic-bezier(0.165, 0.840, 0.440, 1.000)
+  backface-visibility: hidden
+  transform-origin: center
 
 .btn
   position: absolute
@@ -185,22 +173,30 @@ body.update-message #title__h2
   background-color: #ccc
   transition: 0ms
 
-.btn-toggle
+#btn-toggle
   right: -5px
   perspective: 40px
   perspective-origin: center
   transition: transform 2000ms, opacity 300ms
+  
+  .icon-play
+    left: 8px
+    transform: rotate3d(0, 1, 0, 180deg)
 
-.btn__icon
-  position: absolute
-  top: 6px
-  left: 6px
-  margin: 0
-  transition: 500ms transform cubic-bezier(0.165, 0.840, 0.440, 1.000)
-  backface-visibility: hidden
-  transform-origin: center
+  &.paused .icon-pause
+    transform: rotate3d(0, 1, 0, 180deg)
 
-.artwork-source
+  &.paused .icon-play
+    transform: rotate3d(0, 0, 0, 0)
+  
+#btn-favorite
+  right: 26px
+  
+  &.active svg
+    fill: red
+    animation: 1s ease-in 0s infinite normal both heartbeat
+
+#artwork-source
   margin: 0
 
 #artwork-title
@@ -214,15 +210,6 @@ body.update-message #title__h2
 #btn-prefs-tab
   left: 35px
   
-.btn-favorite
-  right: 26px
-
-.btn-favorite--active svg
-  fill: red
-  animation-name: heartbeat
-  animation-duration: 1000ms
-  animation-iteration-count: infinite
-  
 @keyframes heartbeat
   0%
     transform: scale(1.0)
@@ -234,16 +221,6 @@ body.update-message #title__h2
     transform: scale(1.2)
   100%
     transform: scale(1.0)
-
-.btn-toggle .icon-play
-  left: 8px
-  transform: rotate3d(0, 1, 0, 180deg)
-
-.btn-toggle--paused .icon-pause
-  transform: rotate3d(0, 1, 0, 180deg)
-
-.btn-toggle--paused .icon-play
-  transform: rotate3d(0, 0, 0, 0)
 
 .tab
   position: absolute
@@ -263,11 +240,11 @@ body.update-message #title__h2
 #source, #artwork-link
   transition: opacity 300ms
 
-.additional
+#feedback
   position: absolute
   bottom: 5px
   
-.bottom-container
+#bottom-btns
   position: fixed
   display: flex
   justify-content: space-between
@@ -278,14 +255,6 @@ body.update-message #title__h2
   width: 100%
   background-color: rgba(0, 0, 0, 0.11)
 
-.quit:hover
-.about:hover
-.favorited-artworks:hover
-  text-decoration: underline
-
-.app--updating #artwork-link
-.app--updating #source
-.app--updating #btn-toggle
-.app--updating #btn-favorite
-  opacity: 0
-  pointer-events: none
+#quit, #about, #favorited
+  &:hover
+    text-decoration: underline

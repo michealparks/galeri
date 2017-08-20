@@ -1,7 +1,5 @@
 module.exports = initUpdater
 
-const __dev__ = process.env.NODE_ENV === 'development'
-const win32 = process.platform === 'win32'
 const https = require('https')
 const {autoUpdater} = require('electron')
 const config = require('../../config')
@@ -57,6 +55,7 @@ function check (next) {
 
 function onCheck (err, feedUrl) {
   if (err) return console.error(err)
+
   autoUpdater.setFeedURL(feedUrl)
   autoUpdater.checkForUpdates()
 }
@@ -78,7 +77,7 @@ function isValid (tag) {
 
 function isNewerVersionAvailable (latest) {
   const latestArr = latest.slice(1).split('.')
-  const currentArr = config.APP_VERSION.slice(1).split('.')
+  const currentArr = __VERSION__.slice(1).split('.')
 
   // Major version update
   if (Number(latestArr[0]) > Number(currentArr[0])) {
@@ -99,56 +98,59 @@ function isNewerVersionAvailable (latest) {
 }
 
 function getFeedURL (tag, next) {
-  return win32
-    ? next(`${config.GITHUB_URL}/releases/download/${tag}`)
-    : https.get(`${config.GITHUB_URL_RAW}/updater.json`, (res) => {
-      let body = ''
-      res.on('error', next)
-      res.on('data', (d) => { body += d })
-      res.on('end', () => {
-        if (res.statusCode === 404) {
-          return next({
-            type: 'error',
-            msg: 'updater.json does not exist.'
-          })
-        }
+  if (__win32__) {
+    return next(`${config.GITHUB_URL}/releases/download/${tag}`)
+  }
 
-        if (res.statusCode !== 200) {
-          return next({
-            type: 'warn',
-            msg: `Unable to fetch updater.json: ${res.body}`
-          })
-        }
+  return https.get(`${config.GITHUB_URL_RAW}/updater.json`, (res) => {
+    let body = ''
 
-        let zipUrl
-        try {
-          zipUrl = JSON.parse(body).url
-        } catch (err) {
-          return next({
-            type: 'error',
-            msg: `Unable to parse the updater.json: ${err.message}, body: ${res.body}`
-          })
-        }
+    res.on('error', next)
+    res.on('data', (d) => { body += d })
+    res.on('end', () => {
+      if (res.statusCode === 404) {
+        return next({
+          type: 'error',
+          msg: 'updater.json does not exist.'
+        })
+      }
 
-        const match = zipUrl.match(REGEX_ZIP_URL)
-        if (!match) {
-          return next({
-            type: 'error',
-            msg: `The zipUrl (${zipUrl}) is a invalid release URL`
-          })
-        }
+      if (res.statusCode !== 200) {
+        return next({
+          type: 'warn',
+          msg: `Unable to fetch updater.json: ${res.body}`
+        })
+      }
 
-        const zipVerison = match[match.length - 1]
-        if (zipVerison !== tag.slice(1)) {
-          next({
-            type: 'error',
-            msg: `The feedUrl does not link to latest tag (zipUrl=${zipVerison}; latestVersion=${tag})`
-          })
-        }
+      let zipUrl
+      try {
+        zipUrl = JSON.parse(body).url
+      } catch (err) {
+        return next({
+          type: 'error',
+          msg: `Unable to parse the updater.json: ${err.message}, body: ${res.body}`
+        })
+      }
 
-        return next(undefined, `${config.GITHUB_URL_RAW}/updater.json`)
-      })
+      const match = zipUrl.match(REGEX_ZIP_URL)
+      if (!match) {
+        return next({
+          type: 'error',
+          msg: `The zipUrl (${zipUrl}) is a invalid release URL`
+        })
+      }
+
+      const zipVerison = match[match.length - 1]
+      if (zipVerison !== tag.slice(1)) {
+        next({
+          type: 'error',
+          msg: `The feedUrl does not link to latest tag (zipUrl=${zipVerison}; latestVersion=${tag})`
+        })
+      }
+
+      return next(undefined, `${config.GITHUB_URL_RAW}/updater.json`)
     })
-    .on('error', next)
-    .setTimeout(10000)
+  })
+  .on('error', next)
+  .setTimeout(10000)
 }
