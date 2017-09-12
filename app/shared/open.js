@@ -7,17 +7,9 @@ function open (target) {
     opener += `sudo -u ${process.env.SUDO_USER} `
   }
 
-  switch (process.platform) {
-    case 'darwin':
-      opener += 'open'
-      break
-    case 'win32':
-      opener += 'start ""'
-      break
-    default:
-      opener += 'python -m webbrowser'
-      break
-  }
+  if (__darwin__) opener += 'open'
+  if (__linux__) opener += 'python -m webbrowser'
+  if (__win32__) opener += 'start ""'
 
   return require('child_process')
     .exec(`${opener} "${target.replace(/"/g, '\\"')}"`)

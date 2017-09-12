@@ -1,7 +1,7 @@
 module.exports = fill
 
-const bg0 = document.getElementById('bg_0')
-const bg1 = document.getElementById('bg_1')
+const bg0 = document.getElementById('bg-0')
+const bg1 = document.getElementById('bg-1')
 const BGstyle = [bg0.style, bg1.style]
 const BG_CL = [bg0.classList, bg1.classList]
 
@@ -27,7 +27,7 @@ function onload () {
   const height = this.naturalHeight
 
   i ^= 1
-  BG_CL[i].toggle('bg--top', height > width)
+  BG_CL[i].toggle('bg-top', height > width)
   BGstyle[i].backgroundImage = `url("${this.src}")`
 
   // Give a ms per pixel-row/column for rendering time
@@ -35,7 +35,7 @@ function onload () {
 }
 
 function showBackground () {
-  BG_CL[1].toggle('bg--active', i === 1)
+  BG_CL[1].toggle('bg-active', i === 1)
   setTimeout(removeLastImgRef, 4000)
   callbackRef()
 }

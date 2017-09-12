@@ -6,9 +6,5 @@ for (let i = 0, a = document.getElementsByTagName('a'), l = a.length; i < l; ++i
 
 function onLinkClick (e) {
   e.preventDefault()
-
-  // TODO: Remove .replace() call
-  return open(this.href.indexOf('https://metmuseum.org') !== -1
-    ? this.href.replace('https', 'http')
-    : this.href)
+  return open(this.href)
 }

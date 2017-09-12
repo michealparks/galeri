@@ -16,18 +16,14 @@ document.body.onclick = (e) => {
   }
 
   if (target.classList.contains('info')) {
-    const href = target.getAttribute('data-href')
-
-    return open(href.indexOf('https://metmuseum.org') !== -1
-      ? href.replace('https', 'http')
-      : href)
+    return open(target.getAttribute('data-href'))
   }
 }
 
 ipc.on('main:favorites', (e, favorites) => {
   const frag = document.createDocumentFragment()
 
-  NoFavorites.classList.toggle('no-favorites--hidden', favorites.length !== 0)
+  NoFavorites.classList.toggle('hidden', favorites.length !== 0)
 
   for (let item, url, i = favorites.length - 1; i > -1; --i) {
     item = favorites[i]

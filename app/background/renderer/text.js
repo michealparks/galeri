@@ -11,23 +11,23 @@ let labelLocation = storage('label-location') ||
   require('../util/default-values').labelLocation
 
 function setTextFeatures (location) {
-  LabelCL.toggle('description--invisible', location === 'menu')
-  LabelCL.toggle('description--top', location === 'top')
+  LabelCL.toggle('invisible', location === 'menu')
+  LabelCL.toggle('top', location === 'top')
 }
 
 function onTextHide () {
-  LabelCL.add('description--bottom')
+  LabelCL.add('bottom')
 }
 
 function onTextReplace (title, text) {
   Title.textContent = truncate(title, 50)
   Text.textContent = truncate(text, 90)
-  LabelCL.add('no-transition', 'description--left')
-  LabelCL.remove('description--bottom')
+  LabelCL.add('no-transition', 'left')
+  LabelCL.remove('bottom')
 }
 
 function onTextShow () {
-  LabelCL.remove('description--hidden', 'no-transition', 'description--left')
+  LabelCL.remove('hidden', 'no-transition', 'left')
 }
 
 function startTextLifecycle (data) {

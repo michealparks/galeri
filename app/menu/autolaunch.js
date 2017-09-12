@@ -9,22 +9,18 @@ const appName = 'Galeri'
 const filePath = `${getDirectory() + appName}.desktop`
 
 let appPath
-
-if (__win32__) {
-  appPath = path.resolve(path.dirname(process.execPath), '..', 'Update.exe')
-} else if (__linux__) {
-  appPath = electron.remote.app.getPath('exe').split('.app/Content')[0] + '.app'
-} else {
-  appPath = process.execPath
-}
-
 let startArgs
 
 if (__win32__) {
+  appPath = path.resolve(path.dirname(process.execPath), '..', 'Update.exe')
   startArgs = [
     '--processStart', `"${path.basename(process.execPath)}"`,
     '--process-start-args', `"--hidden"`
   ]
+} else if (__linux__) {
+  appPath = electron.remote.app.getPath('exe').split('.app/Content')[0] + '.app'
+} else {
+  appPath = process.execPath
 }
 
 const data = (appName, appPath) => `

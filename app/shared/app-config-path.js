@@ -1,6 +1,5 @@
 module.exports = applicationConfigPath
 
-const os = require('os')
 const path = require('path')
 
 function darwin (name) {
@@ -24,15 +23,7 @@ function win32 (name) {
 }
 
 function applicationConfigPath (name) {
-  if (typeof name !== 'string') {
-    throw new TypeError('`name` must be string')
-  }
-
-  switch (os.platform()) {
-    case 'darwin': return darwin(name)
-    case 'linux': return linux(name)
-    case 'win32': return win32(name)
-  }
-
-  throw new Error('Platform not supported')
+  if (__darwin__) return darwin(name)
+  if (__linux__) return linux(name)
+  if (__win32__) return win32(name)
 }
