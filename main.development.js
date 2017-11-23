@@ -54,7 +54,7 @@ if (!shouldQuit) {
     makeWindow('background', screen.getPrimaryDisplay()))
   electron.ipcMain.on('background:rendered', () => windows.length === 1
     ? __dev__ && console.timeEnd('init')
-    : setTimeout(() => destroyWindowOfId(lastWinId), 4000))
+    : setTimeout(destroyWindowOfId, 4000, lastWinId))
 }
 
 function onReady () {
@@ -178,6 +178,7 @@ function makeWindow (type, display) {
     enableLargerThanScreen: true,
     thickFrame: false,
     transparent: true,
+    backgroundColor: '#80FFFFFF',
     type: 'desktop',
     webPreferences: {
       webgl: false,
