@@ -1,3 +1,5 @@
+module.exports = initUpdater
+
 const https = require('https')
 const {autoUpdater} = require('electron')
 const config = require('../../config')
@@ -6,9 +8,9 @@ const REGEX_ZIP_URL = /\/(v)?(\d+\.\d+\.\d+)\/.*\.zip/
 
 let updateListener
 
-req.headers = {'User-Agent': 'michealparks'}
+req.headers = { 'User-Agent': 'michealparks' }
 
-const initUpdater = () => {
+function initUpdater () {
   if (__dev__) {
     autoUpdater.on('error', e =>
       console.error('update error: ', e))
@@ -28,31 +30,18 @@ const initUpdater = () => {
   setInterval(() =>
     check(onCheck), config.CHECK_UPDATE_INTERVAL)
 
-  return (listener) => {
-    updateListener = listener
-  }
+  return {onUpdateAvailable}
 }
 
-const isValid = tag => tag && tag.slice(1).split('.').length === 3
-
-const isNewerVersionAvailable = (latest) => {
-  // Major / Minor version update
-  if (latest[0] > __VERSION__[0] || latest[2] > __VERSION__[2]) {
-    if (updateListener) updateListener(latest)
-    return true
-  }
-
-  // Patch update
-  if (latest[4] > __VERSION__[4]) return true
-
-  return false
+function onUpdateAvailable (listener) {
+  updateListener = listener
 }
 
-const check = (next) => {
+function check (next) {
   return getLatestTag((err, tag) => {
     if (err) next(err)
 
-    if (!isValid(tag)) {
+    if (tag === undefined || !isValid(tag)) {
       next({ type: 'error', msg: 'Could not find a valid release tag.' })
     }
 
@@ -64,23 +53,51 @@ const check = (next) => {
   })
 }
 
-const onCheck = (err, feedUrl) => {
+function onCheck (err, feedUrl) {
   if (err) return console.error(err)
 
   autoUpdater.setFeedURL(feedUrl)
   autoUpdater.checkForUpdates()
 }
 
-const getLatestTag = (next) => https.get(req, res => {
-  let body = ''
-  res.on('error', next)
-  res.on('data', d => { body += d })
-  res.on('end', () => next(undefined, JSON.parse(body).tag_name))
-})
-.on('error', next)
-.setTimeout(10000)
+function getLatestTag (next) {
+  return https.get(req, (res) => {
+    let body = ''
+    res.on('error', next)
+    res.on('data', (d) => { body += d })
+    res.on('end', () => next(undefined, JSON.parse(body).tag_name))
+  })
+  .on('error', next)
+  .setTimeout(10000)
+}
 
-const getFeedURL = (tag, next) => {
+function isValid (tag) {
+  return tag.slice(1).split('.').length === 3
+}
+
+function isNewerVersionAvailable (latest) {
+  const latestArr = latest.slice(1).split('.')
+  const currentArr = __VERSION__.slice(1).split('.')
+
+  // Major version update
+  if (Number(latestArr[0]) > Number(currentArr[0])) {
+    if (updateListener) updateListener(latest)
+    return true
+  }
+
+  // Minor version update
+  if (Number(latestArr[1]) > Number(currentArr[1])) {
+    if (updateListener) updateListener(latest)
+    return true
+  }
+
+  // Patch update
+  if (Number(latestArr[2]) > Number(currentArr[2])) return true
+  // No update
+  return false
+}
+
+function getFeedURL (tag, next) {
   if (__win32__) {
     return next(`${config.GITHUB_URL}/releases/download/${tag}`)
   }
@@ -89,14 +106,19 @@ const getFeedURL = (tag, next) => {
     let body = ''
 
     res.on('error', next)
-
-    res.on('data', d => { body += d })
-
+    res.on('data', (d) => { body += d })
     res.on('end', () => {
-      if (res.statusCode !== 200) {
+      if (res.statusCode === 404) {
         return next({
           type: 'error',
-          msg: `Update JSON fetch: status ${res.statusCode}`
+          msg: 'updater.json does not exist.'
+        })
+      }
+
+      if (res.statusCode !== 200) {
+        return next({
+          type: 'warn',
+          msg: `Unable to fetch updater.json: ${res.body}`
         })
       }
 
@@ -132,5 +154,3 @@ const getFeedURL = (tag, next) => {
   .on('error', next)
   .setTimeout(10000)
 }
-
-module.exports = initUpdater

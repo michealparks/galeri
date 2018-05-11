@@ -1,16 +1,13 @@
-document.getElementById('galeri').ondragstart = () => false
+window.galeri.ondragstart = () => false
 
-document.getElementById('copyright').textContent = (
+window.version.textContent = __VERSION__
+
+window.copyright.textContent =
   `Copyright © 2016 - ${new Date().getFullYear()} Space Egg LLC`
-)
 
-document.getElementById('version').textContent = __VERSION__
-
-document.getElementById('devtools').onclick = () => (
+window.devtools.onclick = () =>
   require('electron').remote.BrowserWindow.getAllWindows()
     .forEach(win => win.openDevTools({ mode: 'detach' }))
-)
 
-document.getElementById('reset').onclick = () => (
+window.reset.onclick = () =>
   require('electron').ipcRenderer.send('reset-all-data')
-)

@@ -1,10 +1,12 @@
+module.exports = openAbout
+
 const {BrowserWindow} = require('electron')
 const config = require('../../config')
 const {getUrl} = require('./util')
 
 let win
 
-const initAbout = () => {
+function openAbout () {
   if (win !== undefined) {
     win.focus()
     win.restore()
@@ -31,7 +33,7 @@ const initAbout = () => {
 
   win.setMenuBarVisibility(false)
   win.once('ready-to-show', win.show)
-  win.on('close', () => { win = undefined })
+  win.on('close', onClose)
   win.loadURL(getUrl('about'))
 
   if (__dev__) win.openDevTools({ mode: 'detach' })
@@ -39,4 +41,6 @@ const initAbout = () => {
   return win.id
 }
 
-module.exports = initAbout
+function onClose () {
+  win = undefined
+}
