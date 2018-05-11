@@ -3,68 +3,60 @@
 <head>
 <meta charset='utf-8'>
 
-<link inline rel='stylesheet' href='../build/menubar.css' />
+<link inline rel='stylesheet' href='index.css' />
 
 </head>
 
-<body id='app'>
-  <div id='update-message'>
+<body>
+  <update-message>
     <p>There's a new version of Galeri!</p>
     <small>Update for the latest features and improvements</small>
     <button>Go to download page</button>
-  </div>
+  </update-message>
 
   <header>
-    <div id='head-bg'></div>
-    <div id='head-mask'></div>
-    <h2 id='head-title'>Galeri</h2>
+    <header-bg></header-bg>
+    <header-mask></header-mask>
+    <header-title>Galeri</header-title>
   </header>
 
-  <div id='panel'>
+  <main>
     <nav>
-      <div id='active-arrow' class='tab-0'></div>
-      <div id='btn-artwork-tab' class='btn'>
-        <svg class='icon icon-image'>
-          <use xlink:href='#icon-image'></use>
-        </svg>
-      </div>
-      <div id='btn-prefs-tab' class='btn'>
-        <svg class='icon icon-cog'>
-          <use xlink:href='#icon-cog'></use>
-        </svg>
-      </div>
-      <div id='btn-favorite' class='btn'>
-        <svg class='icon icon-heart'>
-          <use xlink:href='#icon-heart'></use>
-        </svg>
-      </div>
-      <div id='btn-toggle' class='btn'>
-        <svg class='icon icon-play'>
-          <use xlink:href='#icon-play'></use>
-        </svg>
-        <svg class='icon icon-pause'>
-          <use xlink:href='#icon-pause'></use>
-        </svg>
-      </div>
+      <arrow class='tab-0'></arrow>
+
+      <btn class='info'>
+        <svg><use xlink:href='#icon-image'></use></svg>
+      </btn>
+
+      <btn class='settings'>
+        <svg><use xlink:href='#icon-cog'></use></svg>
+      </btn>
+
+      <btn class='favorite'>
+        <svg><use xlink:href='#icon-heart'></use></svg>
+      </btn>
+
+      <btn class='toggle'>
+        <svg class='play'><use xlink:href='#icon-play'></use></svg>
+        <svg class='pause'><use xlink:href='#icon-pause'></use></svg>
+      </btn>
     </nav>
 
-    <div class='tab' id='description'>
-      <div id='source'>
-        <div id='artwork-info'>
-          <p id='artwork-title'></p>
-          <p id='artwork-text'></p>
-        </div>
-        <small id='text-source' style='margin-top:10px'>
-          This work was provided by
-        </small>
-        <p id='artwork-source'></p>
-        <a id='artwork-link' target='_tab'>
-          <p id='text-learn'>Learn more about it.</p>
-        </a>
-      </div>
-    </div>
+    <tab id='description'>
+      <art-title></art-title>
+      <art-text></art-text>
 
-    <div class='tab hidden' id='preferences'>
+      <small id='text-source' style='margin-top:10px'>
+        This work was provided by
+      </small>
+      <artwork-source></artwork-source>
+
+      <a id='artwork-link' target='_tab'>
+        <p id='text-learn'>Learn more about it.</p>
+      </a>
+    </tab>
+
+    <tab class='hidden' id='preferences'>
       <div>
         Show artwork label
         <select id='label-location'>
@@ -75,38 +67,33 @@
       </div>
 
       <div>
-        <p>
-          Change artwork every
-          <select id='update-rate'>
-            <option value='30000'>30 seconds</option>
-            <option value='60000'>minute</option>
-            <option value='600000'>10 minutes</option>
-            <option value='1800000' selected>30 minutes</option>
-            <option value='3600000'>hour</option>
-            <option value='86400000'>day</option>
-            <option value='604800000'>week</option>
-          </select>
+        Change artwork every
+        <select id='update-rate'>
+          <option value='60000'>minute</option>
+          <option value='600000'>10 minutes</option>
+          <option value='1800000' selected>30 minutes</option>
+          <option value='3600000'>hour</option>
+          <option value='86400000'>day</option>
+          <option value='604800000'>week</option>
+        </select>
+      </div>
+
+      <label>
+        <p id='startup'>
+          Launch Galeri on startup
+          <input id='autolaunch' type='checkbox' checked />
         </p>
-      </div>
+      </label>
 
-      <div>
-        <label>
-          <p id='startup'>
-            Launch Galeri on startup
-            <input id='autolaunch' type='checkbox' checked />
-          </p>
-        </label>
-      </div>
-
-      <div id='feedback'>
+      <feedback>
         <small>Want to help make Galeri better?</small><br />
         <a target='_tab' href='https://github.com/michealparks/galeri-www/issues'>
           <small>Suggest a feature or report an issue.</small>
         </a>
-      </div>
-    </div>
+      </feedback>
+    </tab>
 
-    <div id='bottom-btns'>
+    <misc-options>
       <div id='about'>
         <small id='text-about'>About</small>
       </div>
@@ -119,9 +106,9 @@
         <small id='text-quit'>Quit</small>
       </div>
     </div>
-  </div>
+  </misc-options>
 
-  <script inline async src='../build/menu.js'></script>
+  <script inline async src='index.js'></script>
 
   <span hidden>
     <svg id='icon-image' viewBox='0 0 24 24'>

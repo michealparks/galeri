@@ -11,19 +11,8 @@
   "main": "main.js",
   "private": true,
   "scripts": {
-    "test": "depcheck",
-    "start:dev": "cross-env NODE_ENV=development electron ./main",
-    "start:prod": "cross-env NODE_ENV=production electron ./main",
-    "start": "cross-env NODE_ENV=production electron ./main",
-    "wp:dev": "node webpack dev",
-    "dev": "npm run wp:dev && concurrently -k \"npm run wp:dev watch\" \"npm run start:dev\"",
-    "package": "cross-env NODE_ENV=production node ./bin/package",
-    "package:mac": "node webpack && node ./bin/package darwin --sign",
-    "package:win": "node webpack && node ./bin/package win32",
-    "pack:mac": "node webpack 0 0 darwin && build --mac",
-    "pack:linux": "node webpack 0 0 linux && build --linux",
-    "pack:win": "node webpack 0 0 win && build --win",
-    "analytics": "open -a \"Google Chrome\" bin/analytics.html"
+    "start": "cross-env NODE_ENV=production electron ./app/main",
+    "dev": "cross-env NODE_ENV=development electron ./app/main"
   },
   "repository": {
     "type": "git",
@@ -38,39 +27,25 @@
     "electron": "./node_modules/.bin/electron"
   },
   "engines": {
-    "node": ">=6.0.0",
+    "node": ">=7.0.0",
     "npm": ">=4.0.0"
   },
   "optionalDependencies": {
     "appdmg": "^0.5.2"
   },
   "devDependencies": {
-    "asar": "^0.14.1",
-    "autoprefixer-stylus": "^0.14.0",
-    "babili-webpack-plugin": "0.1.2",
+    "asar": "^0.14.3",
     "concurrently": "^3.5.1",
-    "cross-env": "^5.1.3",
-    "cross-zip": "^2.1.5",
-    "del": "^3.0.0",
-    "depcheck": "^0.6.8",
-    "devtron": "^1.4.0",
-    "electron": "^1.8.2",
-    "electron-builder": "^19.56.0",
-    "electron-debug": "^1.5.0",
-    "electron-devtools-installer": "^2.2.3",
-    "electron-osx-sign": "^0.4.8",
-    "electron-packager": "^11.0.0",
-    "electron-winstaller": "^2.6.4",
-    "html-minifier": "^3.5.9",
-    "inline-source": "^6.1.1",
-    "minimist": "^1.2.0",
-    "mkdirp": "^0.5.1",
-    "nobin-debian-installer": "0.0.10",
-    "run-series": "^1.1.4",
-    "stylus": "^0.54.5",
-    "webpack": "^3.11.0"
+    "cross-env": "^5.1.4",
+    "electron": "^2.0.0",
+    "electron-reloader": "^0.2.0"
   },
-  "dependencies": {},
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.2",
+    "electron-debug": "^1.5.0",
+    "request": "^2.85.0",
+    "wallpaper": "^3.0.0"
+  },
   "standard": {
     "globals": [
       "__VERSION__",
@@ -78,6 +53,8 @@
       "__darwin__",
       "__linux__",
       "__win32__",
+      "__trayIcon__",
+      "__trayIconDark__",
       "Image",
       "XMLHttpRequest",
       "fetch",

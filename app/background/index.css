@@ -1,0 +1,29 @@
+body {
+  overflow: hidden;
+  margin: 0;
+  font-family: -apple-system-headline, "Segoe UI", helvetica neue, helvetica;
+  background-color: transparent;
+}
+
+bg-image {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+  background-size: cover;
+  background-position: center;
+}
+
+bg-image.vertical {
+  background-position: 50% 25%;
+}
+
+bg-image:nth-child(2) {
+  opacity: 0;
+  transition: opacity 2500ms;
+}
+
+bg-image:nth-child(2).active {
+  opacity: 1;
+}
