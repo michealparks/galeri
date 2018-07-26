@@ -3,12 +3,16 @@ import {addImage} from './add-image'
 
 let currentHref
 
-ipc.on('new-artwork', (e, data) => {
-  if (data.href !== currentHref) {
-    addImage(data.filepath)
-  }
+ipc.on('new-artwork', async (e, data) => {
+  if (data.href === currentHref) return
 
-  currentHref = data.href
+  const success = await addImage(data.filepath)
+
+  ipc.send('new-artwork-loaded', success)
+
+  if (success) {
+    currentHref = data.href
+  }
 })
 
 ipc.send('image-window-loaded')

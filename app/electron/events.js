@@ -2,7 +2,11 @@ import {ipcMain as ipc} from 'electron'
 import {tray, menuWindow} from './windows/menu'
 import {windows as imageWindows} from './display'
 
-export const sendArtToWindows = (art) => {
+let __resolve
+
+export const sendArtToWindows = (art) => new Promise(resolve => {
+  __resolve = resolve
+
   tray.setToolTip(`${art.title}\n${art.text}\n${art.source}`)
 
   for (let i = 0, l = imageWindows.length; i < l; i++) {
@@ -10,7 +14,11 @@ export const sendArtToWindows = (art) => {
   }
 
   menuWindow.webContents.send('new-artwork', art)
-}
+})
+
+ipc.on('new-artwork-loaded', (e, success) => {
+  __resolve(success)
+})
 
 ipc.on('delete-favorite', (e, href) => {
 

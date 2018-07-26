@@ -25,9 +25,10 @@ if (!squirrelWin32(process.argv[1])) {
   // Hide the app from the MacOS dock
   if (app.dock !== undefined) app.dock.hide()
 
-  app.once('ready', () => {
+  app.on('ready', () => {
+    console.log(electron.powerMonitor)
     menu(electron.screen)
     handleDisplayChanges(electron.screen)
-    initLifecycle()
+    initLifecycle(electron.powerMonitor)
   })
 }

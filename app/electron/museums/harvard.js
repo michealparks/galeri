@@ -1,6 +1,6 @@
 import {harvard as apiKey} from './keys'
 import {restoreData, getNextPages, fetchUrl} from './helpers'
-import {shuffle} from './util'
+import {shuffle, getScreenSize} from './util'
 
 const hueRegex = /Grey|Black|White/
 const perPage = 30
@@ -38,6 +38,8 @@ const getData = async (category) => {
 }
 
 const storeCollection = (collection, count, category) => {
+  const size = getScreenSize()
+
   for (let art, i = 0, r = collection || [], l = r.length; i < l; ++i) {
     art = r[i]
 
@@ -52,13 +54,20 @@ const storeCollection = (collection, count, category) => {
 
     const {height, width, baseimageurl} = image
 
-    // todo make procedural
-    if (colors.every(d => hueRegex.test(d.hue)) === true) continue
+    let hasColor = false
+    for (let i = 0, l = colors.length; i < l; i++) {
+      if (hueRegex.test(colors[i].hue) === false) {
+        hasColor = true
+        break
+      }
+    }
+
+    if (hasColor === false) continue
 
     artworks[category].push({
       source: 'Harvard Art Museums',
       href: art.url,
-      img: baseimageurl,
+      img: `${baseimageurl}?width=${size.width}&height=${size.height}`,
       ext: '.png',
       naturalWidth: width,
       naturalHeight: height,
