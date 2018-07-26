@@ -1,9 +1,7 @@
-module.exports = mkdirp
+import {resolve, dirname} from 'path'
+import {mkdir, stat} from 'fs'
 
-const {resolve, dirname} = require('path')
-const {mkdir, stat} = require('fs')
-
-function mkdirp (p, next) {
+export const mkdirp = (p, next) => {
   const mode = parseInt('0777', 8) & (~process.umask())
   const pathName = resolve(p)
 
@@ -21,3 +19,5 @@ function mkdirp (p, next) {
       (err2 || !stat.isDirectory()) ? next(err) : next(null))
   })
 }
+
+export default mkdirp

@@ -1,5 +1,10 @@
-const ipc = require('electron').ipcRenderer
-const autolaunch = require('./autolaunch')
+import {ipcRenderer as ipc} from 'electron'
+import {
+  enableAutolaunch,
+  disableAutolaunch,
+  isAutolaunchEnabled
+} from './autolaunch'
+
 const LabelLocationBtn = document.getElementById('label-location')
 const UpdateRateBtn = document.getElementById('update-rate')
 const AutolaunchBtn = document.getElementById('autolaunch')
@@ -13,15 +18,29 @@ const Text = document.getElementById('artwork-text')
 let isFavorited = false
 let isPaused = false
 
+const toggleFavorite = (flag) => {
+  isFavorited = flag
+  FavoriteBtn.classList.toggle('active', isFavorited)
+}
+
+const togglePlay = (flag) => {
+  isPaused = flag
+  PlayPauseBtn.classList.toggle('paused', isPaused)
+}
+
+const truncate = (str, len) => {
+  return str.length > len ? str.slice(0, len - 3) + '...' : str
+}
+
 if (__linux__) {
   document.body.classList.add('linux')
 }
 
-ipc.on('main:update-available', (e, version) => {
+ipc.on('update-available', (e, version) => {
   document.body.classList.add('update-message')
 })
 
-ipc.on('background:artwork', (e, artwork) => {
+ipc.on('new-artwork', (e, artwork) => {
   toggleFavorite(artwork.isFavorited || false)
   ArtSource.textContent = artwork.source
   ArtLink.href = artwork.href
@@ -29,58 +48,50 @@ ipc.on('background:artwork', (e, artwork) => {
   Text.textContent = truncate(artwork.text, 90)
 })
 
-ipc.on('background:label-location', (e, location) => {
+ipc.on('label-location-changed', (e, location) => {
   LabelLocationBtn.value = location
 })
 
-ipc.on('background:update-rate', (e, rate) => {
+ipc.on('update-rate-changed', (e, rate) => {
   UpdateRateBtn.value = rate
 })
 
-ipc.on('background:is-paused', (e, paused) =>
-  togglePlay(paused))
+ipc.on('pause', (e, paused) => {
+  return togglePlay(paused)
+})
 
-ipc.on('favorites:delete', () =>
-  toggleFavorite(false))
+ipc.on('toggle-favorite', (e, isFavorited) => {
+  return toggleFavorite(false)
+})
 
-ipc.send('menubar:loaded')
+ipc.send('menu-loaded')
 
-LabelLocationBtn.onchange = (e) =>
-  ipc.send('menubar:label-location', e.currentTarget.value)
+LabelLocationBtn.onchange = (e) => {
+  return ipc.send('label-location-changed', e.currentTarget.value)
+}
 
-UpdateRateBtn.onchange = (e) =>
-  ipc.send('menubar:update-rate', Number(e.currentTarget.value))
+UpdateRateBtn.onchange = (e) => {
+  return ipc.send('update-rate-changed', Number.parseInt(e.currentTarget.value, 10))
+}
 
-AutolaunchBtn.onclick = (e) => e.currentTarget.checked
-  ? autolaunch.enable()
-  : autolaunch.disable()
+AutolaunchBtn.onclick = (e) => {
+  return e.currentTarget.checked
+    ? enableAutolaunch()
+    : disableAutolaunch()
+}
 
 FavoriteBtn.onclick = () => {
   toggleFavorite(!isFavorited)
-  ipc.send('menubar:is-favorited', isFavorited)
+
+  return ipc.send('toggle-favorite', isFavorited)
 }
 
 PlayPauseBtn.onclick = () => {
   togglePlay(!isPaused)
-  ipc.send('menubar:is-paused', isPaused)
+
+  return ipc.send('pause', isPaused)
 }
 
-setTimeout(() =>
-  autolaunch.isEnabled(isEnabled => {
-    AutolaunchBtn.checked = isEnabled
-  })
-, 500)
-
-function toggleFavorite (flag) {
-  isFavorited = flag
-  FavoriteBtn.classList.toggle('active', isFavorited)
-}
-
-function togglePlay (flag) {
-  isPaused = flag
-  PlayPauseBtn.classList.toggle('paused', isPaused)
-}
-
-function truncate (str, len) {
-  return str.length > len ? str.slice(0, len - 3) + '...' : str
-}
+setTimeout(() => isAutolaunchEnabled(isEnabled => {
+  AutolaunchBtn.checked = isEnabled
+}), 500)

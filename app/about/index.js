@@ -1,3 +1,5 @@
+import electron from 'electron'
+
 document.getElementById('galeri').ondragstart = () => false
 
 document.getElementById('copyright').textContent = (
@@ -7,10 +9,10 @@ document.getElementById('copyright').textContent = (
 document.getElementById('version').textContent = __VERSION__
 
 document.getElementById('devtools').onclick = () => (
-  require('electron').remote.BrowserWindow.getAllWindows()
+  electron.remote.BrowserWindow.getAllWindows()
     .forEach(win => win.openDevTools({ mode: 'detach' }))
 )
 
 document.getElementById('reset').onclick = () => (
-  require('electron').ipcRenderer.send('reset-all-data')
+  electron.ipcRenderer.send('reset-all-data')
 )

@@ -1,6 +1,18 @@
-module.exports = {jpg, png}
+const readUInt16BE = (arr, offset) => {
+  offset = offset >>> 0
+  return (arr[offset] << 8) | arr[offset + 1]
+}
 
-function jpg (buffer) {
+const readUInt32BE = (arr, offset) => {
+  offset = offset >>> 0
+
+  return (arr[offset] * 0x1000000) +
+    ((arr[offset + 1] << 16) |
+    (arr[offset + 2] << 8) |
+    arr[offset + 3])
+}
+
+export const isJPG = (buffer) => {
   // Skip 5 chars, they are for signature
   let buf = buffer.subarray(4, buffer.length - 1)
 
@@ -23,23 +35,9 @@ function jpg (buffer) {
   }
 }
 
-function png (buffer) {
+export const isPNG = (buffer) => {
   return {
     width: readUInt32BE(buffer, 16),
     height: readUInt32BE(buffer, 20)
   }
-}
-
-function readUInt16BE (arr, offset) {
-  offset = offset >>> 0
-  return (arr[offset] << 8) | arr[offset + 1]
-}
-
-function readUInt32BE (arr, offset) {
-  offset = offset >>> 0
-
-  return (arr[offset] * 0x1000000) +
-    ((arr[offset + 1] << 16) |
-    (arr[offset + 2] << 8) |
-    arr[offset + 3])
 }

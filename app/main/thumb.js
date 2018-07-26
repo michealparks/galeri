@@ -1,12 +1,21 @@
-module.exports = {makeThumb, removeThumb}
+import {nativeImage} from 'electron'
+import {unlink, writeFile} from 'fs'
+import http from 'http'
+import https from 'https'
+import configPath from '../shared/app-config-path'
 
-const {nativeImage} = require('electron')
-const {unlink, writeFile} = require('fs')
-const http = require('http')
-const https = require('https')
-const configPath = require('../shared/app-config-path')('Galeri Favorites')
+const path = configPath('Galeri Favorites')
 
-function makeThumb (name, href, next) {
+const writeThumb = (name, buffer, next) => {
+  const imgBuffer = nativeImage
+    .createFromBuffer(buffer)
+    .resize({ width: 750 })
+    .toJPEG(100)
+
+  writeFile(`${path}/${name}.jpeg`, imgBuffer, next)
+}
+
+export const makeThumb = (name, href, next) => {
   const protocol = href.indexOf('https://') !== -1 ? https : http
   let buf = Buffer.from([])
 
@@ -18,16 +27,7 @@ function makeThumb (name, href, next) {
   })
 }
 
-function writeThumb (name, buffer, next) {
-  const imgBuffer = nativeImage
-    .createFromBuffer(buffer)
-    .resize({ width: 750 })
-    .toJPEG(100)
-
-  writeFile(`${configPath}/${name}.jpeg`, imgBuffer, next)
-}
-
-function removeThumb (name) {
-  unlink(`${configPath}/${name}.jpeg`, (err) =>
+export const removeThumb = (name) => {
+  unlink(`${path}/${name}.jpeg`, (err) =>
     err && console.warn(err))
 }

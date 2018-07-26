@@ -1,6 +1,4 @@
-module.exports = i18n
-
-function i18n (locale) {
+export default (locale) => {
   if (locale.indexOf('en') > -1) {
     return {
       source: 'This work was provided by',

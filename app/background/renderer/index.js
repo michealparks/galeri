@@ -1,63 +1,48 @@
-module.exports = updateImage
+import {ipcRenderer as ipc} from 'electron'
+import storage from '../util/storage'
+import addImage from './background'
+import replaceText from './text'
+import {getNextArtwork, saveConfig} from '../museums'
+import {UPDATE_RATE} from '../util/default-values'
 
-const linux = process.platform === 'linux'
-const ipc = require('electron').ipcRenderer
-const storage = require('../util/storage')
-const fill = require('./background')
-const startTextLifecycle = require('./text')
-const {getNextArtwork, saveConfig} = require('../museums-new')
-
-let callbackRef
 let imageCount = 0
-let restartCount = 10
-let updateRate = storage('update-rate') ||
-  require('../util/default-values').updateRate
+let restartCount = 10e100
+let updateRate = storage('update-rate') || UPDATE_RATE
 
-ipc.on('menubar:update-rate', (e, rate) => {
-  updateRate = rate
-})
-
-function updateImage (next) {
-  callbackRef = next
-  getNextArtwork(onGetArtwork)
+const prepareExit = () => {
+  saveConfig()
+  replaceText()
+  ipc.send('background:reset')
 }
 
-function onGetArtwork (err, metadata) {
-  if (err !== undefined) return handleError(err)
+const render = async () => {
+  if (__dev__) console.log('render()')
 
-  ipc.send('background:artwork', metadata)
+  const art = await getNextArtwork()
 
-  fill(metadata, onImageFill)
-  startTextLifecycle(metadata)
-}
+  if (art === undefined) return render()
 
-function onImageFill (err) {
-  if (err !== undefined) return handleError(err)
+  const error = await addImage(art.img)
+
+  if (error !== undefined) return render()
+
+  ipc.send('background:artwork', art)
+  replaceText(art)
 
   if (imageCount === 0) {
     ipc.send('background:rendered')
   }
 
-  if (!linux) imageCount += 1
+  if (!__linux__) imageCount += 1
 
   if (imageCount === restartCount) {
     ipc.send('background:updated')
     return setTimeout(prepareExit, updateRate)
   }
-
-  callbackRef()
 }
 
-function handleError (err) {
-  if (err === 2 && !__dev__) {
-    ipc.send('background:reset')
-  } else {
-    getNextArtwork(onGetArtwork)
-  }
-}
+ipc.on('menubar:update-rate', (e, rate) => {
+  updateRate = rate
+})
 
-function prepareExit () {
-  saveConfig()
-  startTextLifecycle()
-  ipc.send('background:reset')
-}
+export default render

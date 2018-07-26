@@ -1,7 +1,5 @@
-module.exports = shuffle
-
 // Pretty standard modern Fischer-Yates algorithm
-function shuffle (array) {
+export default (array) => {
   for (let i = array.length - 1, j, t; i > 0; --i) {
     j = Math.floor(Math.random() * (i + 1))
     t = array[i]

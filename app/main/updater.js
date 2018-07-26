@@ -1,16 +1,22 @@
-module.exports = initUpdater
+import {
+  GITHUB_RELEASE_API,
+  CHECK_UPDATE_INTERVAL,
+  GITHUB_URL,
+  GITHUB_URL_RAW
+} from '../../config'
 
-const https = require('https')
-const {autoUpdater} = require('electron')
-const config = require('../../config')
-const req = require('url').parse(config.GITHUB_RELEASE_API)
+import {get} from 'https'
+import {autoUpdater} from 'electron'
+import url from 'url'
+
+const req = url.parse(GITHUB_RELEASE_API)
 const REGEX_ZIP_URL = /\/(v)?(\d+\.\d+\.\d+)\/.*\.zip/
 
 let updateListener
 
-req.headers = { 'User-Agent': 'michealparks' }
+req.headers = {'User-Agent': 'michealparks'}
 
-function initUpdater () {
+export default () => {
   if (__dev__) {
     autoUpdater.on('error', e =>
       console.error('update error: ', e))
@@ -27,82 +33,82 @@ function initUpdater () {
 
   check(onCheck)
 
-  setInterval(() =>
-    check(onCheck), config.CHECK_UPDATE_INTERVAL)
+  setInterval(() => check(onCheck), CHECK_UPDATE_INTERVAL)
 
   return {onUpdateAvailable}
 }
 
-function onUpdateAvailable (listener) {
+const onUpdateAvailable = (listener) => {
   updateListener = listener
 }
 
-function check (next) {
-  return getLatestTag((err, tag) => {
-    if (err) next(err)
+const check = (next) => getLatestTag((err, tag) => {
+  if (err) next(err)
 
-    if (tag === undefined || !isValid(tag)) {
-      next({ type: 'error', msg: 'Could not find a valid release tag.' })
-    }
+  if (tag === undefined || !isValid(tag)) {
+    next({ type: 'error', msg: 'Could not find a valid release tag.' })
+  }
 
-    if (!isNewerVersionAvailable(tag)) {
-      next({ type: 'warn', msg: 'There is no newer version.' })
-    }
+  if (!isNewerVersionAvailable(tag)) {
+    next({ type: 'warn', msg: 'There is no newer version.' })
+  }
 
-    getFeedURL(tag, next)
-  })
-}
+  getFeedURL(tag, next)
+})
 
-function onCheck (err, feedUrl) {
+const onCheck = (err, feedUrl) => {
   if (err) return console.error(err)
 
   autoUpdater.setFeedURL(feedUrl)
   autoUpdater.checkForUpdates()
 }
 
-function getLatestTag (next) {
-  return https.get(req, (res) => {
+const getLatestTag = (next) => {
+  return get(req, (res) => {
     let body = ''
     res.on('error', next)
     res.on('data', (d) => { body += d })
     res.on('end', () => next(undefined, JSON.parse(body).tag_name))
   })
-  .on('error', next)
-  .setTimeout(10000)
+    .on('error', next)
+    .setTimeout(10000)
 }
 
-function isValid (tag) {
+const isValid = (tag) => {
   return tag.slice(1).split('.').length === 3
 }
 
-function isNewerVersionAvailable (latest) {
+const isNewerVersionAvailable = (latest) => {
   const latestArr = latest.slice(1).split('.')
   const currentArr = __VERSION__.slice(1).split('.')
 
   // Major version update
-  if (Number(latestArr[0]) > Number(currentArr[0])) {
+  if (Number.parseInt(latestArr[0], 10) > Number.parseInt(currentArr[0], 10)) {
     if (updateListener) updateListener(latest)
     return true
   }
 
   // Minor version update
-  if (Number(latestArr[1]) > Number(currentArr[1])) {
+  if (Number.parseInt(latestArr[1], 10) > Number.parseInt(currentArr[1], 10)) {
     if (updateListener) updateListener(latest)
     return true
   }
 
   // Patch update
-  if (Number(latestArr[2]) > Number(currentArr[2])) return true
+  if (Number.parseInt(latestArr[2], 10) > Number.parseInt(currentArr[2], 10)) {
+    return true
+  }
+
   // No update
   return false
 }
 
-function getFeedURL (tag, next) {
+const getFeedURL = (tag, next) => {
   if (__win32__) {
-    return next(`${config.GITHUB_URL}/releases/download/${tag}`)
+    return next(`${GITHUB_URL}/releases/download/${tag}`)
   }
 
-  return https.get(`${config.GITHUB_URL_RAW}/updater.json`, (res) => {
+  return get(`${GITHUB_URL_RAW}/updater.json`, (res) => {
     let body = ''
 
     res.on('error', next)
@@ -123,6 +129,7 @@ function getFeedURL (tag, next) {
       }
 
       let zipUrl
+
       try {
         zipUrl = JSON.parse(body).url
       } catch (err) {
@@ -148,9 +155,9 @@ function getFeedURL (tag, next) {
         })
       }
 
-      return next(undefined, `${config.GITHUB_URL_RAW}/updater.json`)
+      return next(undefined, `${GITHUB_URL_RAW}/updater.json`)
     })
   })
-  .on('error', next)
-  .setTimeout(10000)
+    .on('error', next)
+    .setTimeout(10000)
 }

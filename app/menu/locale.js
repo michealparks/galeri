@@ -1,9 +1,12 @@
+import electron from 'electron'
+import i18n from './i18n'
+
 let getLocale
 let currentLocale = 'en'
 
-function checkLocale () {
+const checkLocale = () => {
   if (!getLocale) {
-    getLocale = require('electron').remote.app.getLocale
+    getLocale = electron.remote.app.getLocale
   }
 
   const locale = getLocale()
@@ -13,7 +16,7 @@ function checkLocale () {
   currentLocale = locale
 
   if (locale.indexOf('en') === -1) {
-    const lang = require('./i18n')(locale)
+    const lang = i18n(locale)
 
     if (lang) {
       const $ = document.getElementById.bind(document)
@@ -25,4 +28,4 @@ function checkLocale () {
   }
 }
 
-setInterval(checkLocale, 10000)
+setInterval(checkLocale, 1000 * 60)

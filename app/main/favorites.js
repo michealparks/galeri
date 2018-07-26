@@ -1,11 +1,11 @@
-module.exports = {isArtFavorited}
+import {BrowserWindow} from 'electron'
+import appConfig from '../shared/app-config'
+import {APP_ICON} from '../../config'
+import {getArt, addListener} from './ipc'
+import {makeThumb, removeThumb} from './thumb'
+import {getUrl} from './util'
 
-const {BrowserWindow} = require('electron')
-const cache = require('../shared/app-config')('Galeri Favorites')
-const config = require('../../config')
-const {getArt, addListener} = require('./ipc')
-const {makeThumb, removeThumb} = require('./thumb')
-const {getUrl} = require('./util')
+const cache = appConfig('Galeri Favorites')
 
 let win
 let favorites = []
@@ -26,7 +26,7 @@ addListener('favorites:loaded', () =>
 
 const winConfig = {
   title: 'Favorited Artworks',
-  icon: config.APP_ICON,
+  icon: APP_ICON,
   center: true,
   show: false,
   width: 790,
@@ -34,7 +34,7 @@ const winConfig = {
   resizable: false,
   maximizable: false,
   fullscreenable: false,
-  titleBarStyle: 'hidden-inset',
+  titleBarStyle: 'hidden',
   skipTaskbar: true,
   webPreferences: {
     webAudio: false,
@@ -42,15 +42,7 @@ const winConfig = {
   }
 }
 
-function isArtFavorited (href) {
-  for (let i = 0, l = favorites.length; i < l; ++i) {
-    if (favorites[i].href === href) return true
-  }
-
-  return false
-}
-
-function openFavorites () {
+const openFavorites = () => {
   if (win !== undefined) {
     win.focus()
     win.restore()
@@ -67,11 +59,11 @@ function openFavorites () {
   if (__dev__) win.openDevTools({ mode: 'detach' })
 }
 
-function onClose () {
+const onClose = () => {
   win = undefined
 }
 
-function onFavorite () {
+const onFavorite = () => {
   const art = getArt()
 
   favorites.push(art)
@@ -84,11 +76,11 @@ function onFavorite () {
   cache.write({ favorites }, onWriteConfig)
 }
 
-function onWriteConfig (err, stats) {
+const onWriteConfig = (err, stats) => {
   if (err) console.error(err)
 }
 
-function onDelete (href) {
+const onDelete = (href) => {
   const newFavorites = []
   let found
 
@@ -106,4 +98,12 @@ function onDelete (href) {
   }
 
   cache.write({ favorites }, onWriteConfig)
+}
+
+export const isArtFavorited = (href) => {
+  for (let i = 0, l = favorites.length; i < l; ++i) {
+    if (favorites[i].href === href) return true
+  }
+
+  return false
 }

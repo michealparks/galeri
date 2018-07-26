@@ -1,5 +1,3 @@
-module.exports = storage
-
 const hasStorage = (() => {
   try {
     localStorage.setItem('__test__', '__test__')
@@ -10,7 +8,7 @@ const hasStorage = (() => {
   }
 })()
 
-function storage (key, val) {
+export default (key, val) => {
   if (!hasStorage) return
 
   if (val !== undefined) {

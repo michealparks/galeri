@@ -1,12 +1,14 @@
-module.exports = openAbout
-
-const {BrowserWindow} = require('electron')
-const config = require('../../config')
-const {getUrl} = require('./util')
+import {BrowserWindow} from 'electron'
+import {APP_ICON} from '../../config'
+import {getUrl} from './util'
 
 let win
 
-function openAbout () {
+const onClose = () => {
+  win = undefined
+}
+
+export default () => {
   if (win !== undefined) {
     win.focus()
     win.restore()
@@ -15,7 +17,7 @@ function openAbout () {
 
   win = new BrowserWindow({
     title: 'About Galeri',
-    icon: config.APP_ICON,
+    icon: APP_ICON,
     center: true,
     show: false,
     width: 400,
@@ -23,7 +25,7 @@ function openAbout () {
     resizable: false,
     maximizable: false,
     fullscreenable: false,
-    titleBarStyle: 'hidden-inset',
+    titleBarStyle: 'hidden',
     skipTaskbar: true,
     webPreferences: {
       webAudio: false,
@@ -36,11 +38,7 @@ function openAbout () {
   win.on('close', onClose)
   win.loadURL(getUrl('about'))
 
-  if (__dev__) win.openDevTools({ mode: 'detach' })
+  if (__dev__) win.openDevTools({mode: 'detach'})
 
   return win.id
-}
-
-function onClose () {
-  win = undefined
 }

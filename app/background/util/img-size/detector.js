@@ -1,22 +1,15 @@
-module.exports = detector
-
-function detector (buffer) {
-  if (isJPG(buffer)) return 'jpg'
-  if (isPNG(buffer)) return 'png'
-}
-
-function isJPG (buffer) {
+const isJPG = (buffer) => {
   return hexSlice(buffer, 0, 2) === 'ffd8'
 }
 
-function isPNG (buffer) {
+const isPNG = (buffer) => {
   if (asciiSlice(buffer, 1, 8) !== 'PNG\r\n\x1a\n' ||
       asciiSlice(buffer, 12, 16) !== 'IHDR') return false
 
   return true
 }
 
-function hexSlice (b, start, end) {
+const hexSlice = (b, start, end) => {
   let out = ''
   for (let n, i = start, l = Math.min(b.length, end); i < l; ++i) {
     n = b[i]
@@ -25,10 +18,15 @@ function hexSlice (b, start, end) {
   return out
 }
 
-function asciiSlice (b, start, end) {
+const asciiSlice = (b, start, end) => {
   let ret = ''
   for (let i = start, l = Math.min(b.length, end); i < l; ++i) {
     ret += String.fromCharCode(b[i] & 0x7F)
   }
   return ret
+}
+
+export default (buffer) => {
+  if (isJPG(buffer)) return 'jpg'
+  if (isPNG(buffer)) return 'png'
 }

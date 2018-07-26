@@ -1,15 +1,17 @@
-const electron = require('electron')
-const config = require('../../config')
+import electron from 'electron'
+import {APP_TEAM, APP_NAME, CRASH_REPORT_URL} from '../../config'
+
+if (__dev__) console.time('init')
+
+global.eval = () => console.error('NO EVAL')
 
 electron.crashReporter.start({
-  companyName: config.APP_TEAM,
-  productName: config.APP_NAME,
-  submitURL: config.CRASH_REPORT_URL
+  companyName: APP_TEAM,
+  productName: APP_NAME,
+  submitURL: CRASH_REPORT_URL
 })
 
-function onFatalCrash (e) {
-  console.error(e)
-}
+const onFatalCrash = (e) => console.error(e)
 
 // TODO send crash report
 electron.app.on('gpu-process-crashed', onFatalCrash)

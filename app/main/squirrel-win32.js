@@ -1,10 +1,8 @@
-module.exports = check
-
-const path = require('path')
-const {app} = require('electron')
+import path from 'path'
+import {app} from 'electron'
 // var debug = require('debug')('windows-squirrel-startup')
 
-function run (args, done) {
+const run = (args, done) => {
   const updateExe = path.resolve(path.dirname(process.execPath), '..', 'Update.exe')
 
   if (__dev__) {
@@ -16,7 +14,7 @@ function run (args, done) {
     .on('close', done)
 }
 
-function check (cmd) {
+export default (cmd) => {
   if (__dev__) {
     console.log('processing squirrel command `%s`', cmd)
   }

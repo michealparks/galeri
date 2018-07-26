@@ -1,6 +1,8 @@
-const ipc = require('electron').ipcRenderer
-const open = require('../shared/open')
-const configPath = require('../shared/app-config-path')('Galeri Favorites')
+import {ipcRenderer as ipc} from 'electron'
+import open from '../shared/open'
+import configPath from '../shared/app-config-path'
+
+const path = configPath('Galeri Favorites')
 const Favorites = document.getElementById('favorites')
 const NoFavorites = document.getElementById('no-favorites')
 
@@ -27,7 +29,7 @@ ipc.on('main:favorites', (e, favorites) => {
 
   for (let item, url, i = favorites.length - 1; i > -1; --i) {
     item = favorites[i]
-    url = `${configPath}/${item.title} - ${item.text} - ${item.source}.jpeg`
+    url = `${path}/${item.title} - ${item.text} - ${item.source}.jpeg`
 
     const child = document.createElement('div')
     child.className = 'favorite'

@@ -1,11 +1,17 @@
-module.exports = {enable, disable, isEnabled}
+import fs from 'fs'
+import path from 'path'
+import os from 'os'
+import electron from 'electron'
+import mkdirp from '../shared/mkdirp'
 
-const fs = require('fs')
-const path = require('path')
-const home = require('os').homedir()
-const electron = require('electron')
-const mkdirp = require('../shared/mkdirp')
+const home = os.homedir()
 const appName = 'Galeri'
+
+const getDirectory = () => {
+  const str = '~/.config/autostart/'
+  return home ? str.replace(/^~($|\/|\\)/, `${home}$1`) : str
+}
+
 const filePath = `${getDirectory() + appName}.desktop`
 
 let appPath
@@ -34,7 +40,7 @@ StartupNotify=false
 Terminal=false
 `
 
-function enable () {
+export const enableAutolaunch = () => {
   if (!__linux__) return toggle(true)
 
   createFile({
@@ -44,7 +50,7 @@ function enable () {
   }, (err) => err && console.log(err))
 }
 
-function disable (next) {
+export const disableAutolaunch = (next) => {
   if (!__linux__) return toggle(false)
 
   fs.stat(filePath, (statErr) => statErr
@@ -54,15 +60,7 @@ function disable (next) {
       : next && next()))
 }
 
-function toggle (isEnabled) {
-  electron.remote.app.setLoginItemSettings({
-    openAtLogin: isEnabled,
-    path: appPath,
-    args: startArgs
-  }, appPath, startArgs)
-}
-
-function isEnabled (next) {
+export const isAutolaunchEnabled = (next) => {
   if (__linux__) {
     return fs.stat(filePath, (err, stat) => err
       ? next(false)
@@ -74,12 +72,15 @@ function isEnabled (next) {
   }
 }
 
-function getDirectory () {
-  const str = '~/.config/autostart/'
-  return home ? str.replace(/^~($|\/|\\)/, `${home}$1`) : str
+const toggle = (isEnabled) => {
+  electron.remote.app.setLoginItemSettings({
+    openAtLogin: isEnabled,
+    path: appPath,
+    args: startArgs
+  }, appPath, startArgs)
 }
 
-function createFile (arg, next) {
+const createFile = (arg, next) => {
   mkdirp(arg.directory, (mkdirErr) => mkdirErr
     ? next(mkdirErr)
     : fs.writeFile(arg.filePath, arg.data, next))

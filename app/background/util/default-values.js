@@ -1,4 +1,2 @@
-module.exports = {
-  labelLocation: 'bottom',
-  updateRate: 1000 * 60 * 30
-}
+export const LABEL_LOCATION = 'bottom'
+export const UPDATE_RATE = 1000 * 60 * 30

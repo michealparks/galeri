@@ -38,41 +38,44 @@
     "electron": "./node_modules/.bin/electron"
   },
   "engines": {
-    "node": ">=6.0.0",
-    "npm": ">=4.0.0"
+    "node": ">=8.0.0",
+    "npm": ">=5.0.0"
   },
   "optionalDependencies": {
     "appdmg": "^0.5.2"
   },
   "devDependencies": {
-    "asar": "^0.14.0",
-    "autoprefixer-stylus": "^0.14.0",
-    "babili-webpack-plugin": "0.1.2",
-    "concurrently": "^3.5.0",
-    "cross-env": "^5.1.1",
+    "asar": "^0.14.3",
+    "concurrently": "^3.6.1",
+    "cross-env": "^5.2.0",
     "cross-zip": "^2.1.5",
     "del": "^3.0.0",
-    "depcheck": "^0.6.8",
+    "depcheck": "^0.6.9",
     "devtron": "^1.4.0",
-    "electron": "^1.8.2-beta.1",
-    "electron-builder": "^19.45.5",
-    "electron-debug": "^1.4.0",
-    "electron-devtools-installer": "^2.2.1",
-    "electron-osx-sign": "^0.4.7",
-    "electron-packager": "^9.1.0",
-    "electron-winstaller": "^2.6.3",
-    "html-minifier": "^3.5.6",
-    "inline-source": "^5.2.6",
+    "electron": "3.0.0-beta.3",
+    "electron-builder": "^20.25.0",
+    "electron-debug": "^2.0.0",
+    "electron-devtools-installer": "^2.2.4",
+    "electron-osx-sign": "^0.4.10",
+    "electron-packager": "^12.1.0",
+    "electron-winstaller": "^2.6.4",
+    "html-minifier": "^3.5.19",
+    "inline-source": "^6.1.5",
     "minimist": "^1.2.0",
     "mkdirp": "^0.5.1",
     "nobin-debian-installer": "0.0.10",
-    "run-series": "^1.1.4",
+    "node-fetch": "^2.2.0",
+    "run-series": "^1.1.8",
     "stylus": "^0.54.5",
-    "webpack": "^3.8.1"
+    "uglifyjs-webpack-plugin": "^1.2.7",
+    "webpack": "^4.16.2"
   },
-  "dependencies": {},
+  "dependencies": {
+    "htmlparser2": "^3.9.2"
+  },
   "standard": {
     "globals": [
+      "__root__",
       "__VERSION__",
       "__dev__",
       "__darwin__",
@@ -86,7 +89,7 @@
   },
   "build": {
     "appId": "io.galeri.app",
-    "copyright": "Copyright © 2016 - 2017 Micheal Parks",
+    "copyright": "Copyright © 2016 - 2018 Space Egg",
     "productName": "Galeri",
     "files": [
       "package.json",

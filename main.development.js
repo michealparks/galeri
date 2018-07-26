@@ -1,63 +1,20 @@
-if (__dev__) console.time('init')
+import './app/main/crash-reporter'
 
-require('./app/main/crash-reporter')
+import {resolve} from 'path'
+import {format} from 'url'
+import electron from 'electron'
+import {APP_ICON} from './config'
+import {cacheBrowserId, removeCachedBrowserId} from './app/main/ipc'
+import initMenubar from './app/main/menubar'
+import squirrel from './app/main/squirrel-win32'
 
-const {resolve} = require('path')
-const {format} = require('url')
-const electron = require('electron')
-const config = require('./config')
-const ipcHandler = require('./app/main/ipc')
-const initMenubar = require('./app/main/menubar')
 const {app, BrowserWindow} = electron
 
 let screen, lastWinId, currentWinId
 let isAllowedResize = true
 let windows = []
 
-// Handle restart due to windows updates
-let shouldQuit
-
-if (__win32__) {
-  shouldQuit = require('./app/main/squirrel-win32')(process.argv[1])
-}
-
-// Handle possible other instances of the app
-if (!shouldQuit) {
-  shouldQuit = app.makeSingleInstance(() => {
-    // Someone tried to run a second instance, we should focus our window.
-    if (windows[0]) {
-      if (windows[0].isMinimized()) windows[0].restore()
-      windows[0].focus()
-    }
-  })
-
-  if (shouldQuit) app.quit()
-}
-
-if (!shouldQuit) {
-  app.commandLine.appendSwitch('disable-renderer-backgrounding')
-  app.commandLine.appendSwitch('js-flags', '--use_strict')
-
-  // This is appended due to a chromium bug that disables transparent
-  // windows on linux. Peridically check to see if it can be removed.
-  if (__linux__) {
-    app.commandLine.appendSwitch('enable-transparent-visuals')
-    app.commandLine.appendSwitch('disable-gpu')
-  }
-
-  // Hide the app from the MacOS dock
-  if (app.dock !== undefined) app.dock.hide()
-
-  app.once('ready', onReady)
-
-  electron.ipcMain.on('background:reset', () =>
-    makeWindow('background', screen.getPrimaryDisplay()))
-  electron.ipcMain.on('background:rendered', () => windows.length === 1
-    ? __dev__ && console.timeEnd('init')
-    : setTimeout(destroyWindowOfId, 4000, lastWinId))
-}
-
-function onReady () {
+const onReady = () => {
   screen = electron.screen
 
   initMenubar()
@@ -76,16 +33,21 @@ function onReady () {
 
   makeWindow('background', screen.getPrimaryDisplay())
 
-  for (let i = 0, s = getSecondaryDisplays(), l = s.length; i < l; ++i) {
+  const s = getSecondaryDisplays()
+
+  for (let i = 0, l = s.length; i < l; ++i) {
     makeWindow('clone', s[i])
   }
 }
 
-function onDisplayAdded () {
+const onDisplayAdded = () => {
   // link the primary display to the main background
   getPrimaryWindow().display = screen.getPrimaryDisplay()
 
-  for (let i = 0, c = getCloneWindows(), d = getSecondaryDisplays(), l = d.length; i < l; ++i) {
+  const c = getCloneWindows()
+  const d = getSecondaryDisplays()
+
+  for (let i = 0, l = d.length; i < l; ++i) {
     // if a current clone exists, match a display with it
     if (c[i] !== undefined) c[i].display = d[i]
 
@@ -96,11 +58,14 @@ function onDisplayAdded () {
   resizeBackgrounds()
 }
 
-function onDisplayRemoved () {
+const onDisplayRemoved = () => {
   // link the primary display to the main background
   getPrimaryWindow().display = screen.getPrimaryDisplay()
 
-  for (let i = 0, c = getCloneWindows(), d = getSecondaryDisplays(), l = c.length; i < l; ++i) {
+  const c = getCloneWindows()
+  const d = getSecondaryDisplays()
+
+  for (let i = 0, l = c.length; i < l; ++i) {
     // if a display exists, give it a current clone
     if (d[i] !== undefined) c[i].display = d[i]
 
@@ -111,13 +76,13 @@ function onDisplayRemoved () {
   resizeBackgrounds()
 }
 
-function getPrimaryWindow () {
+const getPrimaryWindow = () => {
   for (let i = 0, l = windows.length; i < l; ++i) {
     if (windows[i].id === currentWinId) return windows[i]
   }
 }
 
-function getCloneWindows () {
+const getCloneWindows = () => {
   const results = []
 
   for (let i = 0, l = windows.length; i < l; ++i) {
@@ -127,7 +92,7 @@ function getCloneWindows () {
   return results
 }
 
-function getSecondaryDisplays () {
+const getSecondaryDisplays = () => {
   const primary = screen.getPrimaryDisplay()
   const secondary = screen.getAllDisplays()
   const results = []
@@ -139,7 +104,7 @@ function getSecondaryDisplays () {
   return results
 }
 
-function destroyWindowOfId (id) {
+const destroyWindowOfId = (id) => {
   for (let i = 0, l = windows.length; i < l; ++i) {
     if (windows[i].id !== id) continue
 
@@ -151,17 +116,17 @@ function destroyWindowOfId (id) {
     windows.splice(i, 1)
 
     // exit loop
-    return ipcHandler.removeCachedId(id)
+    return removeCachedBrowserId(id)
   }
 }
 
-function makeWindow (type, display) {
+const makeWindow = (type, display) => {
   const {bounds} = display
   const isClone = type !== 'background'
 
   let win = new BrowserWindow({
     title: 'Galeri',
-    icon: config.APP_ICON,
+    icon: APP_ICON,
     x: bounds.x,
     y: bounds.y,
     width: bounds.width,
@@ -195,7 +160,7 @@ function makeWindow (type, display) {
   win.display = display
   win.isClone = isClone
 
-  ipcHandler.cacheId(win.id)
+  cacheBrowserId(win.id)
 
   win.setVisibleOnAllWorkspaces(true)
 
@@ -220,8 +185,7 @@ function makeWindow (type, display) {
   }))
 
   if (__dev__) {
-    require('electron-debug')()
-    win.openDevTools({ mode: 'detach' })
+    win.openDevTools({mode: 'detach'})
   }
 
   windows.push(win)
@@ -230,7 +194,7 @@ function makeWindow (type, display) {
   if (__linux__) resizeBackgrounds()
 }
 
-function resizeBackgrounds () {
+const resizeBackgrounds = () => {
   if (!isAllowedResize) {
     isAllowedResize = true
     return
@@ -242,4 +206,30 @@ function resizeBackgrounds () {
       win.setBounds(win.display.bounds, false)
     }
   })
+}
+
+if (!squirrel(process.argv[1])) {
+  app.requestSingleInstanceLock()
+  app.on('second-instance', () => {})
+
+  app.commandLine.appendSwitch('disable-renderer-backgrounding')
+  app.commandLine.appendSwitch('js-flags', '--use_strict')
+
+  // This is appended due to a chromium bug that disables transparent
+  // windows on linux. Peridically check to see if it can be removed.
+  if (__linux__) {
+    app.commandLine.appendSwitch('enable-transparent-visuals')
+    app.commandLine.appendSwitch('disable-gpu')
+  }
+
+  // Hide the app from the MacOS dock
+  if (app.dock !== undefined) app.dock.hide()
+
+  app.once('ready', onReady)
+
+  electron.ipcMain.on('background:reset', () =>
+    makeWindow('background', screen.getPrimaryDisplay()))
+  electron.ipcMain.on('background:rendered', () => windows.length === 1
+    ? __dev__ && console.timeEnd('init')
+    : setTimeout(destroyWindowOfId, 4000, lastWinId))
 }

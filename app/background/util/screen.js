@@ -1,11 +1,9 @@
-module.exports = {screenWidth, screenHeight}
+import {clamp} from './index'
 
-const {clamp} = require('./index')
-
-function screenWidth () {
+export const screenWidth = () => {
   return clamp(window.innerWidth * window.devicePixelRatio, 0, 2200) - 400
 }
 
-function screenHeight () {
+export const screenHeight = () => {
   return clamp(window.innerHeight * window.devicePixelRatio, 0, 2200) - 400
 }

@@ -1,9 +1,9 @@
-const ipc = require('electron').ipcRenderer
-const fillBackground = require('../background/renderer/background')
+import {ipcRenderer as ipc} from 'electron'
+import fillBackground from '../background/renderer/background'
 
 let currentHref
 
-function onArtwork (e, data) {
+const onArtwork = (e, data) => {
   if (data.href !== currentHref) {
     fillBackground(data, onFill)
   }
@@ -11,7 +11,7 @@ function onArtwork (e, data) {
   currentHref = data.href
 }
 
-function onFill () {}
+const onFill = () => {}
 
 ipc.on('background:artwork', onArtwork)
 ipc.once('main:artwork', onArtwork)

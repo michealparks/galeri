@@ -51,7 +51,7 @@ a
   -webkit-app-region: drag
   z-index: 20
   position: absolute
-  height: 40px
+  height: 24px
   width: 100%
   top: 0
   left: 0
@@ -63,14 +63,16 @@ a
   
   p
     margin: 0
+    font-size: 13px
 
 #favorites
   overflow-y: auto
   position: relative
   display: flex
-  height: 510px
+  height: calc(100% - 24px)
   flex-wrap: wrap
-  margin: 40px 0
+  margin: 24px 0 0 0
+  -webkit-overflow-scrolling: touch
   
 #no-favorites
   position: absolute

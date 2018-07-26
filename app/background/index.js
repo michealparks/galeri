@@ -1,7 +1,8 @@
-const ipc = require('electron').ipcRenderer
-const updateImage = require('./renderer')
-const {clamp} = require('./util')
-const storage = require('./util/storage')
+import {ipcRenderer as ipc} from 'electron'
+import updateImage from './renderer'
+import {clamp} from './util'
+import storage from './util/storage'
+import {UPDATE_RATE} from './util/default-values'
 
 let lastUpdateTime = 0
 let totalSuspendTime = 0
@@ -10,15 +11,21 @@ let updateId = -1
 let isUpdating = false
 let isSuspended = false
 let isPaused = storage('is-paused') || false
-let updateRate = storage('update-rate') ||
-  require('./util/default-values').updateRate
+let updateRate = storage('update-rate') || UPDATE_RATE
 
-function startUpdateCycle () {
+const startUpdateCycle = async () => {
+  if (__dev__) console.log('startUpdateCycle()')
+
   isUpdating = true
-  updateImage(onUpdateCycleComplete)
+
+  await updateImage()
+
+  onUpdateCycleComplete()
 }
 
-function onUpdateCycleComplete () {
+const onUpdateCycleComplete = () => {
+  if (__dev__) console.log('onUpdateCycleComplete()')
+
   isUpdating = false
   lastUpdateTime = Date.now()
 
@@ -31,13 +38,13 @@ function onUpdateCycleComplete () {
   updateId = setTimeout(startUpdateCycle, remainingTime())
 }
 
-function clearFutureUpdate () {
+const clearFutureUpdate = () => {
   isUpdating = false
   clearTimeout(updateId)
   updateId = -1
 }
 
-function remainingTime () {
+const remainingTime = () => {
   const elapsedTime = Date.now() - lastUpdateTime
   const elapsedAwakeTime = elapsedTime - totalSuspendTime
   const timeLeft = updateRate - elapsedAwakeTime
@@ -45,7 +52,7 @@ function remainingTime () {
   return clamp(timeLeft, 0, updateRate)
 }
 
-function shouldNotUpdate () {
+const shouldNotUpdate = () => {
   return isPaused || isSuspended || isUpdating
 }
 

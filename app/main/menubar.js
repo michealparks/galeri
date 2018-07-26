@@ -1,23 +1,32 @@
-module.exports = initMenubar
+import electron, {
+  app,
+  systemPreferences,
+  BrowserWindow,
+  Tray
+} from 'electron'
 
-const electron = require('electron')
-const config = require('../../config')
-const calculatePosition = require('./positioner')
-const initUpdater = require('./updater')
-const {getArt, addListener} = require('./ipc')
-const {isArtFavorited} = require('./favorites')
-const {getUrl} = require('./util')
+import {
+  APP_ICON,
+  TRAY_ICON,
+  TRAY_ICON_DARK
+} from '../../config'
+
+import calculatePosition from './positioner'
+import initUpdater from './updater'
+import {getArt, addListener} from './ipc'
+import {isArtFavorited} from './favorites'
+import {getUrl} from './util'
 
 const opts = {
   title: '',
-  icon: config.APP_ICON,
+  icon: APP_ICON,
   alwaysOnTop: __dev__,
   resizable: false,
   transparent: true,
   skipTaskbar: !__linux__,
   thickFrame: false,
   show: false,
-  frame: __linux__,
+  frame: false,
   width: 250,
   height: 320,
   webPreferences: {
@@ -30,8 +39,8 @@ let tray
 let win
 let updateVersion
 
-if (electron.systemPreferences.subscribeNotification !== undefined) {
-  electron.systemPreferences.subscribeNotification(
+if (systemPreferences.subscribeNotification !== undefined) {
+  systemPreferences.subscribeNotification(
     'AppleInterfaceThemeChangedNotification',
     () => tray && tray.setImage(getImage()))
 }
@@ -42,7 +51,7 @@ if (!__linux__) {
 }
 
 if (__linux__) {
-  electron.app.on('before-quit', () => {
+  app.on('before-quit', () => {
     if (win) win.destroy()
   })
 }
@@ -74,37 +83,27 @@ initUpdater().onUpdateAvailable((version) => {
   updateVersion = version
 })
 
-function sendEvent (e, data) {
+const sendEvent = (e, data) => {
   return win !== undefined && win.webContents.send(e, data)
 }
 
-function getImage () {
-  return electron.systemPreferences.isDarkMode() || __linux__
-    ? config.TRAY_ICON_DARK
-    : config.TRAY_ICON
+const getImage = () => {
+  return systemPreferences.isDarkMode() || __linux__
+    ? TRAY_ICON_DARK
+    : TRAY_ICON
 }
 
-function initMenubar () {
-  if (!__linux__) {
-    tray = new electron.Tray(getImage())
-    tray.on('click', onClick)
-    tray.on('double-click', onClick)
-  }
-
-  createWindow()
-}
-
-function createWindow () {
+const createWindow = () => {
   if (win !== undefined) {
     return win.focus() && win.restore()
   }
 
-  win = new electron.BrowserWindow(opts)
+  win = new BrowserWindow(opts)
 
   win.setVisibleOnAllWorkspaces(true)
   win.setMenuBarVisibility(false)
 
-  if (__dev__) win.openDevTools({ mode: 'detach' })
+  if (__dev__) win.openDevTools({mode: 'detach'})
 
   win.once('ready-to-show', win.show)
 
@@ -117,7 +116,7 @@ function createWindow () {
   return win.loadURL(getUrl('menubar'))
 }
 
-function onClose (e) {
+const onClose = (e) => {
   if (__linux__) {
     e.preventDefault()
     win.minimize()
@@ -126,13 +125,13 @@ function onClose (e) {
   }
 }
 
-function onClick (e, bounds) {
+const onClick = (e, bounds) => {
   return win.isVisible()
     ? hideWindow()
     : showWindow(bounds)
 }
 
-function showWindow (bounds) {
+const showWindow = (bounds) => {
   tray.setHighlightMode('always')
 
   if (win === undefined) createWindow()
@@ -155,7 +154,17 @@ function showWindow (bounds) {
   win.show()
 }
 
-function hideWindow () {
+const hideWindow = () => {
   tray.setHighlightMode('never')
   win.hide()
+}
+
+export default () => {
+  if (!__linux__) {
+    tray = new Tray(getImage())
+    tray.on('click', onClick)
+    tray.on('double-click', onClick)
+  }
+
+  createWindow()
 }

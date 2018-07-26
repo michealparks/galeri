@@ -1,15 +1,33 @@
-module.exports = {cacheId, removeCachedId, getArt, addListener}
+import electron, {ipcMain as ipc} from 'electron'
+import openAbout from './about'
 
-const electron = require('electron')
-const openAbout = require('./about')
 const {getAllWindows, fromId} = electron.BrowserWindow
-const ipc = electron.ipcMain
 
 let storedArt
 let backgroundIDs = []
 const channels = {}
 
-function addListener (name, fn) {
+const createIpcListener = (name) => {
+  ipc.on(name, (e, arg) => {
+    for (let i = 0, c = channels[name], l = c.length; i < l; ++i) {
+      c[i](arg)
+    }
+  })
+}
+
+const toWindows = (msg, arg) => {
+  for (let i = 0, arr = getAllWindows(), l = arr.length; i < l; ++i) {
+    arr[i].webContents.send(msg, arg)
+  }
+}
+
+const toBackgrounds = (msg, arg) => {
+  for (let i = 0, l = backgroundIDs.length; i < l; ++i) {
+    fromId(backgroundIDs[i]).webContents.send(msg, arg)
+  }
+}
+
+export const addListener = (name, fn) => {
   if (channels[name] === undefined) {
     channels[name] = []
     createIpcListener(name)
@@ -18,19 +36,11 @@ function addListener (name, fn) {
   channels[name].push(fn)
 }
 
-function createIpcListener (name) {
-  ipc.on(name, (e, arg) => {
-    for (let i = 0, c = channels[name], l = c.length; i < l; ++i) {
-      c[i](arg)
-    }
-  })
-}
-
-function cacheId (id) {
+export const cacheBrowserId = (id) => {
   backgroundIDs.push(id)
 }
 
-function removeCachedId (id) {
+export const removeCachedBrowserId = (id) => {
   let newIds = []
 
   for (let i = 0, l = backgroundIDs.length; i < l; ++i) {
@@ -40,20 +50,8 @@ function removeCachedId (id) {
   backgroundIDs = newIds
 }
 
-function getArt () {
+export const getArt = () => {
   return storedArt
-}
-
-function toWindows (msg, arg) {
-  for (let i = 0, arr = getAllWindows(), l = arr.length; i < l; ++i) {
-    arr[i].webContents.send(msg, arg)
-  }
-}
-
-function toBackgrounds (msg, arg) {
-  for (let i = 0, l = backgroundIDs.length; i < l; ++i) {
-    fromId(backgroundIDs[i]).webContents.send(msg, arg)
-  }
 }
 
 electron.app.once('ready', () => {

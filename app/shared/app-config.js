@@ -1,17 +1,11 @@
-module.exports = appConfig
-
-const fs = require('fs')
-const path = require('path')
-const applicationConfigPath = require('./app-config-path')
+import {readFile, writeFile, rename, unlink, rmdir} from 'fs'
+import path from 'path'
+import applicationConfigPath from './app-config-path'
+import mkdirp from './mkdirp'
 
 let filePath
 
-function appConfig (name) {
-  filePath = path.join(applicationConfigPath(name), 'config.json')
-  return {read, write, trash}
-}
-
-function tryCatch (str) {
+const tryCatch = (str) => {
   try {
     return JSON.parse(str)
   } catch (err) {
@@ -19,8 +13,8 @@ function tryCatch (str) {
   }
 }
 
-function read (next) {
-  fs.readFile(filePath, (err, raw) => {
+const read = (next) => {
+  readFile(filePath, (err, raw) => {
     if (err && err.code === 'ENOENT') return next(undefined, {})
     if (err) return next(err)
 
@@ -30,8 +24,7 @@ function read (next) {
   })
 }
 
-function write (data, next) {
-  const mkdirp = require('./mkdirp')
+const write = (data, next) => {
   const directoryPath = path.dirname(filePath)
 
   mkdirp(directoryPath, (err) => {
@@ -43,21 +36,26 @@ function write (data, next) {
       Date.now().toString() +
       path.extname(filePath)
 
-    fs.writeFile(tempFilePath, JSON.stringify(data, null, 2), (err) => {
+    writeFile(tempFilePath, JSON.stringify(data, null, 2), (err) => {
       if (err) return next(err)
-      fs.rename(tempFilePath, filePath, next)
+      rename(tempFilePath, filePath, next)
     })
   })
 }
 
-function trash (next) {
-  fs.unlink(filePath, (err) => {
+const trash = (next) => {
+  unlink(filePath, (err) => {
     if (err && err.code !== 'ENOENT') return next(err)
 
     const directoryPath = path.dirname(filePath)
-    fs.rmdir(directoryPath, (err) => {
+    rmdir(directoryPath, (err) => {
       if (err && err.code !== 'ENOENT') return next(err)
       next(undefined)
     })
   })
+}
+
+export default (name) => {
+  filePath = path.join(applicationConfigPath(name), 'config.json')
+  return {read, write, trash}
 }

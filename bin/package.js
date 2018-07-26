@@ -40,9 +40,9 @@ const argv = minimist(process.argv.slice(2), {
 })
 
 del(DIST_PATH)
-.then(() => html())
-.then(build)
-.catch(e => console.error(e))
+  .then(() => html())
+  .then(build)
+  .catch(e => console.error(e))
 
 function build () {
   console.log('Starting build...')
