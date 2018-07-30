@@ -38,14 +38,13 @@ const cycle = async () => {
 
   const delErr = await deleteDir(imgPath)
 
-  if (delErr) {
+  if (delErr !== undefined) {
     console.log(delErr)
-    return cycle()
   }
 
   const dirErr = await makeDir(imgPath)
 
-  if (dirErr) {
+  if (dirErr !== undefined) {
     console.log(dirErr)
     return cycle()
   }
@@ -56,8 +55,6 @@ const cycle = async () => {
 
   const filename = `${fileify(art.source)}_${fileify(art.title)}${art.ext}`
   const filepath = `${imgPath}/${filename}`
-
-  console.log(filepath)
 
   const fileErr = await downloadFile(art.img, filepath)
 
@@ -83,7 +80,7 @@ const cycle = async () => {
 
   const desktopSuccess = await changeWallpaper(imgPath, filename)
 
-  console.log(desktopSuccess)
+  if (desktopSuccess === undefined) return cycle()
 
   cycleID = setTimeout(cycle, 1000 * 30)
 }
