@@ -1,6 +1,6 @@
 import {exec} from 'child_process'
 
-export default (target) => {
+export const open = (target) => {
   let opener = ''
 
   if (process.env.SUDO_USER) {
@@ -13,3 +13,5 @@ export default (target) => {
 
   return exec(`${opener} "${target.replace(/"/g, '\\"')}"`)
 }
+
+export default open

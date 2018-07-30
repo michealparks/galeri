@@ -1,13 +1,15 @@
 import './boilerplate'
 import electron, {app} from 'electron'
+import {initAutoUpdate} from './auto-update'
 import {initCrashReporter} from './crash-reporter'
 import {squirrelWin32} from './squirrel-win32'
 import {menu} from './windows/menu'
 import {handleDisplayChanges} from './display'
 import {initLifecycle} from './lifecycle'
 
-if (!squirrelWin32(process.argv[1])) {
+if (!__win32__ || !squirrelWin32(process.argv[1])) {
   initCrashReporter()
+  initAutoUpdate()
 
   app.requestSingleInstanceLock()
   app.on('second-instance', () => {})
@@ -26,9 +28,8 @@ if (!squirrelWin32(process.argv[1])) {
   if (app.dock !== undefined) app.dock.hide()
 
   app.on('ready', () => {
-    console.log(electron.powerMonitor)
     menu(electron.screen)
-    handleDisplayChanges(electron.screen)
+    // handleDisplayChanges(electron.screen)
     initLifecycle(electron.powerMonitor)
   })
 }

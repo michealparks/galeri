@@ -1,6 +1,6 @@
 import {harvard as apiKey} from './keys'
-import {restoreData, getNextPages, fetchUrl} from './helpers'
-import {shuffle, getScreenSize} from './util'
+import {restoreData, getNextPages} from './helpers'
+import {shuffle, getScreenSize, fetchJSON} from '../../util'
 
 const hueRegex = /Grey|Black|White/
 const perPage = 30
@@ -30,7 +30,7 @@ const getData = async (category) => {
   if (data !== undefined) return data
 
   const url = collectionUrl(category)
-  const response = await fetchUrl(url)
+  const response = await fetchJSON(url)
 
   if (response === undefined) return
 

@@ -1,21 +1,4 @@
-import {getScreenSize, shuffle} from './util'
-import fetch from 'node-fetch'
-
-export const fetchUrl = async (url) => {
-  try {
-    const res = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36'
-      },
-      timeout: 10000
-    })
-    const json = await res.json()
-
-    return json
-  } catch (err) {
-    console.error('fetch error: ', err)
-  }
-}
+import {getScreenSize, shuffle} from '../../util'
 
 const museumData = (() => {
   const configVersion = '0.0.2'

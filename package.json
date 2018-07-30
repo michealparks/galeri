@@ -65,9 +65,11 @@
     "mkdirp": "^0.5.1",
     "nobin-debian-installer": "0.0.10",
     "node-fetch": "^2.2.0",
+    "run-applescript": "^3.2.0",
     "run-series": "^1.1.8",
     "stylus": "^0.54.5",
     "uglifyjs-webpack-plugin": "^1.2.7",
+    "wallpaper": "^3.0.0",
     "webpack": "^4.16.2"
   },
   "dependencies": {

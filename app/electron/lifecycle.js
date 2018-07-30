@@ -1,9 +1,12 @@
 import {ipcMain as ipc, nativeImage} from 'electron'
-import {unlink} from 'fs'
 import {getNextArtwork} from './museums'
-import {downloadImage} from './image'
 import {sendArtToWindows} from './events'
-import {getScreenSize} from './museums/util'
+import {changeWallpaper} from './image/change-wallpaper'
+import {getScreenSize} from '../util'
+import {appConfigPath} from '../shared/app-config-path'
+import {deleteDir, makeDir, downloadFile} from '../util/file'
+
+const imgPath = appConfigPath('Galeri Images')
 
 let cycleID, cleanID
 
@@ -20,23 +23,46 @@ export const initLifecycle = (powerMonitor) => {
   })
 
   powerMonitor.on('shutdown', () => {
-
+    // TODO
   })
 
   cycle()
 }
 
+const fileify = (str) => {
+  return str.toLowerCase().replace(/\s/g, '_')
+}
+
 const cycle = async () => {
   if (__dev__) console.log('cycle()')
+
+  const delErr = await deleteDir(imgPath)
+
+  if (delErr) {
+    console.log(delErr)
+    return cycle()
+  }
+
+  const dirErr = await makeDir(imgPath)
+
+  if (dirErr) {
+    console.log(dirErr)
+    return cycle()
+  }
 
   const art = await getNextArtwork()
 
   if (art === undefined) return cycle()
 
-  const [err, filepath] = await downloadImage(art)
+  const filename = `${fileify(art.source)}_${fileify(art.title)}${art.ext}`
+  const filepath = `${imgPath}/${filename}`
 
-  if (err !== undefined) {
-    console.log(err)
+  console.log(filepath)
+
+  const fileErr = await downloadFile(art.img, filepath)
+
+  if (fileErr !== undefined) {
+    console.log(fileErr)
     return cycle()
   }
 
@@ -51,16 +77,13 @@ const cycle = async () => {
 
   art.filepath = filepath
 
-  const success = await sendArtToWindows(art)
+  const menuSuccess = await sendArtToWindows(art)
 
-  if (success === false) return cycle()
+  if (menuSuccess === false) return cycle()
+
+  const desktopSuccess = await changeWallpaper(imgPath, filename)
+
+  console.log(desktopSuccess)
 
   cycleID = setTimeout(cycle, 1000 * 30)
-  cleanID = setTimeout(cleanupImageFile, 1000 * 60, filepath)
-}
-
-const cleanupImageFile = (filepath) => {
-  unlink(filepath, (err) => {
-    if (err) console.error(err)
-  })
 }

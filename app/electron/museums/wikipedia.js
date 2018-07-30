@@ -1,6 +1,6 @@
 import {Parser} from 'htmlparser2'
-import {restoreData, fetchUrl} from './helpers'
-import {getScreenSize, shuffle} from './util'
+import {restoreData} from './helpers'
+import {getScreenSize, shuffle, fetchJSON} from '../../util'
 
 const pixelRegex = /[0-9]{3,4}px/
 const parenRegex = / *\([^)]*\) */g
@@ -32,7 +32,7 @@ const getData = async (category) => {
   if (data !== undefined) return data
 
   const url = collectionUrl(category)
-  const response = await fetchUrl(url)
+  const response = await fetchJSON(url)
 
   if (response === undefined) return
 

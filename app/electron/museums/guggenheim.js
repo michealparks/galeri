@@ -1,11 +1,5 @@
-import {
-  restoreData,
-  getNextPages,
-  getArtInScreenSize,
-  fetchUrl
-} from './helpers'
-
-import {shuffle} from './util'
+import {restoreData, getNextPages, getArtInScreenSize} from './helpers'
+import {fetchJSON, shuffle} from '../../util'
 
 const perPage = 27
 const goodMediums = /goache|ink|monoprint|watercolor|graphite|metallic ink/
@@ -37,7 +31,7 @@ const getData = async (category) => {
   if (data !== undefined) return data
 
   const url = getCollectionUrl(category)
-  const response = await fetchUrl(url)
+  const response = await fetchJSON(url)
 
   if (response === undefined) return
 

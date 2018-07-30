@@ -66,10 +66,8 @@ const rendererConfig = {
   devtool: false,
   target: 'electron-renderer',
   entry: {
-    background: ['./app/background'],
     image: ['./app/window-image'],
     menu: ['./app/menu'],
-    clone: ['./app/bg-clone'],
     favorites: ['./app/favorites'],
     about: ['./app/about']
   },

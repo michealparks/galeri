@@ -1,12 +1,6 @@
-import {
-  restoreData,
-  getNextPages,
-  getArtInScreenSize,
-  fetchUrl
-} from './helpers'
-
+import {restoreData, getNextPages, getArtInScreenSize} from './helpers'
 import {rijks as key} from './keys'
-import {shuffle} from './util'
+import {shuffle, fetchJSON} from '../../util'
 
 const perPage = 30
 const artworks = {}
@@ -31,7 +25,7 @@ export const rijksArt = async (category) => {
   if (data === undefined) return
 
   const id = data.objectNumber
-  const art = await fetchUrl(detailsUrl(id))
+  const art = await fetchJSON(detailsUrl(id))
 
   if (art === undefined) return
 
@@ -53,7 +47,7 @@ const getData = async (category) => {
   if (data !== undefined) return data
 
   const url = collectionUrl(category)
-  const response = await fetchUrl(url)
+  const response = await fetchJSON(url)
 
   if (response === undefined) return
 

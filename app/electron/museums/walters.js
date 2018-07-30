@@ -1,6 +1,6 @@
 import {walters as key} from './keys'
-import {shuffle} from './util'
-import {restoreData, fetchUrl} from './helpers'
+import {shuffle, fetchJSON} from '../../util'
+import {restoreData} from './helpers'
 
 const artworks = {}
 const page = {}
@@ -26,7 +26,7 @@ const getData = async (category) => {
   if (data !== undefined) return data
 
   const url = collectionUrl(category)
-  const response = await fetchUrl(url)
+  const response = await fetchJSON(url)
 
   if (response === undefined) return
 

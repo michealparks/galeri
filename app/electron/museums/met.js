@@ -1,5 +1,5 @@
-import {restoreData, getNextPages, fetchUrl} from './helpers'
-import {shuffle} from './util'
+import {restoreData, getNextPages} from './helpers'
+import {shuffle, fetchJSON} from '../../util'
 
 const perPage = 20
 const artworks = {}
@@ -30,7 +30,7 @@ const getData = async (category) => {
   if (art !== undefined) return art
 
   const url = collectionUrl(category)
-  const response = await fetchUrl(url)
+  const response = await fetchJSON(url)
 
   if (response === undefined) return
 

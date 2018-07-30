@@ -14,6 +14,7 @@ export const sendArtToWindows = (art) => new Promise(resolve => {
   }
 
   menuWindow.webContents.send('new-artwork', art)
+  resolve(true)
 })
 
 ipc.on('new-artwork-loaded', (e, success) => {
