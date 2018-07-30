@@ -49,7 +49,7 @@ const mainConfig = {
     path: __dirname,
     filename: './main.js'
   },
-  externals: makeExternals(['node-fetch']),
+  externals: makeExternals(['node-fetch', 'wallpaper']),
   plugins: [
     new webpack.optimize.ModuleConcatenationPlugin(),
     new webpack.NamedModulesPlugin(),

@@ -1,5 +1,6 @@
 import runAppleScript from 'run-applescript'
 import wallpaper from 'wallpaper'
+import {resolve} from 'path'
 
 export const changeWallpaper = async (imgPath, filename) => {
   let success
@@ -26,8 +27,9 @@ const winSet = async (imgPath, filename) => {
   let success
 
   try {
-    success = await wallpaper.set(`${imgPath}/${filename}`)
+    success = await wallpaper.set(resolve(imgPath, filename))
   } catch (err) {
+    console.error(err)
     success = err
   }
 

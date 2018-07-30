@@ -1,4 +1,5 @@
 import {ipcMain as ipc, nativeImage} from 'electron'
+import {resolve} from 'path'
 import {getNextArtwork} from './museums'
 import {sendArtToWindows} from './events'
 import {changeWallpaper} from './image/change-wallpaper'
@@ -40,7 +41,6 @@ const cycle = async () => {
 
   if (delErr) {
     console.log(delErr)
-    return cycle()
   }
 
   const dirErr = await makeDir(imgPath)
@@ -55,9 +55,7 @@ const cycle = async () => {
   if (art === undefined) return cycle()
 
   const filename = `${fileify(art.source)}_${fileify(art.title)}${art.ext}`
-  const filepath = `${imgPath}/${filename}`
-
-  console.log(filepath)
+  const filepath = resolve(imgPath, filename)
 
   const fileErr = await downloadFile(art.img, filepath)
 
@@ -83,7 +81,7 @@ const cycle = async () => {
 
   const desktopSuccess = await changeWallpaper(imgPath, filename)
 
-  console.log(desktopSuccess)
+  console.log('desktopSuccess', desktopSuccess)
 
   cycleID = setTimeout(cycle, 1000 * 30)
 }
