@@ -52,8 +52,8 @@
     "del": "^3.0.0",
     "depcheck": "^0.6.9",
     "devtron": "^1.4.0",
-    "electron": "3.0.0-beta.3",
-    "electron-builder": "^20.26.0",
+    "electron": "3.0.0-beta.4",
+    "electron-builder": "^20.26.1",
     "electron-debug": "^2.0.0",
     "electron-devtools-installer": "^2.2.4",
     "electron-osx-sign": "^0.4.10",
@@ -70,7 +70,7 @@
     "stylus": "^0.54.5",
     "uglifyjs-webpack-plugin": "^1.2.7",
     "wallpaper": "^3.0.0",
-    "webpack": "^4.16.2"
+    "webpack": "^4.16.4"
   },
   "dependencies": {
     "htmlparser2": "^3.9.2"

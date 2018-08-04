@@ -4,8 +4,8 @@ import {initAutoUpdate} from './auto-update'
 import {initCrashReporter} from './crash-reporter'
 import {squirrelWin32} from './squirrel-win32'
 import {menu} from './windows/menu'
-import {handleDisplayChanges} from './display'
 import {initLifecycle} from './lifecycle'
+import {initAppState} from './state'
 
 if (!__win32__ || !squirrelWin32(process.argv[1])) {
   initCrashReporter()
@@ -27,9 +27,11 @@ if (!__win32__ || !squirrelWin32(process.argv[1])) {
   // Hide the app from the MacOS dock
   if (app.dock !== undefined) app.dock.hide()
 
-  app.on('ready', () => {
+  app.on('ready', async () => {
     menu(electron.screen)
-    // handleDisplayChanges(electron.screen)
+
+    await initAppState()
+
     initLifecycle(electron.powerMonitor)
   })
 }

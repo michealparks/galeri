@@ -5,7 +5,7 @@ import {fetch} from './index'
 export const downloadFile = async (source, dest) => {
   const file = await fetch(source)
 
-  if (file === undefined) return Promise.resolve('Fetch failed')
+  if (file === undefined) return Promise.resolve('downloadFile() failed for ', source)
 
   return new Promise(resolve => {
     let cbCalled = false
@@ -80,6 +80,19 @@ export const deleteDir = (dir) => new Promise(resolve => {
 })
 
 let __resolve
+
+// export const makeDir = (p) => {
+//   const mode = parseInt('0777', 8) & (~process.umask())
+//   const pathName = path.resolve(p)
+
+//   const mkdirp = (path) => {
+//     mkdir
+//   }
+
+//   return new Promise(resolve => {
+
+//   })
+// }
 
 export const makeDir = (p) => new Promise(resolve => {
   __resolve = resolve

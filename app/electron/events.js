@@ -25,10 +25,6 @@ ipc.on('delete-favorite', (e, href) => {
 
 })
 
-ipc.on('pause', (e, isPaused) => {
-
-})
-
 ipc.on('label-location-changed', (e, position) => {
 
 })
