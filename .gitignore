@@ -7,6 +7,4 @@ build/*.css
 build/*.html
 build/*.js
 
-main.js
-
 .DS_Store
