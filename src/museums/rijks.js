@@ -1,4 +1,4 @@
-import {requestJSON, shuffleArray} from '../util'
+import {requestJSON, shuffleArray} from '../util.js'
 
 const artObjects = []
 

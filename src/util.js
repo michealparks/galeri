@@ -23,8 +23,7 @@ function checkAppPath (cb) {
 
     fs.mkdir(appPath, mode, function (err) {
       if (err) console.error(err)
-
-      cb()
+      return cb()
     })
   })
 }
@@ -40,19 +39,17 @@ export function downloadFile (filename, url, cb) {
         return cb('Response status was ' + response.statusCode)
       }
 
-      response.pipe(file)
+      return response.pipe(file)
     })
 
     request.on('error', function (err) {
-      // Delete the file async. (But we don't check the result)
-      fs.unlink(dest) 
-
-      cb(err.message)
+      fs.unlink(dest, function () {})
+      return cb(err.message)
     })
 
     file.on('finish', function () {
-      file.close(function (err) {
-        cb(err, dest)
+      return file.close(function (err) {
+        return cb(err, dest)
       }) 
     })
 
@@ -63,8 +60,8 @@ export function downloadFile (filename, url, cb) {
   })
 }
 
-export function deleteFile (filename) {
-  return fs.unlink(path.join(appPath, filename), function () {})
+export function deleteFile (filename, cb) {
+  return fs.unlink(path.join(appPath, filename), cb)
 }
 
 export function requestJSON (url, cb) {
@@ -88,7 +85,7 @@ export function requestJSON (url, cb) {
   })
 
   request.on('error', function (err) {
-    cb(err)
+    return cb(err)
   })
 }
 

@@ -17,7 +17,7 @@ const config = {
   externals: [
     function (context, req, cb) {
       return [
-        'wallpaper'
+        // 'wallpaper'
       ].indexOf(req) > -1 ? cb(null, `require('${req}')`) : cb()
     }
   ],

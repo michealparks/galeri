@@ -1,10 +1,14 @@
-import electron from 'electron'
-import wallpaper from 'wallpaper'
-import {getArtwork} from './museums/main'
-import {downloadFile, deleteFile} from './util'
+import {setWallpaper, getWallpaper} from './wallpaper/main.js'
+import {getArtwork} from './museums/main.js'
+import {downloadFile, deleteFile} from './util.js'
+
+const electron = require('electron')
 
 let originalWallpaper = ''
 let currentObject = {}
+let interval = 60 * 2 * 1000
+let intervalId = -1
+let isCycling = false
 
 function main () {
   const app = electron.app
@@ -16,35 +20,33 @@ function main () {
     app.dock.hide()
   }
 
-  app.once('ready', function () {
-    wallpaper.get().then(function (original) {
-      originalWallpaper = original
-      cycle()
-    }).catch(cycle)
-    
+  return app.once('ready', function () {
+    return getWallpaper(function (err, original) {
+      if (original) {
+        originalWallpaper = original
+      }
+      
+      return cycle()
+    })
   })
 }
 
 function cycle () {
-  getArtwork(function (err, artwork) {
-    if (err) return cycle()
-    console.log(1, err, artwork.source)
+  return getArtwork(function (err, artwork) {
+    if (err !== undefined) return cycle()
 
-    downloadFile(artwork.filename, artwork.src, function (err, dest) {
-      if (err) return cycle(err)
-      console.log(2, err, dest)
+    return downloadFile(artwork.filename, artwork.src, function (err, dest) {
+      if (err !== undefined) return cycle()
 
-      wallpaper.set(dest)
-        .then(function () {
-          console.log(3)
-          setTimeout(cycle, 30 * 1000)
-          deleteFile(currentObject.filename || '')
+      return setWallpaper(dest, function (err) {
+        console.error(err)
+        if (err) return process.exit(1)
 
+        return deleteFile(currentObject.filename || '', function () {
           currentObject = artwork
+          intervalId = setTimeout(cycle, interval)
         })
-        .catch(function () {
-          process.exit(1)
-        })
+      })
     })
   })
 }

@@ -1,4 +1,4 @@
-import {requestJSON, shuffleArray} from '../util'
+import {requestJSON, shuffleArray} from '../util.js'
 
 const artObjects = []
 const url = 'https://en.wikipedia.org/w/api.php?action=parse&prop=text&page=Wikipedia:Featured_pictures/Artwork/Paintings&format=json&origin=*'
