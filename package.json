@@ -34,9 +34,9 @@
   },
   "devDependencies": {
     "cross-env": "^5.2.0",
-    "electron": "^4.0.0",
-    "wallpaper": "^4.1.0",
-    "webpack": "^4.28.1"
+    "electron": "^4.0.5",
+    "wallpaper": "^4.2.0",
+    "webpack": "^4.29.4"
   },
   "standard": {
     "globals": [

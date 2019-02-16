@@ -2,13 +2,18 @@ const webpack = require('webpack')
 const path = require('path')
 const cp = require('child_process')
 
-const __dev = process.env.NODE_ENV = 'development'
+const __dev = process.env.NODE_ENV === 'development'
 const __platform = process.argv[3] || process.platform
 
 const config = {
   mode: __dev ? 'development' : 'production',
   devtool: false,
+  node: {
+    __dirname: false,
+    __filename: false,
+  },
   target: 'electron-main',
+
   entry: path.resolve(__dirname, '..', 'src', 'main.js'),
   output: {
     path: path.resolve(__dirname, '..', 'build'),

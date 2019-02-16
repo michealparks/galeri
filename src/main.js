@@ -1,54 +1,88 @@
 import {setWallpaper, getWallpaper} from './wallpaper/main.js'
 import {getArtwork} from './museums/main.js'
 import {downloadFile, deleteFile} from './util.js'
+import {background} from './window/background.js'
+import {toggleMenu, sendMenu} from './window/menu.js'
+import {favorites} from './window/favorites.js'
+import {about} from './window/about.js'
+import {resolve} from 'path'
+import electron, {
+  app,
+  ipcMain as ipc,
+  systemPreferences
+} from 'electron'
 
-const electron = require('electron')
+const settings = {
+  interval: 15 * 2 * 1000
+}
 
 let originalWallpaper = ''
 let currentObject = {}
-let interval = 60 * 2 * 1000
 let intervalId = -1
 let isCycling = false
 
-function main () {
-  const app = electron.app
+let tray, bg
 
-  app.requestSingleInstanceLock()
-  app.commandLine.appendSwitch('js-flags', '--use_strict')
+app.requestSingleInstanceLock()
+app.commandLine.appendSwitch('js-flags', '--use_strict')
 
-  if (__macOS) {
-    app.dock.hide()
-  }
-
-  return app.once('ready', function () {
-    return getWallpaper(function (err, original) {
-      if (original) {
-        originalWallpaper = original
-      }
-      
-      return cycle()
-    })
-  })
+if (!__dev && __macOS) {
+  app.dock.hide()
 }
 
-function cycle () {
-  return getArtwork(function (err, artwork) {
-    if (err !== undefined) return cycle()
+ipc.on('open_about', function () {
+  about()
+})
 
-    return downloadFile(artwork.filename, artwork.src, function (err, dest) {
-      if (err !== undefined) return cycle()
+ipc.on('open_favorites', function () {
+  favorites()
+})
 
-      return setWallpaper(dest, function (err) {
-        console.error(err)
+app.once('ready', function () {
+  tray = new electron.Tray(resolve(
+    __dirname, '..', 'assets',
+    systemPreferences.isDarkMode() ? 'icon-dark_32x32.png' : 'icon_32x32.png'))
+
+  tray.on('click', onTrayClick)
+  tray.on('double-click', onTrayClick)
+
+  bg = background(electron.screen.getPrimaryDisplay())
+
+  getWallpaper(function (err, original) {
+    if (original) {
+      originalWallpaper = original
+    }
+
+    cycle(err)
+  })
+})
+
+function onTrayClick (e, bounds) {
+  const isOpen = toggleMenu(bounds, currentObject, settings)
+  tray.setHighlightMode(isOpen ? 'always' : 'never')
+}
+
+function cycle (err) {
+  if (__dev && err) console.warn(err)
+
+  getArtwork(function (err, artwork) {
+    if (err !== undefined) return cycle(err)
+
+    return downloadFile(artwork, function (err, dest) {
+      if (err !== undefined) return cycle(err)
+
+      setWallpaper(dest, function (err) {
         if (err) return process.exit(1)
 
-        return deleteFile(currentObject.filename || '', function () {
+        bg.webContents.send('artwork', dest)
+        sendMenu('artwork', artwork)
+
+        deleteFile(currentObject.filename || '', function () {
           currentObject = artwork
-          intervalId = setTimeout(cycle, interval)
+          intervalId = setTimeout(cycle, settings.interval)
         })
       })
     })
   })
 }
 
-main()

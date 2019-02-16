@@ -16,52 +16,52 @@ const appPath = __macOS
   : undefined
 
 function checkAppPath (cb) {
-  return fs.stat(appPath, function (err) {
+  fs.stat(appPath, function (err) {
     if (!err) return cb()
 
     const mode = parseInt('0777', 8) & (~process.umask())
 
     fs.mkdir(appPath, mode, function (err) {
       if (err) console.error(err)
-      return cb()
+      cb()
     })
   })
 }
 
-export function downloadFile (filename, url, cb) {
+export function downloadFile (artwork, cb) {
   return checkAppPath(function () {
-    const dest = path.join(appPath, filename)
+    const dest = path.join(appPath, artwork.filename)
     const file = fs.createWriteStream(dest)
-    const protocol = url.indexOf('http://') > -1 ? http : https
+    const protocol = artwork.src.indexOf('http://') > -1 ? http : https
 
-    const request = protocol.get(url, function (response) {
+    const request = protocol.get(artwork.src, function (response) {
       if (response.statusCode !== 200) {
         return cb('Response status was ' + response.statusCode)
       }
 
-      return response.pipe(file)
+      response.pipe(file)
     })
 
     request.on('error', function (err) {
       fs.unlink(dest, function () {})
-      return cb(err.message)
+      cb(err.message)
     })
 
     file.on('finish', function () {
-      return file.close(function (err) {
-        return cb(err, dest)
+      file.close(function (err) {
+        cb(err, dest)
       }) 
     })
 
     file.on('error', function (err) {
       fs.unlink(dest, function () {})
-      return cb(err.message)
+      cb(err.message)
     })
   })
 }
 
 export function deleteFile (filename, cb) {
-  return fs.unlink(path.join(appPath, filename), cb)
+  fs.unlink(path.join(appPath, filename), cb)
 }
 
 export function requestJSON (url, cb) {
@@ -77,15 +77,15 @@ export function requestJSON (url, cb) {
     response.on('end', function () {
       try {
         const json = JSON.parse(str)
-        return cb(undefined, json)
+        cb(undefined, json)
       } catch (err) {
-        return cb(err)
+        cb(err)
       }
     })
   })
 
   request.on('error', function (err) {
-    return cb(err)
+    cb(err)
   })
 }
 

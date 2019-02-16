@@ -19,7 +19,7 @@ function requestDetails (artObject, cb) {
     const url = response.artObject.webImage.url
 
     artObject.src = url
-    artObject.filename = `Wikipedia_${url.split('/').pop()}`
+    artObject.filename = `Rijks_${url.split('/').pop()}`
 
     return cb(undefined, artObject)
   })
