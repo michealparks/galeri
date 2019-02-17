@@ -1,4 +1,5 @@
 import {requestJSON, shuffleArray} from '../util.js'
+import {generateId} from './util.js'
 
 const artObjects = []
 const url = 'https://en.wikipedia.org/w/api.php?action=parse&prop=text&page=Wikipedia:Featured_pictures/Artwork/Paintings&format=json&origin=*'
@@ -36,13 +37,20 @@ function requestData (cb) {
       author = text.substring(authorStart, authorEnd)
       arr = text.substring(imgStart, imgEnd).split('/')
       src = `https://${arr[0]}/${arr[1]}/${arr[2]}/${arr[4]}/${arr[5]}/${arr[6]}`
-      filename = `Wikipedia_${arr.pop()}`
+      filename = `Wikipedia_${generateId()}`
 
       if (textStart > imgEnd) break
 
       textStart = imgEnd
 
-      artObjects.push({source: 'Wikipedia', href, title, author, src, filename})
+      artObjects.push({
+        source: 'Wikipedia',
+        href,
+        title,
+        author,
+        src,
+        filename
+      })
 
     } while (textStart < length)
 

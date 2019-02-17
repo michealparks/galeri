@@ -1,4 +1,5 @@
 import {requestJSON, shuffleArray} from '../util.js'
+import {generateId} from './util.js'
 
 const artObjects = []
 
@@ -16,10 +17,7 @@ function requestDetails (artObject, cb) {
   return requestJSON(url, function (err, response) {
     if (err) return cb(err)
 
-    const url = response.artObject.webImage.url
-
-    artObject.src = url
-    artObject.filename = `Rijks_${url.split('/').pop()}`
+    artObject.src = response.artObject.webImage.url
 
     return cb(undefined, artObject)
   })
@@ -46,7 +44,7 @@ function requestData (cb) {
         title: art.title,
         author: art.principalOrFirstMaker,
         src: '',
-        filename: ''
+        filename: `Rijks_${generateId()}`
       })
     }
 
