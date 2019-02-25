@@ -1,5 +1,6 @@
 import {requestJSON, shuffleArray} from '../util.js'
 import {generateId} from './util.js'
+import {extname} from 'path'
 
 const artObjects = []
 
@@ -17,7 +18,11 @@ function requestDetails (artObject, cb) {
   return requestJSON(url, function (err, response) {
     if (err) return cb(err)
 
-    artObject.src = response.artObject.webImage.url
+    const src = response.artObject.webImage.url
+
+    console.log(src)
+    artObject.src = src
+    artObject.filename = `Rijks_${generateId()}${extname(src)}`
 
     return cb(undefined, artObject)
   })
@@ -44,7 +49,7 @@ function requestData (cb) {
         title: art.title,
         author: art.principalOrFirstMaker,
         src: '',
-        filename: `Rijks_${generateId()}`
+        filename: ''
       })
     }
 

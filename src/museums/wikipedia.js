@@ -1,5 +1,6 @@
 import {requestJSON, shuffleArray} from '../util.js'
 import {generateId} from './util.js'
+import {extname} from 'path'
 
 const artObjects = []
 const url = 'https://en.wikipedia.org/w/api.php?action=parse&prop=text&page=Wikipedia:Featured_pictures/Artwork/Paintings&format=json&origin=*'
@@ -17,31 +18,33 @@ function requestData (cb) {
     const text = response.parse.text['*']
     const length = text.length
 
-    let textStart = 0
+    let textStart = text.indexOf('class=\"gallery') + 'class=\"gallery'.length
     let objectStart, hrefStart, hrefEnd, titleStart, titleEnd, authorStart, authorEnd, imgStart, imgEnd
-    let href, title, author, arr, src, filename
+    let href, title, author, srcarr, src, filename, ext
 
     do {
-      objectStart = text.indexOf('gallerytext', textStart)
-      hrefStart = text.indexOf('<a href=\"', objectStart) + 9
-      hrefEnd = text.indexOf('\"', hrefStart)
-      titleStart = text.indexOf('title=\"', hrefStart) + 7
-      titleEnd = text.indexOf('\"', titleStart)
-      authorStart = text.indexOf('title=\"', titleEnd) + 7
-      authorEnd = text.indexOf('\"', authorStart)
-      imgStart = text.indexOf('src=\"', authorEnd) + 7
+      objectStart = text.indexOf('gallerybox', textStart)
+      imgStart = text.indexOf('src=\"\/\/', objectStart) + 'src=\"\/\/'.length
       imgEnd = text.indexOf('\"', imgStart)
-
+      hrefStart = text.indexOf('<a href=\"', imgEnd) + '<a href=\"'.length
+      hrefEnd = text.indexOf('\"', hrefStart)
+      titleStart = text.indexOf('title=\"', hrefStart) + 'title=\"'.length
+      titleEnd = text.indexOf('\"', titleStart)
+      authorStart = text.indexOf('title=\"', titleEnd) + 'title=\"'.length
+      authorEnd = text.indexOf('\"', authorStart)
+  
       href = `https://en.wikipedia.org${text.substring(hrefStart, hrefEnd)}`
       title = text.substring(titleStart, titleEnd)
       author = text.substring(authorStart, authorEnd)
-      arr = text.substring(imgStart, imgEnd).split('/')
-      src = `https://${arr[0]}/${arr[1]}/${arr[2]}/${arr[4]}/${arr[5]}/${arr[6]}`
-      filename = `Wikipedia_${generateId()}`
+      src = text.substring(imgStart, imgEnd)
+      ext = extname(src)
+      srcarr = src.split('/')
+      src = `https://${srcarr[0]}/${srcarr[1]}/${srcarr[2]}/${srcarr[4]}/${srcarr[5]}/${srcarr[6]}`
+      filename = `Wikipedia_${generateId()}${ext}`
 
-      if (textStart > imgEnd) break
+      if (textStart > authorEnd) break
 
-      textStart = imgEnd
+      textStart = authorEnd
 
       artObjects.push({
         source: 'Wikipedia',

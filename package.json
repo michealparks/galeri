@@ -36,7 +36,7 @@
     "cross-env": "^5.2.0",
     "electron": "^4.0.5",
     "wallpaper": "^4.2.0",
-    "webpack": "^4.29.4"
+    "webpack": "^4.29.5"
   },
   "standard": {
     "globals": [

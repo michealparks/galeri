@@ -9,15 +9,15 @@ import {resolve} from 'path'
 import electron, {
   app,
   ipcMain as ipc,
-  systemPreferences
+  systemPreferences,
+  nativeImage
 } from 'electron'
 
 const settings = {
   interval: 15 * 2 * 1000
 }
 
-let currentObject = {filename: ''}
-let pendingObject = {filename: ''}
+let currentObject = {filename: ''}, pendingObject = {filename: ''}
 
 let originalWallpaper = ''
 let cycleId = -1
@@ -42,7 +42,6 @@ ipc.on('open_favorites', function () {
 })
 
 ipc.on('background_error', function () {
-  console.log('SHOULD NEVER OCCUR')
   clearTimeout(cycleId)
 
 })
@@ -74,13 +73,17 @@ app.once('ready', function () {
 })
 
 function onSuspend () {
-  cycleId = undefined
-  isSuspended = true
+  console.log('suspend')
+  if (cycleId !== undefined) {
+    clearTimeout(cycleId)
+    cycleId = undefined
+  }
 
-  clearTimeout(cycleId)
+  isSuspended = true
 }
 
 function onResume () {
+  console.log('resume')
   isSuspended = false
 
   if (cycleId !== undefined) {
@@ -96,7 +99,7 @@ function onTrayClick (e, bounds) {
 }
 
 function cycle (err) {
-  if (__dev && err) console.warn(err)
+  if (__dev && err) console.error(err)
 
   isCycling = true
   getArtwork(onGetArtwork)
@@ -113,6 +116,13 @@ function onGetArtwork (err, artwork) {
 function onFileDownload (err, dest) {
   if (err !== undefined) return cycle(err)
 
+  const iSize = nativeImage.createFromPath(dest).getSize()
+  const {size: dSize} = electron.screen.getPrimaryDisplay()
+
+  if (iSize.width < dSize.width || iSize.height < dSize.height) {
+    return deleteFile(currentObject.filename, cycle)
+  }
+
   bg.webContents.send('artwork', dest)
 
   sendMenu('artwork', pendingObject)
@@ -122,10 +132,10 @@ function onFileDownload (err, dest) {
 function onWallpaperSet (err) {
   if (err) return process.exit(1)
 
-  setTimeout(deleteFile, 3000, currentObject.filename, onFileDelete)
+  setTimeout(deleteFile, 3000, currentObject.filename, onPrevArtworkDelete)
 }
 
-function onFileDelete () {
+function onPrevArtworkDelete () {
   currentObject = pendingObject
   pendingObject = undefined
 

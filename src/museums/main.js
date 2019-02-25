@@ -1,9 +1,11 @@
 import {getWikipedia} from './wikipedia.js'
 import {getRijks} from './rijks.js'
+import {getMet} from './met.js'
 
 const getters = [
   getWikipedia,
-  getRijks
+  getRijks,
+  getMet
 ]
 
 export function getArtwork (cb) {

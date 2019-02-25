@@ -58,7 +58,6 @@ function compile () {
 
 if (__dev) {
   watch()
-  // const child = cp.spawn('electron', ['./build/main'], {env: process.env.NODE_ENV})
 } else {
   compile()
 }
