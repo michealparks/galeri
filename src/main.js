@@ -1,26 +1,27 @@
-import {setWallpaper, getWallpaper} from './wallpaper/main.js'
-import {getArtwork} from './museums/main.js'
-import {downloadFile, deleteFile} from './util.js'
-import {background} from './window/background.js'
-import {toggleMenu, sendMenu} from './window/menu.js'
-import {favorites} from './window/favorites.js'
-import {about} from './window/about.js'
+import {setWallpaper, getWallpaper} from './wallpaper/main'
+import {getArtwork} from './museums/main'
+import {downloadImage, deleteImage} from './util'
+import {background} from './window/background'
+import {toggleMenu, sendMenu} from './window/menu'
+import {favorites, sendFavorites} from './window/favorites'
+import {about} from './window/about'
 import {resolve} from 'path'
-import electron, {
-  app,
-  ipcMain as ipc,
-  systemPreferences,
-  nativeImage
-} from 'electron'
+import electron, {app, systemPreferences, ipcMain as ipc} from 'electron'
 
 const settings = {
-  interval: 15 * 2 * 1000
+  refreshRate: 15 * 2 * 1000,
+  autolaunch: true
 }
 
-let currentObject = {filename: ''}, pendingObject = {filename: ''}
+const favoritesArray = []
+
+let currentObject = {filename: ''}
+let pendingObject = {filename: ''}
+let pendingDest = ''
 
 let originalWallpaper = ''
 let cycleId = -1
+let cycleStamp = 0.0, suspendStamp = 0.0
 let isCycling = false
 let isSuspended = false
 
@@ -33,17 +34,42 @@ if (!__dev && __macOS) {
   app.dock.hide()
 }
 
+ipc.on('settings', function (e, newSettings) {
+  for (key in newSettings) {
+    settings[key] = newSettings[key]
+  }
+
+  // TODO apply settings
+  // TODO persist
+})
+
 ipc.on('open_about', function () {
   about()
 })
 
 ipc.on('open_favorites', function () {
-  favorites()
+  favorites(favoritesArray)
+})
+
+ipc.on('toggle_favorite', onToggleFavorite)
+
+ipc.on('delete_favorite', function (e, filename) {
+  if (filename === currentObject.filename) {
+    return onToggleFavorite()
+  }
+
+  favoritesArray.splice(
+    findFavoriteIndex(favoritesArray, filename),
+    1)
+
+  sendFavorites('favorites', favoritesArray)
+
+  // TODO persist
 })
 
 ipc.on('background_error', function () {
-  clearTimeout(cycleId)
-
+  onSuspend()
+  onResume()
 })
 
 app.once('ready', function () {
@@ -72,25 +98,53 @@ app.once('ready', function () {
   })
 })
 
+function onToggleFavorite () {
+  currentObject.isFavorite = !currentObject.isFavorite
+
+  if (currentObject.isFavorite) {
+    favoritesArray.push(currentObject)
+  } else {
+    favoritesArray.splice(
+      findFavoriteIndex(favoritesArray, currentObject.filename),
+      1)
+  }
+  
+  sendMenu('artwork', currentObject)
+  sendFavorites('favorites', favoritesArray)
+
+  // TODO persist
+}
+
+function findFavoriteIndex (arr, name) {
+  return arr.findIndex(function ({filename}) {
+    return filename === name
+  })
+}
+
 function onSuspend () {
-  console.log('suspend')
   if (cycleId !== undefined) {
     clearTimeout(cycleId)
     cycleId = undefined
   }
 
+  suspendStamp = Date.now()
   isSuspended = true
 }
 
 function onResume () {
-  console.log('resume')
   isSuspended = false
+
+  if (isCycling) return
 
   if (cycleId !== undefined) {
     clearTimeout(cycleId)
   }
 
-  cycle()
+  const timeLeft = settings.refreshRate - (Date.now() - cycleStamp)
+  const suspendTime = Date.now() - suspendStamp
+  const time = timeLeft - suspendTime
+
+  setTimeout(cycle, time < 0 ? 0 : time)
 }
 
 function onTrayClick (e, bounds) {
@@ -110,38 +164,36 @@ function onGetArtwork (err, artwork) {
 
   pendingObject = artwork
 
-  downloadFile(artwork, onFileDownload)
+  downloadImage(pendingObject, onImageDownload)
 }
 
-function onFileDownload (err, dest) {
+function onImageDownload (err, artwork) {
   if (err !== undefined) return cycle(err)
 
-  const iSize = nativeImage.createFromPath(dest).getSize()
-  const {size: dSize} = electron.screen.getPrimaryDisplay()
-
-  if (iSize.width < dSize.width || iSize.height < dSize.height) {
-    return deleteFile(currentObject.filename, cycle)
-  }
-
-  bg.webContents.send('artwork', dest)
-
+  bg.webContents.send('artwork', pendingObject.filepath)
   sendMenu('artwork', pendingObject)
-  setWallpaper(dest, onWallpaperSet)
+  setWallpaper(pendingObject.filepath, onWallpaperSet)
 }
 
 function onWallpaperSet (err) {
-  if (err) return process.exit(1)
+  if (err !== undefined) return cycle(err)
 
-  setTimeout(deleteFile, 3000, currentObject.filename, onPrevArtworkDelete)
+  setTimeout(function () {
+    if (currentObject.isFavorite === false) {
+      deleteImage(currentObject, onCycleFinish)
+    } else {
+      onCycleFinish()
+    }
+  }, 3000)
 }
 
-function onPrevArtworkDelete () {
+function onCycleFinish () {
   currentObject = pendingObject
-  pendingObject = undefined
 
   if (isSuspended) return
 
-  cycleId = setTimeout(cycle, settings.interval)
+  cycleId = setTimeout(cycle, settings.refreshRate)
+  cycleStamp = Date.now()
   isCycling = false
 }
 

@@ -1,6 +1,6 @@
-import {getWikipedia} from './wikipedia.js'
-import {getRijks} from './rijks.js'
-import {getMet} from './met.js'
+import {getWikipedia} from './wikipedia'
+import {getRijks} from './rijks'
+import {getMet} from './met'
 
 const getters = [
   getWikipedia,

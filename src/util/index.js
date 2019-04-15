@@ -1,7 +1,8 @@
-const http = require('http')
-const https = require('https')
-const {join} = require('path')
-const {stat, mkdir, createWriteStream, unlink, readFile, writeFile} = require('fs')
+import {nativeImage} from 'electron'
+import http from 'http'
+import https from 'https'
+import {extname, join, parse} from 'path'
+import {stat, mkdir, createWriteStream, unlink, readFile, writeFile} from 'fs'
 
 const appPath = __macOS
   ? join(process.env['HOME'], 'Library', 'Application Support', 'Galeri')
@@ -27,12 +28,46 @@ function checkAppPath (cb) {
   })
 }
 
-export function downloadFile (artwork, cb) {
-  checkAppPath(function () {
-    const dest = join(appPath, artwork.filename)
-    const file = createWriteStream(dest)
-    const protocol = artwork.src.indexOf('http://') > -1 ? http : https
+function makeThumb (artwork, cb) {
+  const {filename, filepath} = artwork
+  const thumbPath = join(appPath, `${parse(filename).name}_thumb${extname(filename)}`)
+  const image = nativeImage.createFromPath(filepath)
+  const {width, height} = image.getSize()
 
+  writeFile(thumbPath, image
+    .resize(width > height
+      ? {height: 300, quality: 'best'}
+      : {width: 300, quality: 'best'})
+    .toJPEG(100),
+  function(err) {
+    if (err) cb(err)
+
+    artwork.thumbPath = thumbPath
+    cb()
+  })
+
+}
+
+export function downloadImage (artwork, cb) {
+  checkAppPath(function () {
+    artwork.filepath = join(appPath, artwork.filename)
+
+    const file = createWriteStream(artwork.filepath)
+
+    file.on('finish', function () {
+      file.close(function (err) {
+        makeThumb(artwork, function () {
+          cb(err, artwork)
+        })
+      }) 
+    })
+
+    file.on('error', function (err) {
+      unlink(artwork.filepath, function () {})
+      cb(err.message)
+    })
+
+    const protocol = artwork.src.indexOf('http://') > -1 ? http : https
     const request = protocol.get(artwork.src, function (response) {
       if (response.statusCode !== 200) {
         return cb('Response status was ' + response.statusCode)
@@ -42,25 +77,18 @@ export function downloadFile (artwork, cb) {
     })
 
     request.on('error', function (err) {
-      unlink(dest, function () {})
-      cb(err.message)
-    })
-
-    file.on('finish', function () {
-      file.close(function (err) {
-        cb(err, dest)
-      }) 
-    })
-
-    file.on('error', function (err) {
-      unlink(dest, function () {})
+      unlink(artwork.filepath, function () {})
       cb(err.message)
     })
   })
 }
 
-export function deleteFile (filename, cb) {
-  unlink(join(appPath, filename), cb)
+export function deleteImage (artwork, cb) {
+  unlink(artwork.thumbPath, function (err) {
+    unlink(artwork.filepath, function (err2) {
+      cb(err || err2 ? {err, err2} : undefined)
+    })
+  })
 }
 
 export function requestJSON (url, cb) {

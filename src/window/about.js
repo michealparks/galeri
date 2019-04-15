@@ -1,6 +1,7 @@
 import {BrowserWindow} from 'electron'
 import {format} from 'url'
 import {resolve} from 'path'
+import {version} from '../../package.json'
 
 let win
 
@@ -25,7 +26,8 @@ export function about () {
     webPreferences: {
       webAudio: false,
       webgl: false,
-      nodeIntegration: true
+      nodeIntegration: true,
+      additionalArguments: [JSON.stringify(version)]
     }
   })
 

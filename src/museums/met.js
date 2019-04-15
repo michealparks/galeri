@@ -1,5 +1,5 @@
-import {requestJSON, shuffleArray} from '../util.js'
-import {generateId} from './util.js'
+import {requestJSON, shuffleArray} from '../util'
+import {generateId, ArtObject} from './util'
 import {extname} from 'path'
 
 let artObjectIds = []
@@ -31,14 +31,15 @@ export function getMet (cb) {
     if (!response.isPublicDomain) return getMet(cb)
     if (isClassification) return getMet(cb)
 
-    return cb(undefined, {
-      source: 'The Metropolitan Museum of Art',
-      href: response.objectURL,
-      title: response.title,
-      author: response.artistDisplayName,
-      src: response.primaryImage,
-      filename: `Met_${generateId()}${extname(response.primaryImage)}`
-    })
+    const object = ArtObject()
+    object.source = 'The Metropolitan Museum of Art'
+    object.href = response.objectURL
+    object.title = response.title
+    object.author = response.artistDisplayName
+    object.src = response.primaryImage
+    object.filename = `Met_${generateId()}${extname(response.primaryImage)}`
+
+    return cb(undefined, object)
   })
 }
 

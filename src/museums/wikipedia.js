@@ -1,5 +1,5 @@
-import {requestJSON, shuffleArray} from '../util.js'
-import {generateId} from './util.js'
+import {requestJSON, shuffleArray} from '../util'
+import {generateId, ArtObject} from './util'
 import {extname} from 'path'
 
 const artObjects = []
@@ -32,28 +32,25 @@ function requestData (cb) {
       titleEnd = text.indexOf('\"', titleStart)
       authorStart = text.indexOf('title=\"', titleEnd) + 'title=\"'.length
       authorEnd = text.indexOf('\"', authorStart)
-  
-      href = `https://en.wikipedia.org${text.substring(hrefStart, hrefEnd)}`
-      title = text.substring(titleStart, titleEnd)
-      author = text.substring(authorStart, authorEnd)
-      src = text.substring(imgStart, imgEnd)
-      ext = extname(src)
-      srcarr = src.split('/')
-      src = `https://${srcarr[0]}/${srcarr[1]}/${srcarr[2]}/${srcarr[4]}/${srcarr[5]}/${srcarr[6]}`
-      filename = `Wikipedia_${generateId()}${ext}`
 
       if (textStart > authorEnd) break
 
+      const object = ArtObject()
+      object.source = 'Wikipedia'
+      object.href = `https://en.wikipedia.org${text.substring(hrefStart, hrefEnd)}`
+      object.title = text.substring(titleStart, titleEnd)
+      object.author = text.substring(authorStart, authorEnd)
+
+      src = text.substring(imgStart, imgEnd)
+      ext = extname(src)
+      srcarr = src.split('/')
+      
+      object.src = `https://${srcarr[0]}/${srcarr[1]}/${srcarr[2]}/${srcarr[4]}/${srcarr[5]}/${srcarr[6]}`
+      object.filename = `Wikipedia_${generateId()}${ext}`
+
       textStart = authorEnd
 
-      artObjects.push({
-        source: 'Wikipedia',
-        href,
-        title,
-        author,
-        src,
-        filename
-      })
+      artObjects.push(object)
 
     } while (textStart < length)
 

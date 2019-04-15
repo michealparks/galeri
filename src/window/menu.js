@@ -7,6 +7,18 @@ const HEIGHT = 300
 
 let tray, win
 
+function onClose () {
+  win = undefined
+}
+
+function calculatePosition () {
+  const {screen} = electron
+  const point = screen.getCursorScreenPoint()
+  const screensize = screen.getDisplayNearestPoint(point).workArea
+
+  return [point.x - (WIDTH / 2), 30]
+}
+
 export function sendMenu (channel, arg) {
   if (win === undefined) return
 
@@ -40,15 +52,13 @@ export function toggleMenu (bounds, artwork, settings) {
   win.setMenuBarVisibility(false)
 
   win.once('ready-to-show', win.show)
-  win.on('close', function () {
-    win = undefined
-  })
+  win.on('close', onClose)
 
   const position = calculatePosition()
 
   win.setPosition(position[0], position[1])
 
-  // if (__dev) win.openDevTools({mode: 'detach'})
+  if (__dev) win.openDevTools({mode: 'detach'})
 
   win.loadURL(format({
     protocol: 'file',
@@ -58,12 +68,3 @@ export function toggleMenu (bounds, artwork, settings) {
 
   return true
 }
-
-function calculatePosition () {
-  const {screen} = electron
-  const point = screen.getCursorScreenPoint()
-  const screensize = screen.getDisplayNearestPoint(point).workArea
-
-  return [point.x - (WIDTH / 2), 30]
-}
-

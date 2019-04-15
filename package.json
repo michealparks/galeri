@@ -13,7 +13,7 @@
   "scripts": {
     "dev": "cross-env NODE_ENV=development node bin/webpack.js",
     "start:dev": "cross-env NODE_ENV=development electron ./build/main",
-    "start:prod": "cross-env NODE_ENV=production electron ./build/main",
+    "start": "cross-env NODE_ENV=production electron ./build/main",
     "analytics": "open -a \"Google Chrome\" bin/analytics.html"
   },
   "repository": {
@@ -34,9 +34,9 @@
   },
   "devDependencies": {
     "cross-env": "^5.2.0",
-    "electron": "^4.0.5",
-    "wallpaper": "^4.2.0",
-    "webpack": "^4.29.5"
+    "electron": "^4.1.4",
+    "wallpaper": "^4.4.0",
+    "webpack": "^4.30.0"
   },
   "standard": {
     "globals": [
