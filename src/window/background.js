@@ -42,7 +42,9 @@ export function background (display) {
     win = undefined
   })
 
-  win.openDevTools({mode: 'detach'})
+  if (__dev) {
+    win.openDevTools({mode: 'detach'})
+  }
 
   win.loadURL(format({
     protocol: 'file',

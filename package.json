@@ -1,7 +1,7 @@
 {
   "name": "Galeri",
   "productName": "Galeri",
-  "version": "0.0.28",
+  "version": "0.1.0",
   "author": {
     "name": "Micheal Parks",
     "email": "michealparks1989@gmail.com",
@@ -12,6 +12,7 @@
   "private": true,
   "scripts": {
     "dev": "cross-env NODE_ENV=development node bin/webpack.js",
+    "build": "cross-env NODE_ENV=production node bin/webpack.js",
     "start:dev": "cross-env NODE_ENV=development electron ./build/main",
     "start": "cross-env NODE_ENV=production electron ./build/main",
     "analytics": "open -a \"Google Chrome\" bin/analytics.html"

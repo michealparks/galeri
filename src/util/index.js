@@ -76,6 +76,8 @@ export function downloadImage (artwork, cb) {
       response.pipe(file)
     })
 
+    request.setTimeout(10000)
+
     request.on('error', function (err) {
       unlink(artwork.filepath, function () {})
       cb(err.message)
@@ -86,7 +88,7 @@ export function downloadImage (artwork, cb) {
 export function deleteImage (artwork, cb) {
   unlink(artwork.thumbPath, function (err) {
     unlink(artwork.filepath, function (err2) {
-      cb(err || err2 ? {err, err2} : undefined)
+      if (cb) cb(err || err2 ? {err, err2} : undefined)
     })
   })
 }
@@ -94,7 +96,9 @@ export function deleteImage (artwork, cb) {
 export function requestJSON (url, cb) {
   const protocol = url.indexOf('http://') > -1 ? http : https
 
-  const request = protocol.get(url, function (response) {
+  const request = protocol.get(url, {
+    headers: { 'User-Agent': 'michealparks' }
+  }, function (response) {
     let str = ''
 
     response.on('data', function (chunk) {
@@ -102,6 +106,10 @@ export function requestJSON (url, cb) {
     })
 
     response.on('end', function () {
+      if (response.statusCode !== 200) {
+        return (cb(`${response.statusCode}: ${url}`))
+      }
+
       try {
         const json = JSON.parse(str)
         cb(undefined, json)
@@ -111,6 +119,8 @@ export function requestJSON (url, cb) {
     })
   })
 
+  request.setTimeout(10000)
+
   request.on('error', function (err) {
     cb(err)
   })
@@ -118,7 +128,9 @@ export function requestJSON (url, cb) {
 
 export function readJSON (file, fn) {
   checkAppPath(function () {
-    readFile(file, function (err, data) {
+    const filepath = join(appPath, `${file}.json`)
+
+    readFile(filepath, function (err, data) {
       if (err) return fn(err)
 
       try {
@@ -131,13 +143,14 @@ export function readJSON (file, fn) {
   })
 }
 
-export function writeJSON (object, fn) {
+export function writeJSON (file, object, fn) {
   checkAppPath(function () {
-    const dest = join(appPath, file)
+    const filepath = join(appPath, `${file}.json`)
     const str = JSON.stringify(object, null, 2)
     
-    writeFile(dest, str, function (err) {
-      if (err) { fn(err) } else { fn() }
+    writeFile(filepath, str, function (err) {
+      if (err) fn && fn(err)
+      else fn && fn()
     })
   })
 }
