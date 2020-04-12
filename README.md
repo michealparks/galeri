@@ -23,3 +23,7 @@ npm run package
 A perpetual artwork streaming app.
 A gateway drug for a lifelong art addiction.
 A curbside art peddler-o-tron.
+
+### Roadmap
+
+See [the trello board](https://trello.com/b/bxS2nMdk).
