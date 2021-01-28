@@ -35,7 +35,7 @@
   },
   "devDependencies": {
     "cross-env": "^5.2.0",
-    "electron": "^4.1.4",
+    "electron": "^9.4.0",
     "wallpaper": "^4.4.0",
     "webpack": "^4.30.0"
   },
