@@ -1,5 +1,5 @@
 {
-  "name": "Galeri",
+  "name": "galeri",
   "productName": "Galeri",
   "version": "0.1.0",
   "author": {
@@ -8,13 +8,12 @@
     "url": "https://www.galeri.io"
   },
   "description": "A perpetual artwork streaming app.",
-  "main": "main.js",
-  "private": true,
   "scripts": {
     "dev": "cross-env NODE_ENV=development node bin/webpack.js",
+    "rollup": "rollup -c -w --environment DEV",
     "build": "cross-env NODE_ENV=production node bin/webpack.js",
-    "start:dev": "cross-env NODE_ENV=development electron ./build/main",
-    "start": "cross-env NODE_ENV=production electron ./build/main",
+    "start": "cross-env NODE_ENV=development electron ./build/index.js",
+    "start:prod": "cross-env NODE_ENV=production electron ./build/index.js",
     "analytics": "open -a \"Google Chrome\" bin/analytics.html"
   },
   "repository": {
@@ -26,18 +25,24 @@
     "url": "https://github.com/michealparks/galeri/issues"
   },
   "homepage": "https://www.galeri.io",
-  "bin": {
-    "electron": "./node_modules/.bin/electron"
-  },
   "engines": {
-    "node": ">=8.0.0",
-    "npm": ">=5.0.0"
+    "node": ">=14.0.0"
   },
   "devDependencies": {
-    "cross-env": "^5.2.0",
-    "electron": "^4.1.4",
-    "wallpaper": "^4.4.0",
-    "webpack": "^4.30.0"
+    "@rollup/plugin-commonjs": "^18.0.0",
+    "@rollup/plugin-node-resolve": "^11.2.1",
+    "@rollup/plugin-replace": "^2.4.2",
+    "@rollup/plugin-typescript": "^8.2.1",
+    "@types/node": "^14.14.37",
+    "cross-env": "^7.0.3",
+    "electron": "^12.0.2",
+    "file-type": "^16.3.0",
+    "http-parser-js": "^0.5.3",
+    "jsdom": "^16.5.2",
+    "node-fetch": "^2.6.1",
+    "rollup": "^2.44.0",
+    "rollup-plugin-terser": "^7.0.2",
+    "wallpaper": "^4.4.2"
   },
   "standard": {
     "globals": [
