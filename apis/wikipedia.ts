@@ -13,7 +13,7 @@ const randomArtwork = async (): Promise<ArtObject | undefined> => {
 }
 
 const getArtObjects = async (): Promise<ArtObject[]> => {
-	const artObjects = store.get('wikipedia')
+	const artObjects = store.get('wikipedia') || []
 
 	if (artObjects.length > 0) {
 		return artObjects
@@ -26,7 +26,9 @@ const getArtObjects = async (): Promise<ArtObject[]> => {
 			return []
 		}
 
-		const artObjects = parsePage(json.parse.text['*'])
+		const artObjects = 'window' in globalThis
+			? parseBrowser(json.parse.text['*'])
+			: parseNode(json.parse.text['*'])
 
 		store.set('wikipedia', artObjects)
 
@@ -34,35 +36,66 @@ const getArtObjects = async (): Promise<ArtObject[]> => {
 	}
 }
 
-const parsePage = (str: string) => {
-	// @ts-ignore
-	const doc = new globalThis.DOMParser().parseFromString(str, 'text/html')
-	const galleryboxes = doc.querySelectorAll('.gallerybox')
+const parseBrowser = (str: string) => {
 	const artworks: ArtObject[] = []
+	const dom = new DOMParser().parseFromString(str, 'text/html')
 
-	for (const gallerybox of galleryboxes) {
-		const img = gallerybox.querySelector('img') || { src: '' }
-		const links = gallerybox.querySelectorAll('.gallerytext a')
-		const boldEl = gallerybox.querySelector('.gallerytext b')
-		const titleEl = (boldEl?.children[0] ? boldEl.children[0] : boldEl) as HTMLAnchorElement
-		const authorEl = (links.length > 1 ? links[1] : links[0]) as HTMLAnchorElement
-		const arr = img.src.split('/').slice(0, -1)
-		const src = arr.concat(`2000px-${arr[arr.length - 1]}`).join('/')
+	for (const el of dom.querySelectorAll('.gallerybox')) {
+		const imgEl = el.querySelector('img')
+		const titleEl = el.querySelector('.gallerytext b')
+		const titleLinkEl = el.querySelector('.gallerytext b a') as HTMLAnchorElement | undefined
+		const artistEl = [...el.querySelectorAll('.gallerytext a')].pop() as HTMLAnchorElement | undefined
+		const arr = imgEl?.src?.split('/')?.slice(0, -1)
+		const src = arr?.join('/')?.replace('/thumb/', '/')
+		const title = titleEl?.textContent?.trim()
+		const artist = artistEl?.textContent?.trim()
+		const artistLink = artistEl?.href
+		const titleLink = titleLinkEl?.href
 
-		const title = (titleEl?.textContent || '').trim()
-		const titleLink = titleEl?.href
-		const artist = (authorEl?.innerText || '').trim()
+		if (src === undefined) continue
 
 		artworks.push({
 			src: `https://upload.wikimedia.org${src.split('//upload.wikimedia.org').pop()}`,
 			title,
 			artist,
-			artistLink: undefined,
+			artistLink,
 			titleLink: titleLink ? `https://wikipedia.org/wiki${titleLink.split('/wiki').pop()}` : '',
 			provider: 'Wikipedia',
 			providerLink: 'https://wikipedia.org'
 		})
 	}
+
+	return artworks
+}
+
+const parseNode = (str: string) => {
+	const { $ } = globalThis as any
+	const artworks: ArtObject[] = []
+
+	$('.gallerybox', str).each((_i: number, el: any) => {
+		const imgEl = $('img', el)
+		const titleEl: any = $('.gallerytext b', el)
+		const titleLinkEl: any = $('.gallerytext b a', el)
+		const artistEl = $('.gallerytext a', el)?.last()
+		const arr = imgEl.attr('src')?.split('/')?.slice(0, -1)
+		const src = arr?.join('/')?.replace('/thumb/', '/')
+		const title = titleEl?.text()?.trim()
+		const artist = artistEl?.text()?.trim()
+		const artistLink = artistEl?.attr('href')
+		const titleLink = titleLinkEl?.attr('href')
+
+		if (src === undefined) return
+
+		artworks.push({
+			src: `https://upload.wikimedia.org${src.split('//upload.wikimedia.org').pop()}`,
+			title,
+			artist,
+			artistLink,
+			titleLink: titleLink ? `https://wikipedia.org/wiki${titleLink.split('/wiki').pop()}` : '',
+			provider: 'Wikipedia',
+			providerLink: 'https://wikipedia.org'
+		})
+	})
 
 	return artworks
 }

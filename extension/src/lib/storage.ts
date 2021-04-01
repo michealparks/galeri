@@ -2,7 +2,6 @@ import localforage from 'localforage'
 import { current, currentImage, next, nextImage } from './stores'
 import { store as apiStore } from '../../../apis/store'
 import { apis } from '../../../apis'
-import type { ArtObject } from '../../../apis/types'
 
 const init = async () => {
 	const promises = new Set()
