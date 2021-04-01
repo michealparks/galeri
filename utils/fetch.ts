@@ -1,39 +1,24 @@
+import cp from 'child_process'
+import { promisify } from 'util'
 
-const timeout = (time: number): Promise<undefined> => {
-  return new Promise((_resolve, reject) => {
-    setTimeout(() => {
-      reject()
-    }, time)
-  })
+const exec = promisify(cp.exec)
+
+type FetchOptions = {
+  headers?: string
 }
 
-const _fetch = async (input: RequestInfo, init?: RequestInit | undefined): Promise<Response> => {
-  const response = await Promise.race([
-    timeout(20000),
-    globalThis.fetch(input, init)
-  ])
-
-  if (response === undefined) {
-    throw new Error(`${input} - timeout`)
-  } else if (response.ok) {
-    return response
-  } else {
-    const text = await response.text()
-    throw new Error(`${input} - ${response.status} - ${text}`)
-  }
+// Node's request lib is failing to parse the headers for met requests :|
+// So for now we're just going to curl them.
+const _fetch = async (input: string, opts: FetchOptions = {}) => {
+  const cmd = `curl --compressed`
+  const headersCmd = opts.headers === undefined ? '' : `-H "${opts.headers}"`
+  const fullCmd = `${cmd} ${headersCmd} "${input}"`
+  const { stdout, stderr } = await exec(fullCmd)
+	return stdout
 }
 
-export const fetchJSON = async (input: RequestInfo, init?: RequestInit | undefined): Promise<any> => {
-  const response = await _fetch(input, init)
-  return response.json()
-}
-
-export const fetchBlob = async (input: RequestInfo, init?: RequestInit | undefined): Promise<Blob> => {
-  const response = await _fetch(input, init)
-  return response.blob()
-}
-
-export const fetchArrayBuffer = async (input: RequestInfo, init?: RequestInit | undefined): Promise<ArrayBuffer> => {
-  const response = await _fetch(input, init)
-  return response.arrayBuffer()
+export const fetchJSON = async (input: string, opts: FetchOptions = {}): Promise<any> => {
+  opts.headers = `${opts.headers || ''} -H "Content-Type: application/json" -H "Accept: application/json"`
+  const stdout = await _fetch(input, opts)
+	return JSON.parse(stdout)
 }

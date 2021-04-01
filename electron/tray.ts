@@ -1,48 +1,28 @@
 import { Tray, Menu, app } from 'electron'
 import type { MenuItemConstructorOptions } from 'electron/main'
-
-type Callback = {
-	(param: string): void
-}
+import type { Subscriber } from '../apis/types'
 
 let _tray: Tray
-let eventCallback: Callback
+let subscriber: Subscriber
 
 const menuTemplate = [
 	{
 		label: '',
-		click: () => eventCallback('artwork')
+		click: () => subscriber('artwork')
 	}, {
 		label: 'Next Artwork',
 		type: 'normal',
-		click: () => eventCallback('next')
+		click: () => subscriber('next')
 	}, {
 		label: 'Add to favorites',
 		type: 'normal',
-		click: () => eventCallback('favorite')
+		click: () => subscriber('favorite')
 	}, {
 		type: 'separator'
 	}, {
 		label: 'Options',
 		submenu: [
 			{
-				label: 'Next artwork after:',
-				enabled: false
-			}, {
-				label: 'Suspend',
-				type: 'checkbox',
-				click: () => eventCallback('options:suspend')
-			}, {
-				label: 'Log out',
-				type: 'checkbox',
-				click: () => eventCallback('options:logout')
-			}, {
-				label: 'Shut down',
-				type: 'checkbox',
-				click: () => eventCallback('options:shutdown')
-			}, {
-				type: 'separator'
-			}, {
 				label: 'Run On Startup',
 				type: 'checkbox',
 				checked: app.getLoginItemSettings().openAtLogin,
@@ -56,22 +36,22 @@ const menuTemplate = [
 	}, {
 		label: 'Favorites',
 		type: 'normal',
-		click: () => eventCallback('favorites')
+		click: () => subscriber('favorites')
 	}, {
 		label: 'About',
 		role: 'help',
 		type: 'normal',
-		click: () => eventCallback('about')
+		click: () => subscriber('about')
 	}, {
 		label: 'Quit',
 		role: 'quit',
 		type: 'normal',
-		click: () => eventCallback('quit')
+		click: () => subscriber('quit')
 	}
 ]
 
-const onEvent = (fn: Callback) => {
-	eventCallback = fn
+const onEvent = (fn: Subscriber) => {
+	subscriber = fn
 }
 
 const setArtwork = ({ title = '' }) => {

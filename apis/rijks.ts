@@ -1,72 +1,71 @@
-import { fetchArrayBuffer, fetchJSON } from '../utils/fetch'
 import { store } from './store'
-import type { ArtObject, Artwork } from './types'
+import { ENDPOINTS } from './constants'
+import type { ArtObject } from './types'
 
-const url = 'https://www.rijksmuseum.nl/api/en/collection?format=json&ps=30&imgonly=True&type=painting&key=1KfM6MpD'
+const randomArtwork = async (): Promise<ArtObject | undefined> => {
+	const artworks = await getArtworks()
 
-const randomArtwork = async (): Promise<Artwork | undefined> => {
-  const artworks = await getArtworks()
-
-  if (artworks.length === 0) {
+	if (artworks.length === 0) {
 		return
 	}
 
-  return removeRandomArtwork(artworks)
+	return removeRandomArtwork(artworks)
 }
 
 const getArtworks = async (): Promise<ArtObject[]> => {
 	const artworks = store.get('rijks')
 
-  if (artworks.length > 0) {
-    return artworks
-  } else {
-		const page = store.get('rijksPage') || 1
+	if (artworks.length > 0) {
+		return artworks
+	} else {
+		const page = store.get('rijksPage')
 
-    let json
+		let json
 	
-    try {
-      json = await fetchJSON(`${url}&p=${page}`)
-    } catch {
-      return []
-    }
+		try {
+			json = await (globalThis as any).fetchJSON(`${ENDPOINTS.rijks}&p=${page}`)
+		} catch {
+			return []
+		}
 
-    const artworks: ArtObject[] = []
+		const artworks: ArtObject[] = []
 
-    for (const artObject of json.artObjects) {
-      if (!artObject.webImage) continue
+		for (const artObject of json.artObjects) {
+			if (!artObject.webImage || !artObject.webImage.url) {
+				continue
+			}
 
-      artworks.push({
-        src: artObject.webImage.url,
-        title: (artObject.title || '').trim(),
-        author: (artObject.principalOrFirstMaker || '').trim(),
-        provider: 'Rijksmuseum',
-        titleLink: artObject.links.web,
-        providerLink: 'https://www.rijksmuseum.nl/en'
-      })
-    }
+			artworks.push({
+				src: artObject.webImage.url,
+				title: artObject.title
+					? artObject.title.trim()
+					: undefined,
+				artist: artObject.principalOrFirstMaker
+					? artObject.principalOrFirstMaker.trim()
+					: undefined,
+				artistLink: undefined,
+				provider: 'Rijksmuseum',
+				titleLink: artObject.links.web,
+				providerLink: 'https://www.rijksmuseum.nl/en'
+			})
+		}
 
-    store.set('rijks', artworks)
+		store.set('rijks', artworks)
 		store.set('rijksPage', page + 1)
 
-    return artworks
-  }
+		return artworks
+	}
 }
 
-const removeRandomArtwork = async (artObjects: ArtObject[]): Promise<Artwork | undefined> => {
-  const randomIndex = Math.floor(Math.random() * artObjects.length)
-  const [object] = (artObjects.splice(randomIndex, 1) || [])
+const removeRandomArtwork = (artObjects: ArtObject[]): ArtObject | undefined => {
+	const randomIndex = Math.floor(Math.random() * artObjects.length)
+	const [artObject] = (artObjects.splice(randomIndex, 1) || [])
 
-  store.set('rijks', artObjects)
+	store.set('rijks', artObjects)
 
-  const artwork: Artwork = {
-    ...object,
-    timestamp: Date.now(),
-    buffer: await fetchArrayBuffer(object.src)
-  }
-
-  return artwork
+	return artObject
 }
 
 export const rijks = {
-  randomArtwork
+	randomArtwork
 }

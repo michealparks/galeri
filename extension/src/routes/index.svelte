@@ -1,0 +1,42 @@
+<svelte:head>
+	<title>New Tab</title>
+</svelte:head>
+
+<script lang="ts">
+	import '$lib/polyfill'
+	import { onMount } from 'svelte'
+	import Buttons from '$lib/Buttons.svelte'
+	import Info from '$lib/Info.svelte'
+	import { storage } from '$lib/storage'
+	import { current, currentImage } from '$lib/stores'
+
+	let url: string
+
+	onMount(async () => {
+		await storage.init()
+
+		currentImage.subscribe(blob => {
+			console.log(blob)
+			url = URL.createObjectURL(blob)
+		})
+	})
+</script>
+
+<main
+	style='background-image: url({url})'
+>
+	<Buttons />
+	<Info {...$current} />
+</main>
+
+<style>
+	main {
+		position: absolute;
+		width: 100vw;
+		height: 100vh;
+		background-color: black;
+		background-position: center;
+		background-size: cover;
+		transition: opacity 300ms;
+	}
+</style>

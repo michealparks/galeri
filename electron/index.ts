@@ -1,45 +1,62 @@
 
 import './polyfill'
-import { app, shell } from 'electron'
+import './updater'
+import { app, shell, powerMonitor } from 'electron'
 import wallpaper from 'wallpaper'
 import { apis } from '../apis'
 import { image } from './image'
 import { tray } from './tray'
-import type { Artwork } from '../apis/types'
+import { storage } from './storage'
+import type { ArtObject } from '../apis/types'
 
 // https://www.electronjs.org/docs/api/app#apprequestsingleinstancelock
 const gotTheLock = app.requestSingleInstanceLock()
 
 if (gotTheLock === false) {
-  app.quit()
-  process.exit(0)
+	app.quit()
+	process.exit(0)
 }
 
 app.allowRendererProcessReuse = true
 
 if (app.dock !== undefined) {
-  app.dock.hide()
+	app.dock.hide()
 }
 
-let artwork: Artwork
+let previousArtwork: ArtObject
+let currentArtwork: ArtObject
 
 const setArtwork = async (forceNext: boolean) => {
-	artwork = await apis.get(forceNext)
-	const imgPath = await image.fromBuffer(artwork.src, artwork.buffer)
-	await wallpaper.set(imgPath)
+	previousArtwork = currentArtwork
+	currentArtwork = await apis.get(forceNext)
 
-	tray.setArtwork(artwork)
+	const imgPath = await image.download(currentArtwork.src)
+
+	tray.setArtwork(currentArtwork)
+
+	await wallpaper.set(imgPath)
+}
+
+const favoriteArtwork = () => {
+
 }
 
 app.once('ready', async () => {
-	apis.init()
+	await storage.init()
 
 	tray.init().onEvent((event) => {
 		switch (event) {
-			case 'artwork': return shell.openExternal(artwork.titleLink)
+			case 'artwork': return currentArtwork.titleLink
+				? shell.openExternal(currentArtwork.titleLink)
+				: undefined
+			case 'favorite': return favoriteArtwork()
 			case 'next': return setArtwork(true)
 			case 'quit': return app.quit()
 		}
+	})
+
+	powerMonitor.on('suspend', () => {
+		setArtwork(true)
 	})
 
 	setArtwork(false)

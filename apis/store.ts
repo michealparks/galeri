@@ -1,13 +1,18 @@
-import type { Subscriber } from "./types"
+import type { GlobalSubscriber, Subscriber } from './types'
 
 const data = new Map<string, any>()
-const listeners = new Map<string, Set<Subscriber>>()
+const subscribers = new Map<string, Set<Subscriber>>()
+const globalSubscribers = new Set<GlobalSubscriber>()
 
 const set = (key: string, value: any) => {
 	data.set(key, value)
 
-	for (const fn of listeners.get(key) || new Set()) {
+	for (const fn of subscribers.get(key) || new Set()) {
 		fn(value)
+	}
+
+	for (const fn of globalSubscribers) {
+		fn(key, value)
 	}
 }
 
@@ -16,15 +21,21 @@ const get = (key: string) => {
 }
 
 const subscribe = (key: string, fn: Subscriber) => {
-	if (listeners.has(key) === false) {
-		listeners.set(key, new Set())
+	if (subscribers.has(key) === false) {
+		subscribers.set(key, new Set())
 	}
 
-	listeners.get(key)?.add(fn)
+	subscribers.get(key)?.add(fn)
+}
+
+const subscribeAll = (fn: GlobalSubscriber) => {
+	globalSubscribers.add(fn)
 }
 
 export const store = {
+	data,
 	get,
 	set,
-	subscribe
+	subscribe,
+	subscribeAll
 }
