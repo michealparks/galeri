@@ -23,18 +23,20 @@ if (app.dock !== undefined) {
 	app.dock.hide()
 }
 
-let previousArtwork: ArtObject
-let currentArtwork: ArtObject
+let artwork: ArtObject
+let imgPath: string
+let prevImgPath: string
 
 const setArtwork = async (forceNext: boolean) => {
-	previousArtwork = currentArtwork
-	currentArtwork = await apis.get(forceNext)
+	artwork = await apis.get(forceNext)
 
-	const imgPath = await image.download(currentArtwork.src)
+	prevImgPath = imgPath
+	imgPath = await image.download(artwork.src)
 
-	tray.setArtwork(currentArtwork)
+	tray.setArtwork(artwork)
 
 	await wallpaper.set(imgPath)
+	await image.remove(prevImgPath)
 }
 
 const favoriteArtwork = () => {
@@ -46,8 +48,8 @@ app.once('ready', async () => {
 
 	tray.init().onEvent((event) => {
 		switch (event) {
-			case 'artwork': return currentArtwork.titleLink
-				? shell.openExternal(currentArtwork.titleLink)
+			case 'artwork': return artwork.titleLink
+				? shell.openExternal(artwork.titleLink)
 				: undefined
 			case 'favorite': return favoriteArtwork()
 			case 'next': return setArtwork(true)

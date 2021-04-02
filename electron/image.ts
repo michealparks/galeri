@@ -9,6 +9,7 @@ import { app } from 'electron'
 
 const exec = promisify(cp.exec)
 const mkdir = promisify(fs.mkdir)
+const unlink = promisify(fs.unlink)
 
 const createHash = (url: string): string => {
 	return crypto
@@ -32,6 +33,15 @@ const download = async (url: string): Promise<string> => {
 	return filepath
 }
 
+const remove = async (filepath: string): Promise<void> => {
+	try {
+		return unlink(filepath)
+	} catch {
+		return
+	}
+}
+
 export const image = {
-	download
+	download,
+	remove
 }
