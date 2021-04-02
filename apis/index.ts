@@ -59,6 +59,7 @@ const getArtwork = async (): Promise<ArtObject> => {
 }
 
 export const apis = {
+	store,
 	get,
 	disable
 }
