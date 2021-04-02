@@ -11,26 +11,29 @@ const exec = promisify(cp.exec)
 const mkdir = promisify(fs.mkdir)
 const unlink = promisify(fs.unlink)
 
-const createHash = (url: string): string => {
-	return crypto
+const filepath = (url: string) => {
+	const hash = crypto
 		.createHash('md5')
 		.update(url)
 		.digest('base64')
 		.replace(/\//g, '0')
 		.replace('==', '2')
 		.replace('=', '1')
+
+	const appPath = app.getPath('appData')
+	const filename = `artwork_${hash}${path.extname(url)}`
+
+	return resolve(`${appPath}`, 'Galeri', filename)
 }
 
 const download = async (url: string): Promise<string> => {
-	const filename = `artwork_${createHash(url)}${path.extname(url)}`
-	const appPath = app.getPath('appData')
-	const filepath = resolve(`${appPath}`, 'Galeri', filename)
+	const fp = filepath(url)
 
-	try { await mkdir(resolve(appPath, 'Galeri')) } catch {}
+	try { await mkdir(resolve(app.getPath('appData'), 'Galeri')) } catch {}
 
-	const { stdout, stderr } = await exec(`curl --compressed "${url}" --output "${filepath}"`)
+	const { stdout, stderr } = await exec(`curl --compressed "${url}" --output "${fp}"`)
 
-	return filepath
+	return fp
 }
 
 const remove = async (filepath: string): Promise<void> => {
@@ -42,6 +45,7 @@ const remove = async (filepath: string): Promise<void> => {
 }
 
 export const image = {
+	filepath,
 	download,
 	remove
 }
