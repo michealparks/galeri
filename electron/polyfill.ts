@@ -1,3 +1,4 @@
+import os from 'os'
 import cp from 'child_process'
 import { promisify } from 'util'
 import $ from 'cheerio'
@@ -5,15 +6,18 @@ import $ from 'cheerio'
 const exec = promisify(cp.exec)
 
 type FetchOptions = {
-  headers?: string
+  headers?: string,
+  output?: string,
 }
 
 // Node's request lib is failing to parse the headers for met requests :|
 // So for now we're just going to curl them.
 const fetch = async (input: string, opts: FetchOptions = {}) => {
-  const cmd = `curl --compressed`
+  // Windows curl doesn't currently support --compressed :|
+  const cmd = `curl ${os.platform() === 'win32' ? '' : '--compressed'}`
   const headersCmd = opts.headers === undefined ? '' : `-H "${opts.headers}"`
-  const fullCmd = `${cmd} ${headersCmd} "${input}"`
+  const output = opts.output ? `--output "${opts.output}"` : ''
+  const fullCmd = `${cmd} ${headersCmd} "${input}" ${output}`
   const { stdout, stderr } = await exec(fullCmd)
 	return stdout
 }

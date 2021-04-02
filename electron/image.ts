@@ -4,10 +4,8 @@ import path from 'path'
 import crypto from 'crypto'
 import { promisify } from 'util'
 import { resolve } from 'path'
-import cp from 'child_process'
 import { app } from 'electron'
 
-const exec = promisify(cp.exec)
 const mkdir = promisify(fs.mkdir)
 const unlink = promisify(fs.unlink)
 
@@ -27,13 +25,13 @@ const filepath = (url: string) => {
 }
 
 const download = async (url: string): Promise<string> => {
-	const fp = filepath(url)
+	const output = filepath(url)
 
 	try { await mkdir(resolve(app.getPath('appData'), 'Galeri')) } catch {}
 
-	const { stdout, stderr } = await exec(`curl --compressed "${url}" --output "${fp}"`)
+	await (globalThis as any).fetch(url, { output })
 
-	return fp
+	return output
 }
 
 const remove = async (filepath: string): Promise<void> => {
