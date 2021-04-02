@@ -1,5 +1,5 @@
 import { Tray, Menu, app } from 'electron'
-import type { MenuItemConstructorOptions } from 'electron/main'
+import type { MenuItemConstructorOptions } from 'electron'
 import type { Subscriber } from '../apis/types'
 
 let _tray: Tray
