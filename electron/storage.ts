@@ -20,7 +20,9 @@ store.subscribeAll(async (key: string, value: any) => {
 const init = async () => {
 	const appPath = app.getPath('appData')
 
-	try { await mkdir(resolve(appPath, 'Galeri')) } catch {}
+	try {
+		await mkdir(resolve(appPath, 'Galeri'))
+	} catch {}
 
 	for (const api of API_KEYS) {
 		try {

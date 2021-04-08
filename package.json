@@ -2,7 +2,8 @@
   "name": "galeri",
   "productName": "Galeri",
   "version": "0.1.0",
-  "main": "build/electron.js",
+  "main": "build/electron.cjs",
+  "type": "module",
   "author": {
     "name": "Micheal Parks",
     "email": "michealparks1989@gmail.com",
@@ -10,14 +11,18 @@
   },
   "description": "A perpetual artwork streaming app.",
   "scripts": {
+    "dev": "svelte-kit dev",
+    "build:extension": "svelte-kit build",
+    "start:extension": "svelte-kit start",
     "rollup": "rollup -c -w --environment DEV",
-    "build": "rollup -c --environment PROD",
-    "start": "cross-env NODE_ENV=development electron --trace-warnings ./build/electron.js",
+    "build:app": "rollup -c --environment PROD",
+    "start:app": "cross-env NODE_ENV=development electron --trace-warnings ./build/electron.cjs",
     "start:prod": "cross-env NODE_ENV=production electron ./build/electron.js",
     "analytics": "open -a \"Google Chrome\" bin/analytics.html",
     "pack": "electron-builder --dir",
     "dist": "electron-builder -mw --x64 --arm64",
-    "postinstall": "electron-builder install-app-deps"
+    "postinstall": "electron-builder install-app-deps",
+    "lint": "eslint --ignore-path .gitignore ."
   },
   "repository": {
     "type": "git",
@@ -37,68 +42,46 @@
     "@rollup/plugin-node-resolve": "^11.2.1",
     "@rollup/plugin-replace": "^2.4.2",
     "@rollup/plugin-typescript": "^8.2.1",
+    "@sveltejs/adapter-static": "next",
+    "@sveltejs/kit": "next",
     "@types/node": "^14.14.37",
-    "cheerio": "^1.0.0-rc.5",
+    "@typescript-eslint/eslint-plugin": "^4.21.0",
+    "@typescript-eslint/parser": "^4.21.0",
+    "cheerio": "git://github.com/cheeriojs/cheerio.git#9d56795f40d1c8d910a8973c3e011e06863f568f",
     "cross-env": "^7.0.3",
     "electron": "^12.0.2",
     "electron-builder": "^22.10.5",
+    "electron-reloader": "^1.2.0",
+    "electron-serve": "^1.1.0",
+    "electron-unhandled": "^3.0.2",
+    "electron-util": "^0.15.0",
+    "eslint": "^7.23.0",
+    "eslint-plugin-svelte3": "^3.1.2",
+    "gh-pages": "^3.1.0",
+    "localforage": "^1.9.0",
     "rollup": "^2.44.0",
+    "rollup-plugin-copy": "^3.4.0",
+    "rollup-plugin-filesize": "^9.1.1",
     "rollup-plugin-terser": "^7.0.2",
+    "sass": "^1.32.8",
+    "svelte": "^3.37.0",
+    "svelte-preprocess": "^4.7.0",
+    "tslib": "^2.2.0",
+    "typescript": "^4.2.3",
+    "vite": "^2.1.5",
     "wallpaper": "^4.4.2"
   },
   "build": {
+    "asar": false,
     "appId": "io.galeri.app",
     "productName": "Galeri",
     "compression": "maximum",
     "files": [
-      "apis/**/*",
-      "assets/**/*",
-      "build/electron.js",
-      "electron/**/*",
-      "utils/**/*",
-      "node_modules/**/*",
-      "config.js",
-      "package.json"
+      "build/**/*",
+      "extension/build/**/*"
     ],
     "mac": {
       "category": "public.app-category.education"
-    },
-    "linux": {
-      "target": [
-        "deb",
-        "snap"
-      ],
-      "category": "Education",
-      "synopsis": "A perpetual artwork streaming app.",
-      "desktop": {
-        "Type": "Application",
-        "Encoding": "UTF-8",
-        "Name": "Galeri",
-        "Version": "1.0",
-        "X-GNOME-FullName": "Galeri",
-        "Comment": "A perpetual artwork streaming app.",
-        "Icon": "Galeri",
-        "Terminal": "false",
-        "Path": "/opt/galeri",
-        "Exec": "/opt/galeri/Galeri %U",
-        "TryExec": "/opt/galeri/Galeri",
-        "StartupNotify": "false",
-        "Categories": "Productivity;Education"
-      }
-    },
-    "snap": {
-      "plugs": [
-        "home",
-        "x11",
-        "unity7",
-        "browser-support",
-        "network",
-        "gsettings",
-        "opengl"
-      ]
     }
-  },
-  "dependencies": {
-    "htmlparser2": "^6.0.1"
   }
 }

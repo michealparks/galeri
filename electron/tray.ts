@@ -1,4 +1,6 @@
 import { Tray, Menu, app } from 'electron'
+import { darkMode } from 'electron-util'
+
 import type { MenuItemConstructorOptions } from 'electron'
 import type { Subscriber } from '../apis/types'
 
@@ -56,12 +58,23 @@ const onEvent = (fn: Subscriber) => {
 
 const setArtwork = ({ title = '' }) => {
 	menuTemplate[0].label = title
+	_tray.setToolTip(title)
 	_tray.setContextMenu(Menu.buildFromTemplate(menuTemplate as MenuItemConstructorOptions[]))
 }
 
+const getIconPath = (dark: boolean) => {
+	return `${app.getAppPath()}/icon${dark ? '-dark' : ''}_32x32.png`
+}
+
 const init = () => {
-	_tray = new Tray('./assets/icon-dark_32x32.png')
+	_tray = new Tray(getIconPath(darkMode.isEnabled))
   _tray.setContextMenu(Menu.buildFromTemplate(menuTemplate as MenuItemConstructorOptions[]))
+
+	darkMode.onChange(() => {
+		_tray.setImage(getIconPath(darkMode.isEnabled))
+		console.log(darkMode.isEnabled)
+	})
+
   return { onEvent }
 }
 

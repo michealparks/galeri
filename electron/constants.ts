@@ -1,7 +1,8 @@
 
 import { resolve } from 'path'
+import { version } from '../package.json'
 
-export const APP_VERSION = require(resolve('./package.json')).version
+export const APP_VERSION = version
 
 export const URLS = {
 	website: 'https://galeri.io',

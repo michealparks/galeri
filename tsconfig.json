@@ -1,8 +1,12 @@
 {
   "include": [
-    "./electron/**/*.ts",
-    "./utils/**/*.ts",
-    "./apis/**/*.ts"
+    "electron/**/*.ts",
+    "utils/**/*.ts",
+    "apis/**/*.ts",
+    "src/**/*.d.ts",
+		"src/**/*.js",
+		"src/**/*.ts",
+		"src/**/*.svelte"
   ],
   "typeRoots": [],
   "types": [],
@@ -16,13 +20,15 @@
     "importsNotUsedAsValues": "error",
     /* more strict checking for errors that per-file transpilers like `esbuild` would crash */
     "isolatedModules": true,
+    "resolveJsonModule": true,
     /* noEmit - We only use TypeScript for type checking. */
     "noEmit": true,
     /* Additional Options */
     "strict": true,
+    "allowJs": true,
+		"checkJs": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
     "useDefineForClassFields": true,
 
     // You can't currently define paths in your 'extends' config,
@@ -30,6 +36,11 @@
     // Don't change these unless you know what you're doing.
     // See: https://github.com/microsoft/TypeScript/issues/25430
     "baseUrl": "./",
-    "paths": { "*": ["web_modules/.types/*"] }
+    "paths": {
+      "*": ["web_modules/.types/*"],
+      "$app/*": [".svelte/dev/runtime/app/*", ".svelte/build/runtime/app/*"],
+			"$service-worker": [".svelte/build/runtime/service-worker"],
+			"$lib/*": ["src/lib/*"]
+    }
   }
 }

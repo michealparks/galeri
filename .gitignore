@@ -4,6 +4,6 @@ node_modules/
 
 .DS_Store
 /.svelte
-/build
+/build/electron.cjs
 /functions
 /dist
