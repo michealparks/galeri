@@ -3,7 +3,7 @@ import { APP_ICON } from '../config'
 
 let win: BrowserWindow | undefined
 
-const open = async () => {
+const open = async (): Promise<number> => {
   if (win !== undefined) {
     win.focus()
     win.restore()

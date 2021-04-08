@@ -1,42 +1,25 @@
-import type { GlobalSubscriber, Subscriber } from './types'
+import { writable } from 'svelte/store'
+import type { Writable } from 'svelte/store'
+import type { ArtObject } from './types'
 
-const data = new Map<string, any>()
-const subscribers = new Map<string, Set<Subscriber>>()
-const globalSubscribers = new Set<GlobalSubscriber>()
+const rijksPage = writable<number>(1)
+const rijks = writable<ArtObject[]>([])
+const met = writable<ArtObject[]>([])
+const wikipedia = writable<ArtObject[]>([])
+const current = writable<ArtObject | undefined>(undefined)
+const next = writable<ArtObject | undefined>(undefined)
+const currentImage = writable(undefined)
+const nextImage = writable(undefined)
 
-const set = (key: string, value: any) => {
-	data.set(key, value)
-
-	for (const fn of subscribers.get(key) || new Set()) {
-		fn(value)
-	}
-
-	for (const fn of globalSubscribers) {
-		fn(key, value)
-	}
+const store: Record<string, Writable<any>> = {
+	rijks,
+	rijksPage,
+	met,
+	wikipedia,
+	current,
+	next,
+	currentImage,
+	nextImage
 }
 
-const get = (key: string) => {
-	return data.get(key)
-}
-
-const subscribe = (key: string, fn: Subscriber) => {
-	if (subscribers.has(key) === false) {
-		subscribers.set(key, new Set())
-	}
-
-	subscribers.get(key)?.add(fn)
-}
-
-const subscribeAll = (fn: GlobalSubscriber) => {
-	globalSubscribers.add(fn)
-}
-
-export const store = {
-	data,
-	get,
-	set,
-	subscribe,
-	subscribeAll
-}
-
+export default store

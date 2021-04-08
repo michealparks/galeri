@@ -9,7 +9,7 @@ import { app } from 'electron'
 const mkdir = promisify(fs.mkdir)
 const unlink = promisify(fs.unlink)
 
-const filepath = (url: string) => {
+const filepath = (url: string): string => {
 	const hash = crypto
 		.createHash('md5')
 		.update(url)
@@ -27,7 +27,9 @@ const filepath = (url: string) => {
 const download = async (url: string): Promise<string> => {
 	const output = filepath(url)
 
-	try { await mkdir(resolve(app.getPath('appData'), 'Galeri')) } catch {}
+	try {
+		await mkdir(resolve(app.getPath('appData'), 'Galeri'))
+	} catch {}
 
 	await (globalThis as any).fetch(url, { output })
 

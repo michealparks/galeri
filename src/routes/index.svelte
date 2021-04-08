@@ -8,14 +8,16 @@
 	import Buttons from '$lib/Buttons.svelte'
 	import Info from '$lib/Info.svelte'
 	import { storage } from '$lib/storage'
-	import { current, currentImage } from '$lib/stores'
+	import store from '../../apis/store'
+
+	const { current } = store
 
 	let url: string
 
 	onMount(async () => {
 		await storage.init()
 
-		currentImage.subscribe(blob => {
+		store.currentImage.subscribe(blob => {
 			url = URL.createObjectURL(blob)
 		})
 	})

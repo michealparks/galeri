@@ -2,7 +2,7 @@ import { Tray, Menu, app } from 'electron'
 import { darkMode } from 'electron-util'
 
 import type { MenuItemConstructorOptions } from 'electron'
-import type { Subscriber } from '../apis/types'
+import type { ArtObject, Subscriber } from '../apis/types'
 
 let _tray: Tray
 let subscriber: Subscriber
@@ -56,9 +56,13 @@ const onEvent = (fn: Subscriber) => {
 	subscriber = fn
 }
 
-const setArtwork = ({ title = '' }) => {
-	menuTemplate[0].label = title
-	_tray.setToolTip(title)
+const setArtwork = (artwork: ArtObject): void => {
+	if (artwork.title === undefined) {
+		return
+	}
+
+	menuTemplate[0].label = artwork.title
+	_tray.setToolTip(artwork.title)
 	_tray.setContextMenu(Menu.buildFromTemplate(menuTemplate as MenuItemConstructorOptions[]))
 }
 

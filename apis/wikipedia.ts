@@ -1,4 +1,5 @@
-import { store } from './store'
+import { get } from 'svelte/store'
+import store from './store'
 import { ENDPOINTS } from './constants'
 import type { ArtObject } from './types'
 
@@ -13,30 +14,34 @@ const randomArtwork = async (): Promise<ArtObject | undefined> => {
 }
 
 const getArtObjects = async (): Promise<ArtObject[]> => {
-	const artObjects = store.get('wikipedia') || []
+	const artObjects = get(store.wikipedia)
 
 	if (artObjects.length > 0) {
+
 		return artObjects
+
 	} else {
-		let json
 
 		try {
-			json = await (globalThis as any).fetchJSON(ENDPOINTS.wikipedia)
+
+			const json = await (globalThis as any).fetchJSON(ENDPOINTS.wikipedia)
+			const artObjects = 'window' in globalThis
+				? parseBrowser(json.parse.text['*'])
+				: parseNode(json.parse.text['*'])
+
+			store.wikipedia.set(artObjects)
+
+			return artObjects
+
 		} catch {
+
 			return []
+
 		}
-
-		const artObjects = 'window' in globalThis
-			? parseBrowser(json.parse.text['*'])
-			: parseNode(json.parse.text['*'])
-
-		store.set('wikipedia', artObjects)
-
-		return artObjects
 	}
 }
 
-const parseBrowser = (str: string) => {
+const parseBrowser = (str: string): ArtObject[] => {
 	const artworks: ArtObject[] = []
 	const dom = new DOMParser().parseFromString(str, 'text/html')
 
@@ -104,7 +109,7 @@ const fetchRandomArtwork = (artObjects: ArtObject[]): ArtObject | undefined => {
 	const randomIndex = Math.floor(Math.random() * artObjects.length)
 	const [artObject] = (artObjects.splice(randomIndex, 1) || [])
 
-	store.set('wikipedia', artObjects)
+	store.wikipedia.set(artObjects)
 
 	return artObject
 }

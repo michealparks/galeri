@@ -5,7 +5,7 @@
 
   const handleClick = async () => {
     canClick = false
-    await apis.get(true)
+    await apis.getArtwork(true)
     canClick = true
   }
 </script>

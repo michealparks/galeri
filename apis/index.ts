@@ -1,58 +1,58 @@
+import { get } from 'svelte/store'
+import store from './store'
 import { wikipedia } from './wikipedia'
 import { rijks } from './rijks'
 import { met } from './met'
 import { blacklist } from './blacklist'
-import { store } from './store'
+
 import { API_KEYS } from './constants'
 import type { ArtObject } from './types'
 
-const apiMap = new Map()
+const apiMap = new Map<string, typeof wikipedia | typeof rijks | typeof met>()
 apiMap.set('rijks', rijks)
 apiMap.set('wikipedia', wikipedia)
 apiMap.set('met', met)
 
-const get = async (forceNext = false): Promise<ArtObject> => {
-	let current = store.get('current') as ArtObject | undefined
-	let next = store.get('next') as ArtObject | undefined
+const getArtwork = async (forceNext = false): Promise<ArtObject> => {
+	let current = get<ArtObject | undefined>(store.current)
+	let next = get<ArtObject | undefined>(store.next)
 
 	if (current === undefined || forceNext) {
 		if (next === undefined) {
-			current = await getArtwork()
+			current = await getRandom()
 		} else {
 			current = next
 			next = undefined
 		}
 	}
 
-	store.set('current', current)
+	store.current.set(current)
 
 	if (next === undefined) {
-		next = await getArtwork()
+		next = await getRandom()
 
-		store.set('next', next)
+		store.next.set(next)
 	}
 
 	return current
 }
 
-const disable = (apiName: string) => {
+const disable = (apiName: string): void => {
 	API_KEYS.splice(API_KEYS.indexOf(apiName), 1)
 }
 
-const getRandom = (): Promise<ArtObject | undefined> => {
+const getRandom = async (): Promise<ArtObject> => {
 	const key = API_KEYS[Math.floor(Math.random() * API_KEYS.length)]
-	return apiMap.get(key)?.randomArtwork()
-}
+	const artwork = await apiMap.get(key)?.randomArtwork()
 
-const getArtwork = async (): Promise<ArtObject> => {
-	const artwork = await getRandom()
+	console.log('uhg', artwork)
 
 	if (artwork === undefined) {
-		return getArtwork()
+		return getRandom()
 	}
 
 	if (blacklist.includes(decodeURI(artwork.src))) {
-		return getArtwork()
+		return getRandom()
 	}
 
 	return artwork
@@ -60,6 +60,6 @@ const getArtwork = async (): Promise<ArtObject> => {
 
 export const apis = {
 	store,
-	get,
+	getArtwork,
 	disable
 }

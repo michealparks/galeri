@@ -68,17 +68,19 @@ const init = async () => {
 			case 'favorites':
 				return // favorites.open()
 			case 'next':
-				return apis.get(true)
+				return apis.getArtwork(true)
 			case 'quit':
 				return app.quit()
 		}
 	})
 
-	apis.store.subscribe('next', async (next) => {
+	await apis.getArtwork(false)
+
+	apis.store.next.subscribe(async (next) => {
 		nextImgPath = await image.download(next.src)
 	})
 
-	apis.store.subscribe('current', async (current) => {
+	apis.store.current.subscribe(async (current) => {
 		artwork = current
 		prevImgPath = imgPath
 
@@ -98,15 +100,12 @@ const init = async () => {
 	})
 
 	powerMonitor.on('suspend', () => {
-		apis.get(true)
+		apis.getArtwork(true)
 	})
 
-	apis.get(false)
-
 	if (isFirstAppLaunch()) {
-		setTimeout(() => app.setLoginItemSettings({ openAtLogin: true }), 2000)
+		app.setLoginItemSettings({ openAtLogin: true })
 	}
-
 }
 
 init()

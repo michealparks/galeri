@@ -1,9 +1,8 @@
 import localforage from 'localforage'
-import { current, currentImage, next, nextImage } from './stores'
 import { apis } from '../../apis'
-import { store as apiStore } from '../../apis/store'
+import store from '../../apis/store'
 
-const init = async () => {
+const init = async (): Promise<void> => {
 	const promises = new Set()
 
 	promises.add(localforage.getItem('current'))
@@ -11,12 +10,17 @@ const init = async () => {
 	promises.add(localforage.getItem('currentImage'))
 	promises.add(localforage.getItem('nextImage'))
 
-	const resolves1 = await Promise.all(promises)
+	const [
+		current,
+		next,
+		currentImage,
+		nextImage
+	] = await Promise.all(promises)
 
-	apiStore.set('current', resolves1[0] || undefined)
-	apiStore.set('next', resolves1[1] || undefined)
-	currentImage.set(resolves1[2] || undefined)
-	nextImage.set(resolves1[3] || undefined) 
+	if (current) store.current.set(current)
+	if (next) store.next.set(next)
+	if (currentImage) store.currentImage.set(currentImage)
+	if (nextImage) store.nextImage.set(nextImage)
 
 	promises.clear()
 
@@ -25,28 +29,33 @@ const init = async () => {
 	promises.add(localforage.getItem('rijksPage'))
 	promises.add(localforage.getItem('met'))
 
-	const resolves2 = await Promise.all(promises)
+	const [
+		wikipedia,
+		rijks,
+		rijksPage,
+		met
+	] = await Promise.all(promises)
 
-	apiStore.set('wikipedia', resolves2[0] || [])
-	apiStore.set('rijks', resolves2[1] || [])
-	apiStore.set('rijksPage', resolves2[2] || 1)
-	apiStore.set('met', resolves2[3] || [])
+	if (wikipedia) store.wikipedia.set(wikipedia)
+	if (rijks) store.rijks.set(rijks)
+	if (rijksPage) store.rijksPage.set(rijksPage)
+	if (met) store.met.set(met)
 
-	apiStore.subscribeAll((key, value) => {
-		localforage.setItem(key, value)
-	})
+	for (const [key, storeItem] of Object.entries(store)) {
+		storeItem.subscribe(value => {
+			localforage.setItem(key, value)
+		})
+	}
 
-	apiStore.subscribe('current', async (artObject) => {
-		current.set(artObject)
-
+	store.current.subscribe(async (artObject) => {
 		const response = await window.fetch(artObject.src)
 		const blob = await response.blob()
-		currentImage.set(blob)
-		localforage.setItem('currentImage', blob)
+
+		store.currentImage.set(blob)
 	})
 
 	apis.disable('met')
-	apis.get(false)
+	apis.getArtwork(false)
 }
 
 export const storage = {

@@ -1,4 +1,5 @@
-import { store } from './store'
+import { get } from 'svelte/store'
+import store from './store'
 import { ENDPOINTS } from './constants'
 import type { ArtObject } from './types'
 
@@ -13,12 +14,12 @@ const randomArtwork = async (): Promise<ArtObject | undefined> => {
 }
 
 const getArtworks = async (): Promise<ArtObject[]> => {
-	const artworks = store.get('rijks')
+	const artworks = get(store.rijks)
 
 	if (artworks.length > 0) {
 		return artworks
 	} else {
-		const page = store.get('rijksPage')
+		const page = get(store.rijksPage)
 
 		let json
 	
@@ -50,8 +51,8 @@ const getArtworks = async (): Promise<ArtObject[]> => {
 			})
 		}
 
-		store.set('rijks', artworks)
-		store.set('rijksPage', page + 1)
+		store.rijks.set(artworks)
+		store.rijksPage.set(page + 1)
 
 		return artworks
 	}
@@ -61,7 +62,7 @@ const removeRandomArtwork = (artObjects: ArtObject[]): ArtObject | undefined => 
 	const randomIndex = Math.floor(Math.random() * artObjects.length)
 	const [artObject] = (artObjects.splice(randomIndex, 1) || [])
 
-	store.set('rijks', artObjects)
+	store.rijks.set(artObjects)
 
 	return artObject
 }

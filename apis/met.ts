@@ -1,4 +1,5 @@
-import { store } from './store'
+import { get } from 'svelte/store'
+import store from './store'
 import { ENDPOINTS } from './constants'
 import type { ArtObject } from './types'
 
@@ -13,25 +14,25 @@ const randomArtwork = async (): Promise<ArtObject | undefined> => {
 }
 
 const getArtworks = async (): Promise<ArtObject[]> => {
-	const artworks = store.get('met')
+	const artworks = get(store.met)
 
 	if (artworks.length > 0) {
+
 		return artworks
+
 	} else {
-		let json: any
 
 		try {
-			json = await (globalThis as any).fetchJSON(ENDPOINTS.metCollection)
+
+			const json = await (globalThis as any).fetchJSON(ENDPOINTS.metCollection)
+			const artworks = json.objectIDs
+			store.met.set(artworks)
+			return artworks
+
 		} catch (err) {
 			console.error(err)
 			return []
 		}
-
-		const artworks = json.objectIDs
-
-		store.set('met', artworks)
-
-		return artworks
 	}
 }
 
@@ -69,7 +70,7 @@ const removeRandomArtwork = async (artworks: ArtObject[]): Promise<ArtObject | u
 		providerLink: 'https://www.metmuseum.org'
 	}
 
-	store.set('met', artworks)
+	store.met.set(artworks)
 
 	return artwork
 }

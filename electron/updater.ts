@@ -6,7 +6,7 @@ autoUpdater.on('update-downloaded', () => {
 	autoUpdater.quitAndInstall()
 })
 
-const parseTag = (tag = '') => {
+const parseTag = (tag = ''): number[] => {
 	return (
 		tag.startsWith('v')
 			? tag.slice(1)
@@ -14,7 +14,7 @@ const parseTag = (tag = '') => {
 	).split('.').map((v) => parseInt(v, 10))
 }
 
-const newVersionExists = (tag: number[]) => {
+const newVersionExists = (tag: number[]): boolean => {
 	for (const [i, curVersion] of parseTag(APP_VERSION).entries()) {
 		if (curVersion > tag[i]) return false
 	}
@@ -22,7 +22,7 @@ const newVersionExists = (tag: number[]) => {
 	return true
 }
 
-const init = async () => {
+const init = async (): Promise<void> => {
 	const latestTag = await (globalThis as any).fetchJSON(URLS.githubReleaseAPI, {
 		headers: 'User-Agent: galeri'
 	})
