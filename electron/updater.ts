@@ -22,7 +22,7 @@ const newVersionExists = (tag: number[]): boolean => {
 	return true
 }
 
-const init = async (): Promise<void> => {
+export const updater = async (): Promise<void> => {
 	const latestTag = await (globalThis as any).fetchJSON(URLS.githubReleaseAPI, {
 		headers: 'User-Agent: galeri'
 	})
@@ -37,7 +37,5 @@ const init = async (): Promise<void> => {
 		autoUpdater.checkForUpdates()
 	}
 
-	setTimeout(init, 1000 * 60 * 60)
+	setTimeout(updater, 1000 * 60 * 60)
 }
-
-init()

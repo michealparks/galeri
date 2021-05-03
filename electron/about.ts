@@ -1,8 +1,5 @@
 import { app, BrowserWindow } from 'electron'
 import { APP_ICON } from '../config'
-// import serve from 'electron-serve'
-
-// const loadURL = serve({ directory: 'about' })
 
 let win: BrowserWindow | undefined
 
@@ -30,9 +27,8 @@ const open = async (): Promise<number> => {
   win.setMenuBarVisibility(false)
   win.once('close', () => { win = undefined })
 
-  await win.loadURL(`file://${app.getAppPath()}/about/index.html`)
+  await win.loadURL(`file://${app.getAppPath()}/about.html`)
 
-  // await loadURL(win)
 	win.show()
   win.webContents.openDevTools({ mode: 'detach' })
 

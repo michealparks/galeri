@@ -45,8 +45,6 @@ const getRandom = async (): Promise<ArtObject> => {
 	const key = API_KEYS[Math.floor(Math.random() * API_KEYS.length)]
 	const artwork = await apiMap.get(key)?.randomArtwork()
 
-	console.log('uhg', artwork)
-
 	if (artwork === undefined) {
 		return getRandom()
 	}
