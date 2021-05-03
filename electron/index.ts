@@ -1,26 +1,21 @@
 
 import type { ArtObject } from '../apis/types'
 
+import unhandled from 'electron-unhandled'
+unhandled()
+
 import './polyfill'
-import './updater'
 import { app, shell, powerMonitor } from 'electron'
+import { isFirstAppLaunch, enforceMacOSAppLocation } from 'electron-util'
 import wallpaper from 'wallpaper'
 import { apis } from '../apis'
+import { updater } from './updater'
 import { image } from './image'
 import { tray } from './tray'
 import { storage } from './storage'
 import { about } from './about'
-import unhandled from 'electron-unhandled'
-import { isFirstAppLaunch, enforceMacOSAppLocation } from 'electron-util'
 
-unhandled()
-
-// @ts-ignore
-if (DEV) {
-	require('electron-reload')(__dirname, {
-		electron: require('path').join(__dirname, 'node_modules', '.bin', 'electron')
-	})
-}
+updater()
 
 // https://www.electronjs.org/docs/api/app#apprequestsingleinstancelock
 const gotTheLock = app.requestSingleInstanceLock()
@@ -45,7 +40,6 @@ const favoriteArtwork = () => {
 
 }
 
-
 const init = async () => {
 	await Promise.all([
 		app.whenReady(),
@@ -54,7 +48,7 @@ const init = async () => {
 
 	enforceMacOSAppLocation()
 
-	tray.init().onEvent((event) => {
+	tray.init().onEvent((event: string) => {
 		switch (event) {
 			case 'artwork':
 				return artwork.titleLink
@@ -95,6 +89,12 @@ const init = async () => {
 	
 		if (prevImgPath) {
 			await image.remove(prevImgPath)
+		}
+
+		const curWallpaper = await wallpaper.get()
+
+		if (curWallpaper !== imgPath) {
+			apis.getArtwork(true)
 		}
 	})
 

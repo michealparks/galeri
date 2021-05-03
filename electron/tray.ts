@@ -70,13 +70,16 @@ const getIconPath = (dark: boolean) => {
 	return `${app.getAppPath()}/icon${dark ? '-dark' : ''}_32x32.png`
 }
 
-const init = () => {
+type EventObject = {
+	onEvent: Subscriber
+}
+
+const init = (): EventObject => {
 	_tray = new Tray(getIconPath(darkMode.isEnabled))
   _tray.setContextMenu(Menu.buildFromTemplate(menuTemplate as MenuItemConstructorOptions[]))
 
 	darkMode.onChange(() => {
 		_tray.setImage(getIconPath(darkMode.isEnabled))
-		console.log(darkMode.isEnabled)
 	})
 
   return { onEvent }
