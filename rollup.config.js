@@ -30,7 +30,8 @@ export default [{
     'electron-unhandled',
     'electron-reloader',
     'electron-util',
-    'electron-serve'
+    'electron-serve',
+    'svelte/store'
   ]: []),
   plugins: [
     json(),

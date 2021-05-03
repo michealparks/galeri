@@ -1,5 +1,8 @@
 import { app, BrowserWindow } from 'electron'
 import { APP_ICON } from '../config'
+// import serve from 'electron-serve'
+
+// const loadURL = serve({ directory: 'about' })
 
 let win: BrowserWindow | undefined
 
@@ -24,13 +27,12 @@ const open = async (): Promise<number> => {
     skipTaskbar: true
   })
 
-	console.log(`${app.getAppPath()}/about/index.html`)
-
   win.setMenuBarVisibility(false)
-  win.on('close', () => { win = undefined })
+  win.once('close', () => { win = undefined })
 
   await win.loadURL(`file://${app.getAppPath()}/about/index.html`)
 
+  // await loadURL(win)
 	win.show()
   win.webContents.openDevTools({ mode: 'detach' })
 

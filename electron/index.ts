@@ -12,15 +12,14 @@ import { storage } from './storage'
 import { about } from './about'
 import unhandled from 'electron-unhandled'
 import { isFirstAppLaunch, enforceMacOSAppLocation } from 'electron-util'
-import serve from 'electron-serve'
-
-const loadURL = serve({ directory: '.' })
 
 unhandled()
 
 // @ts-ignore
-if (DEV) { 
-	try { require('electron-reloader')(module) } catch {}
+if (DEV) {
+	require('electron-reload')(__dirname, {
+		electron: require('path').join(__dirname, 'node_modules', '.bin', 'electron')
+	})
 }
 
 // https://www.electronjs.org/docs/api/app#apprequestsingleinstancelock

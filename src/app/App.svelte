@@ -1,20 +1,19 @@
-<svelte:head>
-	<title>New Tab</title>
-</svelte:head>
-
-<script lang="ts">
-	import '$lib/polyfill'
+<script lang='ts'>
+	import '../lib/polyfill'
 	import { onMount } from 'svelte'
-	import Buttons from '$lib/Buttons.svelte'
-	import Info from '$lib/Info.svelte'
-	import { storage } from '$lib/storage'
+	import Buttons from '../lib/Buttons.svelte'
+	import Info from '../lib/Info.svelte'
+	import { storage } from '../lib/storage'
 	import store from '../../apis/store'
 
 	const { current } = store
 
 	let url: string
 
+	console.log($current)
+
 	onMount(async () => {
+		console.log($current)
 		await storage.init()
 
 		store.currentImage.subscribe(blob => {
@@ -27,7 +26,10 @@
 	style={url === undefined ? undefined : `background-image: url(${url})`}
 >
 	<Buttons />
-	<Info {...$current} />
+
+	{#if $current}
+		<Info {...$current} />
+	{/if}
 </main>
 
 <style>

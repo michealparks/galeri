@@ -1,4 +1,5 @@
 <script lang='ts'>
+	export let src: string
 	export let title: string | undefined
 	export let titleLink: string | undefined
 	export let artist: string | undefined

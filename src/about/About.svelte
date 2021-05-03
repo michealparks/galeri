@@ -1,28 +1,18 @@
 <script lang='ts'>
-	import { onMount } from 'svelte'
 	import { version } from '../../package.json'
-
-	let date = new Date().getFullYear()
-
-	const reset = () => {
-
-	}
-
-	onMount(() => { date = new Date().getFullYear() })
+	import Logo from './logo.svelte'
 </script>
 
 <div class='titlebar' />
 
 <header>
-	<img alt='Logo' src='galeri-256.png' />
+	<Logo />
 	<h1>Galeri</h1>
 </header>
 
 <p>A perpetual artwork streaming app</p>
-<small>© {date} Micheal Parks.</small>
+<small>Made with ❤️ in New York City</small>
 <p>v{version}</p>
-
-<small on:click={reset} hidden>Delete User Data</small>
 
 <style>
 	:global(body) {
@@ -45,25 +35,6 @@
 		display: flex;
 		justify-content: center;
   	align-items: center;
-	}
-
-	img {
-		height: 60px;
-		width: 60px;
-		opacity: 0;
-		transform: translate(15px, 0);
-		animation-name: move-left;
-		animation-duration: 700ms;
-		animation-fill-mode: forwards;
-		border: 5px solid #eee;
-		border-radius: 100%;
-	}
-
-	@keyframes move-left {
-		0%   { transform: scale(0.0) translate(15px, 0); opacity: 0; }
-		60%  { transform: scale(1.05) translate(0, 0); }
-		80%  { transform: scale(0.97) translate(0, 0); }
-		100% { transform: scale(1.0) translate(0, 0); opacity: 1; } 
 	}
 
 	h1 {

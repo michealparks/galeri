@@ -1,11 +1,13 @@
-<script>
+<script lang='ts'>
   import { apis } from '../../apis'
 
   let canClick = true
 
   const handleClick = async () => {
     canClick = false
+
     await apis.getArtwork(true)
+
     canClick = true
   }
 </script>
