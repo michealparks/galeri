@@ -1,0 +1,1 @@
+import"./index.b2ecc98e.js";import{S as o,i as e,s as n}from"./vendor.ce2d70fd.js";function t(o){const{ipc:e}=window;return console.log(e,e.on),e.on("update",(o=>{console.log(o)})),[]}const s=document.getElementById("app");if(null===s)throw new Error("App root element is null.");new class extends o{constructor(o){super(),e(this,o,t,null,n,{})}}({target:s});

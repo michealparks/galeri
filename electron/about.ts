@@ -7,6 +7,7 @@ const open = async (): Promise<number> => {
   if (win !== undefined) {
     win.focus()
     win.restore()
+    win.center()
     return win.id
   }
 

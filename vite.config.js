@@ -11,7 +11,8 @@ export default defineConfig({
 		rollupOptions: {
 			input: {
 				app: './app.html',
-				about: './about.html'
+				about: './about.html',
+				favorites: './favorites.html'
 			}
 		}
 	}

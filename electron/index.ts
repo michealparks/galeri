@@ -14,6 +14,7 @@ import { image } from './image'
 import { tray } from './tray'
 import { storage } from './storage'
 import { about } from './about'
+import { favorites } from './favorites'
 
 updater()
 
@@ -36,8 +37,57 @@ let imgPath: string
 let nextImgPath: string
 let prevImgPath: string
 
-const favoriteArtwork = () => {
+const handleTrayEvent = (event: string) => {
+	switch (event) {
+		case 'artwork':
+			return artwork.titleLink
+				? shell.openExternal(artwork.titleLink)
+				: undefined
+		case 'favorite':
+			return favorites.add(artwork)
+		case 'about':
+			return about.open()
+		case 'favorites':
+			return favorites.open()
+		case 'next':
+			return apis.getArtwork(true)
+		case 'quit':
+			return app.quit()
+	}
+}
 
+const handleNextArtwork = async (next: ArtObject) => {
+	nextImgPath = await image.download(next.src)
+}
+
+const handleCurrentArtwork = async (current: ArtObject) => {
+	console.log(current)
+	artwork = current
+	prevImgPath = imgPath
+
+	if (nextImgPath && image.filepath(current.src) === nextImgPath) {
+		imgPath = nextImgPath
+	} else {
+		imgPath = await image.download(current.src)
+	}
+
+	tray.setArtwork(current)
+
+	await wallpaper.set(imgPath)
+
+	if (prevImgPath) {
+		await image.remove(prevImgPath)
+	}
+
+	const curWallpaper = await wallpaper.get()
+
+	if (curWallpaper !== imgPath) {
+		apis.getArtwork(true)
+	}
+}
+
+const handleSuspend = () => {
+	apis.getArtwork(true)
 }
 
 const init = async () => {
@@ -48,63 +98,21 @@ const init = async () => {
 
 	enforceMacOSAppLocation()
 
-	tray.init().onEvent((event: string) => {
-		switch (event) {
-			case 'artwork':
-				return artwork.titleLink
-					? shell.openExternal(artwork.titleLink)
-					: undefined
-			case 'favorite':
-				return favoriteArtwork()
-			case 'about':
-				return about.open()
-			case 'favorites':
-				return // favorites.open()
-			case 'next':
-				return apis.getArtwork(true)
-			case 'quit':
-				return app.quit()
-		}
-	})
+	tray.init().onEvent(handleTrayEvent)
 
 	await apis.getArtwork(false)
 
-	apis.store.next.subscribe(async (next) => {
-		nextImgPath = await image.download(next.src)
-	})
+	apis.store.next.subscribe(handleNextArtwork)
 
-	apis.store.current.subscribe(async (current) => {
-		artwork = current
-		prevImgPath = imgPath
+	apis.store.current.subscribe(handleCurrentArtwork)
 
-		if (nextImgPath && image.filepath(current.src) === nextImgPath) {
-			imgPath = nextImgPath
-		} else {
-			imgPath = await image.download(current.src)
-		}
-	
-		tray.setArtwork(current)
-	
-		await wallpaper.set(imgPath)
-	
-		if (prevImgPath) {
-			await image.remove(prevImgPath)
-		}
-
-		const curWallpaper = await wallpaper.get()
-
-		if (curWallpaper !== imgPath) {
-			apis.getArtwork(true)
-		}
-	})
-
-	powerMonitor.on('suspend', () => {
-		apis.getArtwork(true)
-	})
+	powerMonitor.on('suspend', handleSuspend)
 
 	if (isFirstAppLaunch()) {
 		app.setLoginItemSettings({ openAtLogin: true })
 	}
+
+	await favorites.init()
 }
 
 init()

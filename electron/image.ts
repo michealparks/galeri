@@ -27,6 +27,8 @@ const filepath = (url: string): string => {
 const download = async (url: string): Promise<string> => {
 	const output = filepath(url)
 
+	console.log(app.getPath('appData'))
+
 	try {
 		await mkdir(resolve(app.getPath('appData'), 'Galeri'))
 	} catch {}
