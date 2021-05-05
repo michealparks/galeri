@@ -1,5 +1,5 @@
 <script lang='ts'>
-	export let index: number
+	export let index: number = 1
 </script>
 
 <svg

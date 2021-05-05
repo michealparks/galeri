@@ -1,13 +1,17 @@
 <script lang='ts'>
 	import type { ArtObject } from '../../apis/types'
 	import Favorite from './Favorite.svelte'
-import testList from './test-list';
+	import Dialog from './Dialog.svelte'
+	import testList from './test-list'
 
 	// @ts-ignore
 	// If in an electron environment, this will be defined in
 	// build/preload.js. If in the extension, @TODO
 	const { messageService, openLink } = window
 
+	let undoTimeout: NodeJS.Timeout | undefined
+	let deleted: ArtObject | undefined
+	let deletedIndex: number
 	let favorites: ArtObject[] = testList
 
 	messageService?.on('update', (list: ArtObject[]) => {
@@ -25,9 +29,7 @@ import testList from './test-list';
 				dataset.delete !== undefined &&
 				dataset.index !== undefined
 			) {
-				favorites.splice(parseInt(dataset.index, 10), 1)
-				favorites = favorites
-				messageService?.send('favorites:delete', favorites)
+				handleDelete(parseInt(dataset.index, 10))
 			}
 
 			if (dataset.link !== undefined) {
@@ -35,6 +37,39 @@ import testList from './test-list';
 				openLink?.(e.target.dataset.link)
 			}
 		}
+	}
+
+	const handleDelete = (index: number) => {
+		deleted = favorites.splice(index, 1)[0]
+		deletedIndex = index
+		favorites = favorites
+
+		if (undoTimeout) {
+			clearTimeout(undoTimeout)
+		}
+
+		undoTimeout = setTimeout(handleUndoTimeout, 1000 * 10)
+
+		messageService?.send('favorites:update', favorites)
+	}
+
+	const handleUndo = () => {
+		if (deleted === undefined) return
+
+		favorites.splice(deletedIndex, 0, deleted)
+		favorites = favorites
+		deleted = undefined
+
+		if (undoTimeout) {
+			clearTimeout(undoTimeout)
+		}
+
+		messageService?.send('favorites:update', favorites)
+	}
+
+	const handleUndoTimeout = () => {
+		deleted = undefined
+		undoTimeout = undefined
 	}
 </script>
 
@@ -44,17 +79,20 @@ import testList from './test-list';
 	{/each}
 </main>
 
+{#if deleted}
+	<Dialog on:undo={handleUndo} />
+{/if}
 
-<style>
+<style lang='scss'>
+	:global(body) {
+		overflow-y:auto
+	}
 	main {
-		overflow-y: auto;
 		display: grid;
 		grid-template-columns: 1fr 1fr 1fr;
-		column-gap: 10px;
-  	row-gap: 10px;
+		grid-auto-rows: 300px;
+		grid-gap: 10px;
 		width: 100vw;
-		height: 100vh;
 		padding: 10px;
-		background-color: #333;
 	}
 </style>

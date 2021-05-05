@@ -2,7 +2,7 @@
   "name": "galeri",
   "productName": "Galeri",
   "version": "0.1.0",
-  "main": "build/electron.cjs",
+  "main": "electron.cjs",
   "type": "module",
   "author": {
     "name": "Micheal Parks",
@@ -49,7 +49,7 @@
     "cheerio": "git://github.com/cheeriojs/cheerio.git#9d56795f40d1c8d910a8973c3e011e06863f568f",
     "cross-env": "^7.0.3",
     "electron": "^12.0.6",
-    "electron-builder": "^22.10.5",
+    "electron-builder": "22.10.4",
     "electron-serve": "^1.1.0",
     "electron-unhandled": "^3.0.2",
     "electron-util": "^0.15.1",
@@ -75,8 +75,13 @@
     "productName": "Galeri",
     "compression": "maximum",
     "files": [
-      "build/**/*",
-      "extension/build/**/*"
+      "package.json",
+      "electron.cjs",
+      {
+        "from": "build",
+        "to": "",
+        "filter": ["**/*"]
+      }
     ],
     "mac": {
       "category": "public.app-category.education"

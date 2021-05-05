@@ -16,7 +16,7 @@
 
 <style>
 	:global(body) {
-		background-color: #333;
+		overflow: hidden;
   	color: #fff;
 		display: grid;
 		place-content: center;

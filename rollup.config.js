@@ -13,7 +13,7 @@ const { DEV = false } = process.env
 export default [{
   input: './electron/index.ts',
   output: {
-    file: './build/electron.cjs',
+    file: './electron.cjs',
     format: 'cjs',
   },
   external: [
