@@ -3,7 +3,7 @@ import type { ArtObject } from '../apis/types'
 import fs from 'fs'
 import { promisify } from 'util'
 import { resolve } from 'path'
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, ipcMain } from 'electron'
 import { APP_ICON } from '../config'
 
 const mkdir = promisify(fs.mkdir)
@@ -53,10 +53,14 @@ const upgradeFavoritesList = (favoritesList: unknown) => {
 		})
 	}
 
-	const filepath = resolve(app.getPath('appData'), 'Galeri Favorites', 'config.json')
-	writeFile(filepath, JSON.stringify({ favorites: newlist }))
+	updateFavoritesList(newlist)
 
 	return newlist
+}
+
+const updateFavoritesList = (list: ArtObject[]) => {
+	const filepath = resolve(app.getPath('appData'), 'Galeri Favorites', 'config.json')
+	writeFile(filepath, JSON.stringify({ favorites: list }))
 }
 
 const open = async (): Promise<number> => {
@@ -76,8 +80,7 @@ const open = async (): Promise<number> => {
 		height: 500,
 		resizable: true,
 		maximizable: true,
-		fullscreenable: true,
-		titleBarStyle: 'hiddenInset',
+		fullscreenable: false,
 		skipTaskbar: true,
 		webPreferences: {
 			preload: resolve(__dirname, 'preload.cjs')
@@ -93,6 +96,10 @@ const open = async (): Promise<number> => {
 	win.webContents.send('update', favoritesList)
 	win.show()
 
+	ipcMain.on('favorites:delete', (_, list: ArtObject[]) => {
+		updateFavoritesList(list)
+	})
+
 	return win.id
 }
 
@@ -101,8 +108,7 @@ const add = async (artwork: ArtObject) => {
 
 	win?.webContents.send('update', favoritesList)
 
-	const filepath = resolve(app.getPath('appData'), 'Galeri Favorites', 'config.json')
-	await writeFile(filepath, JSON.stringify(favoritesList))
+	updateFavoritesList(favoritesList)
 }
 
 export const favorites = {

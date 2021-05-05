@@ -1,6 +1,6 @@
 const { ipcRenderer, contextBridge, shell } = require('electron')
 
-contextBridge.exposeInMainWorld('ipcRenderer', {
+contextBridge.exposeInMainWorld('messageService', {
   send: (channel, data) => {
     ipcRenderer.send(channel, data)
   },
@@ -9,8 +9,6 @@ contextBridge.exposeInMainWorld('ipcRenderer', {
   }
 })
 
-contextBridge.exposeInMainWorld('shell', {
-  openExternal: (url) => {
-    shell.openExternal(url)
-  }
+contextBridge.exposeInMainWorld('openLink', (url) => {
+  shell.openExternal(url)
 })

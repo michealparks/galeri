@@ -103,7 +103,6 @@ const init = async () => {
 	await apis.getArtwork(false)
 
 	apis.store.next.subscribe(handleNextArtwork)
-
 	apis.store.current.subscribe(handleCurrentArtwork)
 
 	powerMonitor.on('suspend', handleSuspend)
