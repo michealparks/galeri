@@ -1,12 +1,21 @@
 
 import type { ArtObject } from '../apis/types'
 
+import { isFirstAppLaunch, enforceMacOSAppLocation, openNewGitHubIssue, debugInfo } from 'electron-util'
 import unhandled from 'electron-unhandled'
-unhandled()
+unhandled({
+	reportButton: error => {
+		openNewGitHubIssue({
+			user: 'michealparks',
+			repo: 'galeri',
+			body: `\`\`\`\n${error.stack}\n\`\`\`\n\n---\n\n${debugInfo()}`
+		})
+		process.exit(1)
+	}
+})
 
 import './polyfill'
 import { app, shell, powerMonitor } from 'electron'
-import { isFirstAppLaunch, enforceMacOSAppLocation } from 'electron-util'
 import wallpaper from 'wallpaper'
 import { apis } from '../apis'
 import { updater } from './updater'
@@ -61,7 +70,6 @@ const handleNextArtwork = async (next: ArtObject) => {
 }
 
 const handleCurrentArtwork = async (current: ArtObject) => {
-	console.log(current)
 	artwork = current
 	prevImgPath = imgPath
 

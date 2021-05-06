@@ -36,6 +36,10 @@ const init = async () => {
 	if (favoritesList[0] && 'href' in favoritesList[0]) {
 		favoritesList = upgradeFavoritesList(favoritesList as unknown)
 	}
+
+	ipcMain.on('favorites:update', (_, list: ArtObject[]) => {
+		updateFavoritesList(list)
+	})
 }
 
 const upgradeFavoritesList = (favoritesList: unknown) => {
@@ -65,15 +69,15 @@ const updateFavoritesList = (list: ArtObject[]) => {
 
 const open = async (): Promise<number> => {
 	if (win !== undefined) {
-    win.focus()
-    win.restore()
 		win.center()
+		win.restore()
+    win.focus()
     return win.id
   }
 
 	win = new BrowserWindow({
-		title: 'Galeri | Favorites',
-		icon: APP_ICON,
+		title: 'Galeri Favorites',
+		// icon: APP_ICON,
 		center: true,
 		show: false,
 		width: 800,
@@ -92,13 +96,12 @@ const open = async (): Promise<number> => {
 
 	await win.loadURL(`file://${app.getAppPath()}/favorites.html`)
 
-	win.webContents.openDevTools({ mode: 'detach' })
 	win.webContents.send('update', favoritesList)
 	win.show()
 
-	ipcMain.on('favorites:delete', (_, list: ArtObject[]) => {
-		updateFavoritesList(list)
-	})
+	if (process.env.NODE_ENV === 'dev') {
+    win.webContents.openDevTools({ mode: 'detach' })
+  }
 
 	return win.id
 }

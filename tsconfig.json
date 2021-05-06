@@ -10,7 +10,7 @@
   ],
   "typeRoots": [],
   "types": [],
-  "lib": ["node", "electron"],
+  "lib": ["dom", "node", "electron"],
   "compilerOptions": {
     "module": "esnext",
     "target": "esnext",
