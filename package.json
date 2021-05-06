@@ -49,7 +49,7 @@
     "cheerio": "git://github.com/cheeriojs/cheerio.git#9d56795f40d1c8d910a8973c3e011e06863f568f",
     "cross-env": "^7.0.3",
     "electron": "^12.0.6",
-    "electron-builder": "^22.10.5",
+    "electron-builder": "^22.11.1",
     "electron-serve": "^1.1.0",
     "electron-unhandled": "^3.0.2",
     "electron-util": "^0.15.1",

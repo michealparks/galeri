@@ -1,5 +1,5 @@
 // A list of artworks deemed NSFW. This list is a quite moving selection,
-// but people may not be able to appreciate the true extent of their beauty in an
+// but people may not be able to appreciate the true extent of its beauty in an
 // American corporate office setting.
 
 // If a work is found to be delightful, yet very awkward in a non-progressive
