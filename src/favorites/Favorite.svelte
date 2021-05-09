@@ -10,7 +10,7 @@
 </script>
 
 <section
-	data-id={favorite.id}
+	id={favorite.id}
 	data-link={favorite.titleLink}
 >
 	<Image {enabled} src={favorite.src} />
@@ -26,14 +26,10 @@
 		overflow: hidden;
 		position: relative;
     height: 300px;
-		padding: 10px 35px 10px 15px;
+		padding: 10px 40px 10px 15px;
     border-radius: 4px;
 		color: #fff;
 		background-color: #222;
-	}
-
-	section :global(*) {
-		pointer-events: none;
 	}
 
 	section:hover :global(div) {
@@ -55,6 +51,7 @@
 	}
 
 	h2, h3, p {
+		pointer-events: none;
 		position: relative;
 		margin: 5px 0;
 	}

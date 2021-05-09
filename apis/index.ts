@@ -49,7 +49,7 @@ const getRandom = async (): Promise<ArtObject> => {
 		return getRandom()
 	}
 
-	if (blacklist.includes(decodeURI(artwork.src))) {
+	if (blacklist.includes(decodeURI(artwork.src)) === true) {
 		return getRandom()
 	}
 

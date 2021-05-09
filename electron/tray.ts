@@ -7,19 +7,8 @@ import type { ArtObject, Subscriber } from '../apis/types'
 let _tray: Tray
 let subscriber: Subscriber
 
-const menuTemplate = [
+const baseItems: MenuItemConstructorOptions[] = [
 	{
-		label: '',
-		click: () => subscriber('artwork')
-	}, {
-		label: 'Next Artwork',
-		type: 'normal',
-		click: () => subscriber('next')
-	}, {
-		label: 'Add to favorites',
-		type: 'normal',
-		click: () => subscriber('favorite')
-	}, {
 		type: 'separator'
 	}, {
 		label: 'Options',
@@ -41,7 +30,7 @@ const menuTemplate = [
 		click: () => subscriber('favorites')
 	}, {
 		label: 'About',
-		role: 'help',
+		role: 'about',
 		type: 'normal',
 		click: () => subscriber('about')
 	}, {
@@ -52,8 +41,46 @@ const menuTemplate = [
 	}
 ]
 
+const updatingTemplate = Menu.buildFromTemplate([
+	{
+		label: 'Galeri',
+		enabled: false,
+	}, {
+		type: 'separator'
+	}, {
+		label: 'Updating...',
+		enabled: false,
+	},
+	...baseItems
+])
+
+const menuTemplate: MenuItemConstructorOptions[] = [
+	{
+		label: 'Galeri',
+		enabled: false,
+	}, {
+		type: 'separator'
+	}, {
+		label: '',
+		click: () => subscriber('artwork')
+	}, {
+		label: 'Next Artwork',
+		type: 'normal',
+		click: () => subscriber('next')
+	}, {
+		label: 'Add to Favorites',
+		type: 'normal',
+		click: () => subscriber('favorite')
+	},
+	...baseItems
+]
+
 const onEvent = (fn: Subscriber) => {
 	subscriber = fn
+}
+
+const setUpdating = () => {
+	_tray.setContextMenu(updatingTemplate)
 }
 
 const setArtwork = (artwork: ArtObject): void => {
@@ -61,9 +88,13 @@ const setArtwork = (artwork: ArtObject): void => {
 		return
 	}
 
-	menuTemplate[0].label = artwork.title
+	menuTemplate[2].label = artwork.title.length > 30
+		? `${artwork.title.substring(0, 30)}...`
+		: artwork.title
+
 	_tray.setToolTip(artwork.title)
-	_tray.setContextMenu(Menu.buildFromTemplate(menuTemplate as MenuItemConstructorOptions[]))
+	_tray.closeContextMenu()
+	_tray.setContextMenu(Menu.buildFromTemplate(menuTemplate))
 }
 
 const getIconPath = (dark: boolean) => {
@@ -76,7 +107,7 @@ type EventObject = {
 
 const init = (): EventObject => {
 	_tray = new Tray(getIconPath(darkMode.isEnabled))
-  _tray.setContextMenu(Menu.buildFromTemplate(menuTemplate as MenuItemConstructorOptions[]))
+	setUpdating()
 
 	darkMode.onChange(() => {
 		_tray.setImage(getIconPath(darkMode.isEnabled))
@@ -87,5 +118,6 @@ const init = (): EventObject => {
 
 export const tray = {
 	init,
-	setArtwork
+	setArtwork,
+	setUpdating
 }

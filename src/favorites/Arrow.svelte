@@ -4,6 +4,7 @@
 
 <style>
 	svg {
+		pointer-events: none;
 		position: absolute;
 		left: 0;
 		bottom: 0;

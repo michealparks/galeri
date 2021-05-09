@@ -4,8 +4,7 @@
 	import Favorite from './Favorite.svelte'
 	import Dialog from './Dialog.svelte'
 	import testList from './test-list'
-	import { onMount } from 'svelte'
-
+	import { tick } from 'svelte'
 
 	// If in an electron environment, this will be defined in
 	// build/preload.js. If in the extension, @TODO
@@ -13,21 +12,45 @@
 		// @ts-ignore
 		messageService,
 		// @ts-ignore
-		openLink = (url) => {
-			console.log(url)
-			window.open(url)
-		}
+		openLink = (url) => window.open(url)
 	} = window
+
+	const observer = new IntersectionObserver((entries) => {
+		for (const entry of entries) {
+			const section = entry.target as HTMLElement
+			const wasEnabled = enabled.get(section.id)
+
+			if (entry.isIntersecting === true && wasEnabled !== true) {
+				enabled.set(section.id, true)
+				enabled = enabled
+			} else if (wasEnabled === true) {
+				enabled.set(section.id, false)
+				enabled = enabled
+			}
+		}
+	})
 
 	let undoTimeout: NodeJS.Timeout | undefined
 	let deleted: ArtObject | undefined
 	let deletedIndex: number
-	let favorites: ArtObject[] = testList
+	let favorites: ArtObject[] = []
 	let enabled = new Map()
 
-	messageService?.on('update', (list: ArtObject[]) => {
+	const handleUpdate = async (list: ArtObject[]) => {
+		const oldids = favorites.map(({ id }) => id)
+		const ids = list.map(({ id }) => id)
+		const newids = ids.filter(id => oldids.includes(id) === false)
+
 		favorites = list
-	})
+
+		await tick()
+
+		for (const id of newids) {
+			console.log(id)
+			const section = document.getElementById(id)!
+			observer.observe(section)
+		}
+	}
 
 	const handleClick = (e: MouseEvent) => {
 		if (
@@ -36,28 +59,30 @@
 		) {
 			const { dataset } = e.target
 
+			console.log(e.target)
+
 			if (
 				dataset.delete !== undefined &&
 				dataset.index !== undefined
 			) {
-				handleDelete(parseInt(dataset.index, 10))
+				return handleDelete(parseInt(dataset.index, 10))
 			}
 
-			console.log(e.target)
-
 			if (dataset.link !== undefined) {
-				e.stopImmediatePropagation()
-				openLink(e.target.dataset.link)
+				return openLink(e.target.dataset.link)
 			}
 		}
 	}
 
 	const handleDelete = (index: number) => {
 		deleted = favorites.splice(index, 1)[0]
+
+		observer.unobserve(document.getElementById(deleted.id)!)
+	
 		deletedIndex = index
 		favorites = favorites
 
-		if (undoTimeout) {
+		if (undoTimeout !== undefined) {
 			clearTimeout(undoTimeout)
 		}
 
@@ -66,50 +91,46 @@
 		messageService?.send('favorites:update', favorites)
 	}
 
-	const handleUndo = () => {
+	const handleUndo = async () => {
 		if (deleted === undefined) return
 
 		favorites.splice(deletedIndex, 0, deleted)
 		favorites = favorites
-		deleted = undefined
 
-		if (undoTimeout) {
+		if (undoTimeout !== undefined) {
 			clearTimeout(undoTimeout)
 		}
 
 		messageService?.send('favorites:update', favorites)
+
+		await tick()
+
+		observer.observe(document.getElementById(deleted.id)!)
+
+		handleUndoTimeout()
 	}
 
 	const handleUndoTimeout = () => {
 		deleted = undefined
+		deletedIndex = -1
 		undoTimeout = undefined
 	}
 
-	onMount(() => {
-		const observer = new IntersectionObserver((entries) => {
-			for (const entry of entries) {
-				const image = entry.target as HTMLImageElement
-				const wasEnabled = enabled.get(image.dataset.id)
-
-				if (entry.isIntersecting && wasEnabled !== true) {
-					enabled.set(image.dataset.id, true)
-					enabled = enabled
-				} else if (wasEnabled === true) {
-					enabled.set(image.dataset.id, false)
-					enabled = enabled
-				}
-			}
-		})
-
-		for (const section of document.querySelectorAll('section')) {
-			observer.observe(section)
-		}
-	})
+	if (messageService !== undefined) {
+		messageService.on('update', handleUpdate)
+	} else {
+		handleUpdate(testList)
+	}
+	
 </script>
 
 <main on:click={handleClick}>
 	{#each favorites as favorite, index (favorite.id)}
-		<Favorite enabled={enabled.get(favorite.id) || false} {index} {favorite} />
+		<Favorite
+			{index}
+			{favorite}
+			enabled={enabled.get(favorite.id)}
+		/>
 	{/each}
 </main>
 
@@ -117,10 +138,11 @@
 	<Dialog on:undo={handleUndo} />
 {/if}
 
-<style lang='scss'>
+<style>
 	:global(body) {
-		overflow-y:auto
+		overflow-y: auto;
 	}
+
 	main {
 		display: grid;
 		grid-template-columns: 1fr 1fr 1fr;

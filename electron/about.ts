@@ -4,7 +4,6 @@ let win: BrowserWindow | undefined
 
 const open = async (): Promise<number> => {
   if (win !== undefined) {
-    win.center()
     win.focus()
     win.restore()
     return win.id
@@ -29,7 +28,7 @@ const open = async (): Promise<number> => {
 
 	win.show()
 
-  if (process.env.NODE_ENV === 'dev') {
+  if (process.env.NODE_ENV === 'development') {
     win.webContents.openDevTools({ mode: 'detach' })
   }
 

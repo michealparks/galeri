@@ -86,7 +86,7 @@ function writeVersionStats () {
     body.appendChild(title)
 
     release.assets.forEach((asset) => {
-      if (asset.name.includes('.zip')) {
+      if (asset.name.includes('.zip') === true) {
         totalUpdates += asset.download_count
       } else {
         totalDl += asset.download_count

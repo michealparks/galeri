@@ -70,28 +70,30 @@ const handleNextArtwork = async (next: ArtObject) => {
 }
 
 const handleCurrentArtwork = async (current: ArtObject) => {
+	tray.setUpdating()
+
 	artwork = current
 	prevImgPath = imgPath
 
-	if (nextImgPath && image.makeFilepath(current) === nextImgPath) {
+	if (nextImgPath !== undefined && image.makeFilepath(current) === nextImgPath) {
 		imgPath = nextImgPath
 	} else {
 		imgPath = await image.download(current)
 	}
 
-	tray.setArtwork(current)
-
 	await wallpaper.set(imgPath)
 
-	if (prevImgPath) {
+	if (prevImgPath !== undefined) {
 		await image.remove(prevImgPath)
 	}
 
 	const curWallpaper = await wallpaper.get()
 
 	if (curWallpaper !== imgPath) {
-		apis.getArtwork(true)
+		return apis.getArtwork(true)
 	}
+
+	tray.setArtwork(current)
 }
 
 const handleSuspend = () => {
@@ -115,9 +117,13 @@ const init = async () => {
 
 	powerMonitor.on('suspend', handleSuspend)
 
-	if (isFirstAppLaunch()) {
+	if (isFirstAppLaunch() === true) {
 		app.setLoginItemSettings({ openAtLogin: true })
 	}
+
+	app.on('window-all-closed', () => {
+		// prevents the app from quitting
+	})
 
 	await favorites.init()
 }

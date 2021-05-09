@@ -1,38 +1,36 @@
 <script lang='ts'>
-import { afterUpdate } from "svelte";
-
+	import { afterUpdate } from 'svelte'
 
 	export let src: string
-	export let enabled: boolean
 
-	const img = new Image()
-	img.onload = () => { loaded = true }
-
+	export let enabled = false
+	let firstEnabled = false
 	let loaded = false
 
 	afterUpdate(() => {
-		if (enabled) {
+		if (enabled === true && firstEnabled === false) {
+			const img = new Image()
+			img.onload = () => { loaded = true }
 			img.src = src
-		} else {
-			loaded = false
+			firstEnabled = true
 		}
 	})
-
 </script>
 
 <div
 	style='background-image: url({src})'
-	class:loaded
+	class:visible={enabled && loaded}
 />
 
 <style>
 	div {
+		pointer-events: none;
 		opacity: 0;
 		transform: scale(1.0);
 		will-change: transform, opacity;
 	}
 
-	div.loaded {
+	div.visible {
 		opacity: 1;
 	}
 

@@ -32,7 +32,7 @@ const init = async () => {
 		favoritesList = JSON.parse(favoritesFile).favorites
 	} catch {}
 
-	if (favoritesList[0] && 'href' in favoritesList[0]) {
+	if (favoritesList[0] !== undefined && 'href' in favoritesList[0]) {
 		favoritesList = upgradeFavoritesList(favoritesList as unknown)
 	}
 
@@ -64,14 +64,14 @@ const upgradeFavoritesList = (favoritesList: unknown) => {
 
 const updateFavoritesList = (list: ArtObject[]) => {
 	const filepath = resolve(app.getPath('appData'), 'Galeri Favorites', 'config.json')
+
 	writeFile(filepath, JSON.stringify({ favorites: list }))
 }
 
 const open = async (): Promise<number> => {
 	if (win !== undefined) {
-		win.center()
+		win.focus()
 		win.restore()
-    win.focus()
     return win.id
   }
 
@@ -80,24 +80,27 @@ const open = async (): Promise<number> => {
 		show: false,
 		width: 800,
 		height: 500,
-		resizable: true,
 		maximizable: true,
 		fullscreenable: false,
 		skipTaskbar: true,
+		backgroundColor: '#333',
 		webPreferences: {
-			preload: resolve(__dirname, 'preload.cjs')
+			preload: resolve(__dirname, 'preload.cjs'),
+			scrollBounce: true
 		}
 	})
 
 	win.setMenuBarVisibility(false)
-	win.once('close', () => { win = undefined })
+	win.once('close', () => {
+		win = undefined
+	})
 
 	await win.loadURL(`file://${app.getAppPath()}/favorites.html`)
 
 	win.webContents.send('update', favoritesList)
 	win.show()
 
-	if (process.env.NODE_ENV === 'dev') {
+	if (process.env.NODE_ENV === 'development') {
     win.webContents.openDevTools({ mode: 'detach' })
   }
 
@@ -105,7 +108,14 @@ const open = async (): Promise<number> => {
 }
 
 const add = async (artwork: ArtObject) => {
-	favoritesList.push(artwork)
+	const index = favoritesList.findIndex(({ id }) => id === artwork.id)
+
+	// If the artwork already is favorited, just move it to the top.
+	if (index > -1) {
+		favoritesList.splice(index, 1)
+	}
+
+	favoritesList = [artwork, ...favoritesList]
 
 	win?.webContents.send('update', favoritesList)
 

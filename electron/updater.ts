@@ -28,7 +28,7 @@ export const updater = async (): Promise<void> => {
 	})
 	const tag = parseTag(latestTag.tag_name)
 
-	if (newVersionExists(tag)) {
+	if (newVersionExists(tag) === true) {
 		autoUpdater.setFeedURL({
 			url: os.platform() === 'win32'
 				? `${URLS.feedUrlWindows}/${latestTag.tag_name}`
