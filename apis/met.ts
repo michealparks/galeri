@@ -1,3 +1,4 @@
+import { nanoid } from 'nanoid'
 import { get } from 'svelte/store'
 import store from './store'
 import { ENDPOINTS } from './constants'
@@ -61,6 +62,7 @@ const removeRandomArtwork = async (artworks: ArtObject[]): Promise<ArtObject | u
 	}
 
 	const artwork: ArtObject = {
+		id: nanoid(),
 		src: primaryImage,
 		title: title,
 		artist: artistDisplayName,

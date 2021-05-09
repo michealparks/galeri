@@ -1,3 +1,4 @@
+import { nanoid } from 'nanoid'
 import { get } from 'svelte/store'
 import store from './store'
 import { ENDPOINTS } from './constants'
@@ -60,6 +61,7 @@ const parseBrowser = (str: string): ArtObject[] => {
 		if (src === undefined) continue
 
 		artworks.push({
+			id: nanoid(),
 			src: `https://upload.wikimedia.org${src.split('//upload.wikimedia.org').pop()}`,
 			title,
 			artist,
@@ -92,6 +94,7 @@ const parseNode = (str: string) => {
 		if (src === undefined) return
 
 		artworks.push({
+			id: nanoid(),
 			src: `https://upload.wikimedia.org${src.split('//upload.wikimedia.org').pop()}`,
 			title,
 			artist,

@@ -1,5 +1,4 @@
 import { app, BrowserWindow } from 'electron'
-import { APP_ICON } from '../config'
 
 let win: BrowserWindow | undefined
 
@@ -12,12 +11,10 @@ const open = async (): Promise<number> => {
   }
 
   win = new BrowserWindow({
-    title: 'About Galeri',
-    icon: APP_ICON,
     center: true,
     show: false,
     width: 400,
-    height: 300,
+    height: 250,
     resizable: false,
     maximizable: false,
     fullscreenable: false,

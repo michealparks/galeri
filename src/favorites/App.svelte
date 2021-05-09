@@ -1,18 +1,29 @@
 <script lang='ts'>
 	import type { ArtObject } from '../../apis/types'
+
 	import Favorite from './Favorite.svelte'
 	import Dialog from './Dialog.svelte'
 	import testList from './test-list'
+	import { onMount } from 'svelte'
 
-	// @ts-ignore
+
 	// If in an electron environment, this will be defined in
 	// build/preload.js. If in the extension, @TODO
-	const { messageService, openLink } = window
+	const {
+		// @ts-ignore
+		messageService,
+		// @ts-ignore
+		openLink = (url) => {
+			console.log(url)
+			window.open(url)
+		}
+	} = window
 
 	let undoTimeout: NodeJS.Timeout | undefined
 	let deleted: ArtObject | undefined
 	let deletedIndex: number
 	let favorites: ArtObject[] = testList
+	let enabled = new Map()
 
 	messageService?.on('update', (list: ArtObject[]) => {
 		favorites = list
@@ -34,7 +45,7 @@
 
 			if (dataset.link !== undefined) {
 				e.stopImmediatePropagation()
-				openLink?.(e.target.dataset.link)
+				openLink(e.target.dataset.link)
 			}
 		}
 	}
@@ -71,11 +82,32 @@
 		deleted = undefined
 		undoTimeout = undefined
 	}
+
+	onMount(() => {
+		const observer = new IntersectionObserver((entries) => {
+			for (const entry of entries) {
+				const image = entry.target as HTMLImageElement
+				const wasEnabled = enabled.get(image.dataset.id)
+
+				if (entry.isIntersecting && wasEnabled !== true) {
+					enabled.set(image.dataset.id, true)
+					enabled = enabled
+				} else if (wasEnabled === true) {
+					enabled.set(image.dataset.id, false)
+					enabled = enabled
+				}
+			}
+		})
+
+		for (const section of document.querySelectorAll('section')) {
+			observer.observe(section)
+		}
+	})
 </script>
 
 <main on:click={handleClick}>
-	{#each favorites as favorite, index (favorite.src)}
-		<Favorite {index} {favorite} />
+	{#each favorites as favorite, index (favorite.id)}
+		<Favorite enabled={enabled.get(favorite.id) || false} {index} {favorite} />
 	{/each}
 </main>
 

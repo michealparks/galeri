@@ -1,4 +1,5 @@
 export type ArtObject = {
+	id: string,
 	src: string,
 	title: string | undefined,
 	titleLink: string | undefined,

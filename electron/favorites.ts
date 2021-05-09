@@ -3,8 +3,8 @@ import type { ArtObject } from '../apis/types'
 import fs from 'fs'
 import { promisify } from 'util'
 import { resolve } from 'path'
+import { nanoid } from 'nanoid'
 import { app, BrowserWindow, ipcMain } from 'electron'
-import { APP_ICON } from '../config'
 
 const mkdir = promisify(fs.mkdir)
 const readFile = promisify(fs.readFile)
@@ -26,10 +26,9 @@ const init = async () => {
 		await mkdir(resolve(app.getPath('appData'), 'Galeri Favorites'))
 	} catch {}
 
-	const filepath = resolve(app.getPath('appData'), 'Galeri Favorites', 'config.json')
-	const favoritesFile = await readFile(filepath, { encoding: 'utf-8' })
-
 	try {
+		const filepath = resolve(app.getPath('appData'), 'Galeri Favorites', 'config.json')
+		const favoritesFile = await readFile(filepath, { encoding: 'utf-8' })
 		favoritesList = JSON.parse(favoritesFile).favorites
 	} catch {}
 
@@ -47,6 +46,7 @@ const upgradeFavoritesList = (favoritesList: unknown) => {
 
 	for (const oldArtObject of (favoritesList as OldArtObject[])) {
 		newlist.push({
+			id: nanoid(),
 			src: oldArtObject.img,
 			title: oldArtObject.title,
 			titleLink: oldArtObject.href,
@@ -76,8 +76,6 @@ const open = async (): Promise<number> => {
   }
 
 	win = new BrowserWindow({
-		title: 'Galeri Favorites',
-		// icon: APP_ICON,
 		center: true,
 		show: false,
 		width: 800,

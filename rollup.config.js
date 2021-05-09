@@ -12,10 +12,13 @@ const { DEV = false } = process.env
 
 export default [{
   input: './electron/index.ts',
-  output: {
+  output: [{
     file: './electron.cjs',
     format: 'cjs',
-  },
+  }, {
+    file: './build/electron.cjs',
+    format: 'cjs'
+  }],
   external: [
     'electron',
     'fs',
@@ -31,7 +34,8 @@ export default [{
     'electron-reloader',
     'electron-util',
     'electron-serve',
-    'svelte/store'
+    'svelte/store',
+    'nanoid'
   ]: []),
   plugins: [
     json(),

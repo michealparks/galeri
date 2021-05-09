@@ -66,17 +66,17 @@ const handleTrayEvent = (event: string) => {
 }
 
 const handleNextArtwork = async (next: ArtObject) => {
-	nextImgPath = await image.download(next.src)
+	nextImgPath = await image.download(next)
 }
 
 const handleCurrentArtwork = async (current: ArtObject) => {
 	artwork = current
 	prevImgPath = imgPath
 
-	if (nextImgPath && image.filepath(current.src) === nextImgPath) {
+	if (nextImgPath && image.makeFilepath(current) === nextImgPath) {
 		imgPath = nextImgPath
 	} else {
-		imgPath = await image.download(current.src)
+		imgPath = await image.download(current)
 	}
 
 	tray.setArtwork(current)

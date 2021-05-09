@@ -1,39 +1,30 @@
+import type { ArtObject } from '../apis/types'
 
 import fs from 'fs'
 import path from 'path'
-import crypto from 'crypto'
 import { promisify } from 'util'
-import { resolve } from 'path'
-import { app } from 'electron'
+import { resolve, basename } from 'path'
+import { app, nativeImage } from 'electron'
 
 const mkdir = promisify(fs.mkdir)
 const unlink = promisify(fs.unlink)
+const writeFile = promisify(fs.writeFile)
 
-const filepath = (url: string): string => {
-	const hash = crypto
-		.createHash('md5')
-		.update(url)
-		.digest('base64')
-		.replace(/\//g, '0')
-		.replace('==', '2')
-		.replace('=', '1')
-
+const makeFilepath = (artwork: ArtObject): string => {
 	const appPath = app.getPath('appData')
-	const filename = `artwork_${hash}${path.extname(url)}`
+	const filename = `artwork_${artwork.id}${path.extname(artwork.src)}`
 
 	return resolve(`${appPath}`, 'Galeri', filename)
 }
 
-const download = async (url: string): Promise<string> => {
-	const output = filepath(url)
-
-	console.log(app.getPath('appData'))
+const download = async (artwork: ArtObject): Promise<string> => {
+	const output = makeFilepath(artwork)
 
 	try {
 		await mkdir(resolve(app.getPath('appData'), 'Galeri'))
 	} catch {}
 
-	await (globalThis as any).fetch(url, { output })
+	await (globalThis as any).fetch(artwork.src, { output })
 
 	return output
 }
@@ -46,8 +37,18 @@ const remove = async (filepath: string): Promise<void> => {
 	}
 }
 
+const makeThumb = async (imagepath: string) => {
+	const width = 1000
+	const quality = 100
+	const image = nativeImage.createFromPath(imagepath)
+
+	const filepath = resolve(app.getPath('appData'), 'Galeri Favorites', basename(imagepath))
+	await writeFile(filepath, image.resize({ width }).toJPEG(quality))
+}
+
 export const image = {
-	filepath,
 	download,
-	remove
+	remove,
+	makeFilepath,
+	makeThumb,
 }

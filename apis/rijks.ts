@@ -1,3 +1,4 @@
+import { nanoid } from 'nanoid'
 import { get } from 'svelte/store'
 import store from './store'
 import { ENDPOINTS } from './constants'
@@ -37,6 +38,7 @@ const getArtworks = async (): Promise<ArtObject[]> => {
 			}
 
 			artworks.push({
+				id: nanoid(),
 				src: artObject.webImage.url,
 				title: artObject.title
 					? artObject.title.trim()
