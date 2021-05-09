@@ -43,6 +43,8 @@
 				handleDelete(parseInt(dataset.index, 10))
 			}
 
+			console.log(e.target)
+
 			if (dataset.link !== undefined) {
 				e.stopImmediatePropagation()
 				openLink(e.target.dataset.link)

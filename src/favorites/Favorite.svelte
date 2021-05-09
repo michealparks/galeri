@@ -32,7 +32,7 @@
 		background-color: #222;
 	}
 
-	section * {
+	section :global(*) {
 		pointer-events: none;
 	}
 
