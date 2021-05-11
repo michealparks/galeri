@@ -101,7 +101,8 @@ const init = async () => {
 	const [firstAppLaunch] = await Promise.all([
 		isFirstAppLaunch(),
 		app.whenReady(),
-		storage.init()
+		storage.init(),
+		favorites.init()
 	])
 
 	enforceMacOSAppLocation()
@@ -122,7 +123,9 @@ const init = async () => {
 		// prevents the app from quitting
 	})
 
-	await favorites.init()
+	app.on('will-quit', (e) => {
+		console.log(e)
+	})
 }
 
 init()

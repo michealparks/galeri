@@ -19,6 +19,7 @@ import { BrowserWindow, ipcMain } from 'electron'
 const mkdir = promisify(fs.mkdir)
 const readFile = promisify(fs.readFile)
 const writeFile = promisify(fs.writeFile)
+const unlink = promisify(fs.unlink)
 
 type OldArtObject = {
 	href: string
@@ -45,6 +46,8 @@ const init = async (): Promise<void> => {
 	try {
 		const favoritesFile = await readFile(DEPRECATED_FAVORITES_DATA_PATH, { encoding: 'utf-8' })
 		favoritesList = upgradeFavoritesList(JSON.parse(favoritesFile).favorites as unknown)
+		await unlink(DEPRECATED_FAVORITES_DATA_PATH)
+		await writeFile(FAVORITES_DATA_PATH, JSON.stringify({ favorites: favoritesList }))
 	} catch (err) {
 		if (err.code !== ERROR_ENOENT) {
 			console.warn('favorites.init(): ', err)
@@ -96,6 +99,7 @@ const upgradeFavoritesList = (favoritesList: unknown) => {
 const updateFavoritesList = (list: ArtObject[]) => {
 	try {
 		writeFile(FAVORITES_DATA_PATH, JSON.stringify({ favorites: list }))
+		favoritesList = list
 	} catch (err) {
 		console.warn('favorites.updateFavoriteList(): ', err)
 	}

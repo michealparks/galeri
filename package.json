@@ -44,8 +44,8 @@
     "@rollup/plugin-typescript": "^8.2.1",
     "@sveltejs/vite-plugin-svelte": "*",
     "@types/node": "^15.0.2",
-    "@typescript-eslint/eslint-plugin": "^4.22.1",
-    "@typescript-eslint/parser": "^4.22.1",
+    "@typescript-eslint/eslint-plugin": "^4.23.0",
+    "@typescript-eslint/parser": "^4.23.0",
     "cheerio": "git://github.com/cheeriojs/cheerio.git#9d56795f40d1c8d910a8973c3e011e06863f568f",
     "cross-env": "^7.0.3",
     "electron": "^12.0.7",
@@ -57,7 +57,7 @@
     "eslint-plugin-svelte3": "^3.2.0",
     "gh-pages": "^3.1.0",
     "localforage": "^1.9.0",
-    "nanoid": "^3.1.22",
+    "nanoid": "^3.1.23",
     "rollup": "^2.47.0",
     "rollup-plugin-copy": "^3.4.0",
     "rollup-plugin-filesize": "^9.1.1",
@@ -67,7 +67,7 @@
     "svelte-preprocess": "^4.7.3",
     "tslib": "^2.2.0",
     "typescript": "^4.2.4",
-    "vite": "^2.2.4",
+    "vite": "^2.3.0",
     "wallpaper": "^4.4.2"
   },
   "build": {
