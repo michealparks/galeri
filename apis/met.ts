@@ -4,6 +4,8 @@ import store from './store'
 import { ENDPOINTS } from './constants'
 import type { ArtObject } from './types'
 
+const { fetchJSON } = (globalThis as any)
+
 const randomArtwork = async (): Promise<ArtObject | undefined> => {
 	const artObjects = await getArtworks()
 
@@ -25,7 +27,7 @@ const getArtworks = async (): Promise<ArtObject[]> => {
 
 		try {
 
-			const json = await (globalThis as any).fetchJSON(ENDPOINTS.metCollection)
+			const json = await fetchJSON(ENDPOINTS.metCollection)
 			const artworks = json.objectIDs
 			store.met.set(artworks)
 			return artworks
@@ -44,7 +46,7 @@ const removeRandomArtwork = async (artworks: ArtObject[]): Promise<ArtObject | u
 	let object: any
 
 	try {
-		object = await (globalThis as any).fetchJSON(`${ENDPOINTS.metObject}/${id}`)
+		object = await fetchJSON(`${ENDPOINTS.metObject}/${id}`)
 	} catch (err) {
 		console.error(err)
 		return

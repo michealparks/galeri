@@ -5,44 +5,48 @@ import path from 'path'
 import { promisify } from 'util'
 import { resolve, basename } from 'path'
 import { app, nativeImage } from 'electron'
+import { ERROR_EEXIST, GALERI_DATA_PATH } from './constants'
 
 const mkdir = promisify(fs.mkdir)
 const unlink = promisify(fs.unlink)
 const writeFile = promisify(fs.writeFile)
 
-const makeFilepath = (artwork: ArtObject): string => {
-	const appPath = app.getPath('appData')
-	const filename = `artwork_${artwork.id}${path.extname(artwork.src)}`
+const { fetch } = (globalThis as any)
 
-	return resolve(`${appPath}`, 'Galeri', filename)
+const makeFilepath = (artwork: ArtObject): string => {
+	return resolve(GALERI_DATA_PATH,  `artwork_${artwork.id}${path.extname(artwork.src)}`)
 }
 
 const download = async (artwork: ArtObject): Promise<string> => {
 	const output = makeFilepath(artwork)
 
 	try {
-		await mkdir(resolve(app.getPath('appData'), 'Galeri'))
-	} catch {}
+		await mkdir(GALERI_DATA_PATH)
+	} catch (err) {
+		if (err.code !== ERROR_EEXIST) {
+			console.warn('image.download(): ', err)
+		}
+	}
 
-	await (globalThis as any).fetch(artwork.src, { output })
+	await fetch(artwork.src, { output })
 
 	return output
 }
 
 const remove = async (filepath: string): Promise<void> => {
 	try {
-		return unlink(filepath)
-	} catch {
-		return
+		await unlink(filepath)
+	} catch (err) {
+		console.warn('image.remove(): ', err)
 	}
 }
 
-const makeThumb = async (imagepath: string) => {
+const makeThumb = async (imagepath: string): Promise<void> => {
 	const width = 1000
 	const quality = 100
 	const image = nativeImage.createFromPath(imagepath)
-
 	const filepath = resolve(app.getPath('appData'), 'Galeri Favorites', basename(imagepath))
+
 	await writeFile(filepath, image.resize({ width }).toJPEG(quality))
 }
 

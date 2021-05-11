@@ -1,7 +1,22 @@
 
+import { resolve } from 'path'
+import { app } from 'electron'
 import { version } from '../package.json'
 
 export const APP_VERSION = version
+
+export const APPDATA_PATH = app.getPath('appData')
+export const GALERI_DATA_PATH = resolve(APPDATA_PATH, 'Galeri')
+export const FAVORITES_DATA_PATH = resolve(APPDATA_PATH, 'Galeri', 'favorites.json')
+export const DEPRECATED_FAVORITES_DATA_PATH = resolve(APPDATA_PATH, 'Galeri Favorites', 'config.json')
+
+export const ICON_PATH = `${app.getAppPath()}/icon_32x32.png`
+export const ICON_DARK_PATH = `${app.getAppPath()}/icon-dark_32x32.png`
+export const ABOUT_PATH = `${app.getAppPath()}/about.html`
+export const FAVORITES_PATH = `${app.getAppPath()}/favorites.html`
+
+export const ERROR_EEXIST = 'EEXIST'
+export const ERROR_ENOENT = 'ENOENT'
 
 export const URLS = {
 	website: 'https://galeri.io',

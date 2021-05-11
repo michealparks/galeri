@@ -2,6 +2,8 @@ import os from 'os'
 import { autoUpdater } from 'electron'
 import { URLS, APP_VERSION } from './constants'
 
+const { fetchJSON } = (globalThis as any)
+
 autoUpdater.on('update-downloaded', () => {
 	autoUpdater.quitAndInstall()
 })
@@ -23,9 +25,10 @@ const newVersionExists = (tag: number[]): boolean => {
 }
 
 export const updater = async (): Promise<void> => {
-	const latestTag = await (globalThis as any).fetchJSON(URLS.githubReleaseAPI, {
+	const latestTag = await fetchJSON(URLS.githubReleaseAPI, {
 		headers: 'User-Agent: galeri'
 	})
+
 	const tag = parseTag(latestTag.tag_name)
 
 	if (newVersionExists(tag) === true) {

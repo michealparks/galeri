@@ -1,10 +1,20 @@
 import type { ArtObject } from '../apis/types'
 
+import {
+	GALERI_DATA_PATH,
+	FAVORITES_DATA_PATH,
+	DEPRECATED_FAVORITES_DATA_PATH,
+	FAVORITES_PATH,
+	ERROR_EEXIST,
+	ERROR_ENOENT
+} from './constants'
+
 import fs from 'fs'
 import { promisify } from 'util'
 import { resolve } from 'path'
 import { nanoid } from 'nanoid'
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { BrowserWindow, ipcMain } from 'electron'
+
 
 const mkdir = promisify(fs.mkdir)
 const readFile = promisify(fs.readFile)
@@ -21,19 +31,40 @@ type OldArtObject = {
 let win: BrowserWindow | undefined
 let favoritesList: ArtObject[] = []
 
-const init = async () => {
+const init = async (): Promise<void> => {
+	// Create the app folder if it doesn't exist
 	try {
-		await mkdir(resolve(app.getPath('appData'), 'Galeri Favorites'))
-	} catch {}
+		await mkdir(GALERI_DATA_PATH)
+	} catch (err) {
+		if (err.code !== ERROR_EEXIST) {
+			console.warn('favorites.init(): ', err)
+		}
+	}
 
+	// Upgrade the old favorites file if on the user's computer
 	try {
-		const filepath = resolve(app.getPath('appData'), 'Galeri Favorites', 'config.json')
-		const favoritesFile = await readFile(filepath, { encoding: 'utf-8' })
-		favoritesList = JSON.parse(favoritesFile).favorites
-	} catch {}
+		const favoritesFile = await readFile(DEPRECATED_FAVORITES_DATA_PATH, { encoding: 'utf-8' })
+		favoritesList = upgradeFavoritesList(JSON.parse(favoritesFile).favorites as unknown)
+	} catch (err) {
+		if (err.code !== ERROR_ENOENT) {
+			console.warn('favorites.init(): ', err)
+		}
 
-	if (favoritesList[0] !== undefined && 'href' in favoritesList[0]) {
-		favoritesList = upgradeFavoritesList(favoritesList as unknown)
+		// Get the favorites list
+		try {
+			const favoritesFile = await readFile(FAVORITES_DATA_PATH, { encoding: 'utf-8' })
+			favoritesList = JSON.parse(favoritesFile).favorites
+		} catch (err) {
+			if (err.code !== ERROR_ENOENT) {
+				console.warn('favorites.init(): ', err)
+			}
+		}
+	}
+
+	for (const favoriteItem of favoritesList) {
+		if (favoriteItem.id === undefined) {
+			favoriteItem.id = nanoid()
+		}
 	}
 
 	ipcMain.on('favorites:update', (_, list: ArtObject[]) => {
@@ -63,9 +94,12 @@ const upgradeFavoritesList = (favoritesList: unknown) => {
 }
 
 const updateFavoritesList = (list: ArtObject[]) => {
-	const filepath = resolve(app.getPath('appData'), 'Galeri Favorites', 'config.json')
-
-	writeFile(filepath, JSON.stringify({ favorites: list }))
+	try {
+		writeFile(FAVORITES_DATA_PATH, JSON.stringify({ favorites: list }))
+	} catch (err) {
+		console.warn('favorites.updateFavoriteList(): ', err)
+	}
+	
 }
 
 const open = async (): Promise<number> => {
@@ -80,7 +114,6 @@ const open = async (): Promise<number> => {
 		show: false,
 		width: 800,
 		height: 500,
-		maximizable: true,
 		fullscreenable: false,
 		skipTaskbar: true,
 		backgroundColor: '#333',
@@ -91,11 +124,12 @@ const open = async (): Promise<number> => {
 	})
 
 	win.setMenuBarVisibility(false)
+
 	win.once('close', () => {
 		win = undefined
 	})
 
-	await win.loadURL(`file://${app.getAppPath()}/favorites.html`)
+	await win.loadURL(FAVORITES_PATH)
 
 	win.webContents.send('update', favoritesList)
 	win.show()
@@ -107,7 +141,7 @@ const open = async (): Promise<number> => {
 	return win.id
 }
 
-const add = async (artwork: ArtObject) => {
+const add = async (artwork: ArtObject): Promise<void> => {
 	const index = favoritesList.findIndex(({ id }) => id === artwork.id)
 
 	// If the artwork already is favorited, just move it to the top.

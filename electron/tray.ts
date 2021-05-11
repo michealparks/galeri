@@ -1,11 +1,13 @@
-import { Tray, Menu, app } from 'electron'
+import { Tray, Menu, app, shell } from 'electron'
 import { darkMode } from 'electron-util'
 
 import type { MenuItemConstructorOptions } from 'electron'
 import type { ArtObject, Subscriber } from '../apis/types'
+import { ICON_DARK_PATH, ICON_PATH } from './constants'
 
 let _tray: Tray
 let subscriber: Subscriber
+let artworkLink: string | undefined
 
 const baseItems: MenuItemConstructorOptions[] = [
 	{
@@ -29,8 +31,8 @@ const baseItems: MenuItemConstructorOptions[] = [
 		type: 'normal',
 		click: () => subscriber('favorites')
 	}, {
+		// Don't use role "about", it overrides opening our own Browserwindow
 		label: 'About',
-		role: 'about',
 		type: 'normal',
 		click: () => subscriber('about')
 	}, {
@@ -62,7 +64,8 @@ const menuTemplate: MenuItemConstructorOptions[] = [
 		type: 'separator'
 	}, {
 		label: '',
-		click: () => subscriber('artwork')
+		click: () => artworkLink ? shell.openExternal(artworkLink) : undefined,
+		enabled: false
 	}, {
 		label: 'Next Artwork',
 		type: 'normal',
@@ -75,11 +78,11 @@ const menuTemplate: MenuItemConstructorOptions[] = [
 	...baseItems
 ]
 
-const onEvent = (fn: Subscriber) => {
+const onEvent = (fn: Subscriber): void => {
 	subscriber = fn
 }
 
-const setUpdating = () => {
+const setUpdating = (): void => {
 	_tray.setContextMenu(updatingTemplate)
 }
 
@@ -88,17 +91,20 @@ const setArtwork = (artwork: ArtObject): void => {
 		return
 	}
 
+	artworkLink = artwork.titleLink
 	menuTemplate[2].label = artwork.title.length > 30
 		? `${artwork.title.substring(0, 30)}...`
 		: artwork.title
+
+	menuTemplate[2].enabled = (artworkLink !== undefined && artworkLink !== '')
 
 	_tray.setToolTip(artwork.title)
 	_tray.closeContextMenu()
 	_tray.setContextMenu(Menu.buildFromTemplate(menuTemplate))
 }
 
-const getIconPath = (dark: boolean) => {
-	return `${app.getAppPath()}/icon${dark ? '-dark' : ''}_32x32.png`
+const getIconPath = (dark: boolean): string => {
+	return dark ? ICON_DARK_PATH : ICON_PATH
 }
 
 type EventObject = {

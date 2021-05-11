@@ -59,8 +59,6 @@
 		) {
 			const { dataset } = e.target
 
-			console.log(e.target)
-
 			if (
 				dataset.delete !== undefined &&
 				dataset.index !== undefined
@@ -132,6 +130,10 @@
 			enabled={enabled.get(favorite.id)}
 		/>
 	{/each}
+
+	{#if favorites.length === 0}
+		<h2>Artwork you have favorited will appear here.</h2>
+	{/if}
 </main>
 
 {#if deleted}
@@ -150,5 +152,11 @@
 		grid-gap: 10px;
 		width: 100vw;
 		padding: 10px;
+	}
+
+	h2 {
+		color: #fff;
+		width: 100vw;
+		text-align: center;
 	}
 </style>

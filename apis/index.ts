@@ -1,19 +1,20 @@
+import type { ArtObject } from './types'
+
 import { get } from 'svelte/store'
 import store from './store'
 import { wikipedia } from './wikipedia'
 import { rijks } from './rijks'
 import { met } from './met'
 import { blacklist } from './blacklist'
-
 import { API_KEYS } from './constants'
-import type { ArtObject } from './types'
+import { nanoid } from 'nanoid'
 
 const apiMap = new Map<string, typeof wikipedia | typeof rijks | typeof met>()
 apiMap.set('rijks', rijks)
 apiMap.set('wikipedia', wikipedia)
 apiMap.set('met', met)
 
-const getArtwork = async (forceNext = false): Promise<ArtObject> => {
+const getArtwork = async (forceNext = false): Promise<void> => {
 	let current = get<ArtObject | undefined>(store.current)
 	let next = get<ArtObject | undefined>(store.next)
 
@@ -33,8 +34,6 @@ const getArtwork = async (forceNext = false): Promise<ArtObject> => {
 
 		store.next.set(next)
 	}
-
-	return current
 }
 
 const disable = (apiName: string): void => {
@@ -51,6 +50,10 @@ const getRandom = async (): Promise<ArtObject> => {
 
 	if (blacklist.includes(decodeURI(artwork.src)) === true) {
 		return getRandom()
+	}
+
+	if (artwork.id === undefined) {
+		artwork.id = nanoid()
 	}
 
 	return artwork
