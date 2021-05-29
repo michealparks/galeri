@@ -28,7 +28,7 @@ const getArtObjects = async (): Promise<ArtObject[]> => {
 			const json = await (globalThis as any).fetchJSON(ENDPOINTS.wikipedia)
 			const artObjects = 'window' in globalThis
 				? parseBrowser(json.parse.text['*'])
-				: parseNode(json.parse.text['*'])
+				: parseNodeJS(json.parse.text['*'])
 
 			store.wikipedia.set(artObjects)
 
@@ -75,7 +75,7 @@ const parseBrowser = (str: string): ArtObject[] => {
 	return artworks
 }
 
-const parseNode = (str: string) => {
+const parseNodeJS = (str: string) => {
 	const { $ } = globalThis as any
 	const artworks: ArtObject[] = []
 
