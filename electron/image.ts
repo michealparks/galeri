@@ -6,6 +6,7 @@ import { promisify } from 'util'
 import { resolve, basename } from 'path'
 import { app, nativeImage } from 'electron'
 
+const { fetch } = (globalThis as any)
 const mkdir = promisify(fs.mkdir)
 const unlink = promisify(fs.unlink)
 const writeFile = promisify(fs.writeFile)
@@ -24,7 +25,7 @@ const download = async (artwork: ArtObject): Promise<string> => {
 		await mkdir(resolve(app.getPath('appData'), 'Galeri'))
 	} catch {}
 
-	await (globalThis as any).fetch(artwork.src, { output })
+	await fetch(artwork.src, { output })
 
 	return output
 }

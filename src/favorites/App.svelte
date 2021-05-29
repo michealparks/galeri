@@ -134,7 +134,7 @@
 	{/each}
 </main>
 
-{#if deleted}
+{#if deleted !== undefined}
 	<Dialog on:undo={handleUndo} />
 {/if}
 

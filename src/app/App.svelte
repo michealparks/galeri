@@ -10,10 +10,7 @@
 
 	let url: string
 
-	console.log($current)
-
 	onMount(async () => {
-		console.log($current)
 		await storage.init()
 
 		store.currentImage.subscribe(blob => {

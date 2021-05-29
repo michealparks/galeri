@@ -43,7 +43,7 @@ if (app.dock !== undefined) {
 
 let artwork: ArtObject
 let imgPath: string
-let nextImgPath: string
+let nextImgPath: string | undefined
 let prevImgPath: string
 
 const handleTrayEvent = (event: string) => {
@@ -66,7 +66,11 @@ const handleTrayEvent = (event: string) => {
 }
 
 const handleNextArtwork = async (next: ArtObject) => {
-	nextImgPath = await image.download(next)
+	try {
+		nextImgPath = await image.download(next)
+	} catch {
+		nextImgPath = undefined
+	}
 }
 
 const handleCurrentArtwork = async (current: ArtObject) => {
@@ -78,7 +82,11 @@ const handleCurrentArtwork = async (current: ArtObject) => {
 	if (nextImgPath !== undefined && image.makeFilepath(current) === nextImgPath) {
 		imgPath = nextImgPath
 	} else {
-		imgPath = await image.download(current)
+		try {
+			imgPath = await image.download(current)
+		} catch {
+			return apis.getArtwork(true)
+		}
 	}
 
 	await wallpaper.set(imgPath)
