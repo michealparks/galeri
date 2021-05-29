@@ -1,3 +1,4 @@
+const os = require('os')
 const { ipcRenderer, contextBridge, shell } = require('electron')
 
 contextBridge.exposeInMainWorld('messageService', {
@@ -12,3 +13,5 @@ contextBridge.exposeInMainWorld('messageService', {
 contextBridge.exposeInMainWorld('openLink', (url) => {
   shell.openExternal(url)
 })
+
+contextBridge.exposeInMainWorld('platform', os.platform())

@@ -12,7 +12,9 @@
 		// @ts-ignore
 		messageService,
 		// @ts-ignore
-		openLink = (url) => window.open(url)
+		openLink = (url) => window.open(url),
+		// @ts-ignore
+		platform = navigator.platform.toLowerCase()
 	} = window
 
 	const observer = new IntersectionObserver((entries) => {
@@ -58,8 +60,6 @@
 			e.target instanceof HTMLElement
 		) {
 			const { dataset } = e.target
-
-			console.log(e.target)
 
 			if (
 				dataset.delete !== undefined &&
@@ -124,7 +124,7 @@
 	
 </script>
 
-<main on:click={handleClick}>
+<main on:click={handleClick} class:windows={platform === 'win32'}>
 	{#each favorites as favorite, index (favorite.id)}
 		<Favorite
 			{index}
@@ -132,6 +132,10 @@
 			enabled={enabled.get(favorite.id)}
 		/>
 	{/each}
+
+	{#if favorites.length === 0}
+		<h2>Artwork you have favorited will appear here.</h2>
+	{/if}
 </main>
 
 {#if deleted !== undefined}
@@ -141,6 +145,8 @@
 <style>
 	:global(body) {
 		overflow-y: auto;
+		overflow-x: hidden;
+		width: 100vw;
 	}
 
 	main {
@@ -148,7 +154,20 @@
 		grid-template-columns: 1fr 1fr 1fr;
 		grid-auto-rows: 300px;
 		grid-gap: 10px;
-		width: 100vw;
 		padding: 10px;
+	}
+
+	/*
+		Scrollbars on windows are currently not taken into account
+		when calculating window width. UGH.
+	*/
+	main.windows {
+		margin: 0 15px 0 0;
+	}
+
+	h2 {
+		color: #fff;
+		width: 100vw;
+		text-align: center;
 	}
 </style>

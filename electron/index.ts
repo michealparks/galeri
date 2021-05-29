@@ -1,7 +1,7 @@
 
 import type { ArtObject } from '../apis/types'
 
-import { isFirstAppLaunch, enforceMacOSAppLocation, openNewGitHubIssue, debugInfo } from 'electron-util'
+import { enforceMacOSAppLocation, openNewGitHubIssue, debugInfo } from 'electron-util'
 import unhandled from 'electron-unhandled'
 unhandled({
 	reportButton: error => {
@@ -15,7 +15,7 @@ unhandled({
 })
 
 import './polyfill'
-import { app, shell, powerMonitor } from 'electron'
+import { app, powerMonitor } from 'electron'
 import wallpaper from 'wallpaper'
 import { apis } from '../apis'
 import { updater } from './updater'
@@ -24,6 +24,7 @@ import { tray } from './tray'
 import { storage } from './storage'
 import { about } from './about'
 import { favorites } from './favorites'
+import { isFirstAppLaunch } from './util'
 
 updater()
 
@@ -48,10 +49,6 @@ let prevImgPath: string
 
 const handleTrayEvent = (event: string) => {
 	switch (event) {
-		case 'artwork':
-			return artwork.titleLink
-				? shell.openExternal(artwork.titleLink)
-				: undefined
 		case 'favorite':
 			return favorites.add(artwork)
 		case 'about':
@@ -92,7 +89,7 @@ const handleCurrentArtwork = async (current: ArtObject) => {
 	await wallpaper.set(imgPath)
 
 	if (prevImgPath !== undefined) {
-		await image.remove(prevImgPath)
+		image.remove(prevImgPath)
 	}
 
 	const curWallpaper = await wallpaper.get()
@@ -109,13 +106,14 @@ const handleSuspend = () => {
 }
 
 const init = async () => {
-	await Promise.all([
+	const [firstAppLaunch] = await Promise.all([
+		isFirstAppLaunch(),
 		app.whenReady(),
-		storage.init()
+		storage.init(),
+		favorites.init()
 	])
 
 	enforceMacOSAppLocation()
-
 	tray.init().onEvent(handleTrayEvent)
 
 	await apis.getArtwork(false)
@@ -125,7 +123,7 @@ const init = async () => {
 
 	powerMonitor.on('suspend', handleSuspend)
 
-	if (isFirstAppLaunch() === true) {
+	if (firstAppLaunch === true) {
 		app.setLoginItemSettings({ openAtLogin: true })
 	}
 
@@ -133,7 +131,9 @@ const init = async () => {
 		// prevents the app from quitting
 	})
 
-	await favorites.init()
+	app.on('will-quit', (e) => {
+		console.log(e)
+	})
 }
 
 init()

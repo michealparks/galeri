@@ -1,4 +1,5 @@
-import { app, BrowserWindow } from 'electron'
+import { BrowserWindow } from 'electron'
+import { ABOUT_PATH } from './constants'
 
 let win: BrowserWindow | undefined
 
@@ -24,7 +25,7 @@ const open = async (): Promise<number> => {
   win.setMenuBarVisibility(false)
   win.once('close', () => { win = undefined })
 
-  await win.loadURL(`file://${app.getAppPath()}/about.html`)
+  await win.loadURL(ABOUT_PATH)
 
 	win.show()
 

@@ -20,6 +20,7 @@
     "start:prod": "cross-env NODE_ENV=production electron ./build/electron.cjs",
     "analytics": "open -a \"Google Chrome\" bin/analytics.html",
     "pack": "electron-builder --dir",
+    "pack:win": "electron-builder -w --x64",
     "dist": "electron-builder -mw --x64 --arm64",
     "postinstall": "electron-builder install-app-deps",
     "lint": "eslint --ignore-path .gitignore ."
@@ -86,7 +87,19 @@
       }
     ],
     "mac": {
-      "category": "public.app-category.education"
+      "target": [
+        "dmg"
+      ],
+      "type": "distribution",
+      "hardenedRuntime": true,
+      "entitlements": "assets/entitlements.mac.plist",
+      "entitlementsInherit": "assets/entitlements.mac.plist",
+      "gatekeeperAssess": false
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ]
     }
   }
 }
