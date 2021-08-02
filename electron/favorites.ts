@@ -110,8 +110,8 @@ const open = async (): Promise<number> => {
 	if (win !== undefined) {
 		win.focus()
 		win.restore()
-    return win.id
-  }
+		return win.id
+	}
 
 	win = new BrowserWindow({
 		center: true,
@@ -139,8 +139,8 @@ const open = async (): Promise<number> => {
 	win.show()
 
 	if (process.env.NODE_ENV === 'development') {
-    win.webContents.openDevTools({ mode: 'detach' })
-  }
+		win.webContents.openDevTools({ mode: 'detach' })
+	}
 
 	return win.id
 }

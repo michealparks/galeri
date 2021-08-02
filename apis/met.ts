@@ -43,7 +43,12 @@ const removeRandomArtwork = async (artworks: ArtObject[]): Promise<ArtObject | u
 	const randomIndex = Math.floor(Math.random() * artworks.length)
 	const [id] = (artworks.splice(randomIndex, 1) || [])
 
-	let object: any
+	let object: {
+		primaryImage: string
+		title: string
+		artistDisplayName: string
+		objectURL: string
+	}
 
 	try {
 		object = await fetchJSON(`${ENDPOINTS.metObject}/${id}`)

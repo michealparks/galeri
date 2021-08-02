@@ -4,39 +4,23 @@
 	import Buttons from '../lib/Buttons.svelte'
 	import Info from '../lib/Info.svelte'
 	import { storage } from '../lib/storage'
-	import store from '../../apis/store'
-
-	const { current } = store
+	import { current, currentImage } from '../../apis/store'
 
 	let url: string
 
 	onMount(async () => {
 		await storage.init()
 
-		store.currentImage.subscribe(blob => {
+		currentImage.subscribe((blob) => {
 			url = URL.createObjectURL(blob)
 		})
 	})
 </script>
 
 <main
+	class='absolute h-screen w-screen bg-black bg-center bg-cover'
 	style={url === undefined ? undefined : `background-image: url(${url})`}
 >
 	<Buttons />
-
-	{#if $current}
-		<Info {...$current} />
-	{/if}
+	<Info current={$current} />
 </main>
-
-<style>
-	main {
-		position: absolute;
-		width: 100vw;
-		height: 100vh;
-		background-color: black;
-		background-position: center;
-		background-size: cover;
-		transition: opacity 300ms;
-	}
-</style>

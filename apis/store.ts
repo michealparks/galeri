@@ -2,14 +2,14 @@ import { writable } from 'svelte/store'
 import type { Writable } from 'svelte/store'
 import type { ArtObject } from './types'
 
-const rijksPage = writable<number>(1)
-const rijks = writable<ArtObject[]>([])
-const met = writable<ArtObject[]>([])
-const wikipedia = writable<ArtObject[]>([])
-const current = writable<ArtObject | undefined>(undefined)
-const next = writable<ArtObject | undefined>(undefined)
-const currentImage = writable(undefined)
-const nextImage = writable(undefined)
+export const rijksPage = writable<number>(1)
+export const rijks = writable<ArtObject[]>([])
+export const met = writable<ArtObject[]>([])
+export const wikipedia = writable<ArtObject[]>([])
+export const current = writable<ArtObject>()
+export const next = writable<ArtObject>()
+export const currentImage = writable()
+export const nextImage = writable()
 
 const store: Record<string, Writable<any>> = {
 	rijks,

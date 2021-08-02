@@ -7,7 +7,7 @@ import { resolve, basename } from 'path'
 import { app, nativeImage } from 'electron'
 import { ERROR_EEXIST, GALERI_DATA_PATH } from './constants'
 
-const { fetch } = (globalThis as any)
+const { fetch } = (globalThis)
 const mkdir = promisify(fs.mkdir)
 const unlink = promisify(fs.unlink)
 const writeFile = promisify(fs.writeFile)

@@ -2,7 +2,7 @@ import os from 'os'
 import { autoUpdater } from 'electron'
 import { URLS, APP_VERSION } from './constants'
 
-const { fetchJSON } = (globalThis as any)
+const { fetchJSON } = (globalThis)
 
 autoUpdater.on('update-downloaded', () => {
 	autoUpdater.quitAndInstall()

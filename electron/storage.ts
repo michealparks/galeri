@@ -31,7 +31,7 @@ const init = async (): Promise<void> => {
 	}
 
 	try {
-		const filepath = resolve(GALERI_DATA_PATH, `rijksPage.json`)
+		const filepath = resolve(GALERI_DATA_PATH, 'rijksPage.json')
 		const file = await readFile(filepath, { encoding: 'utf-8' })
 		store.rijksPage.set(JSON.parse(file))
 	} catch (err) {
@@ -41,7 +41,7 @@ const init = async (): Promise<void> => {
 	}
 
 	for (const [key, storeItem] of Object.entries(store)) {
-		storeItem.subscribe((value: any) => {
+		storeItem.subscribe((value) => {
 			// @TODO this is sloppy
 			if (value === undefined) {
 				return

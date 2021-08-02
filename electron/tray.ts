@@ -119,7 +119,7 @@ const init = (): EventObject => {
 		_tray.setImage(getIconPath(darkMode.isEnabled))
 	})
 
-  return { onEvent }
+	return { onEvent }
 }
 
 export const tray = {

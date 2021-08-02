@@ -49,16 +49,16 @@ let prevImgPath: string
 
 const handleTrayEvent = (event: string) => {
 	switch (event) {
-		case 'favorite':
-			return favorites.add(artwork)
-		case 'about':
-			return about.open()
-		case 'favorites':
-			return favorites.open()
-		case 'next':
-			return apis.getArtwork(true)
-		case 'quit':
-			return app.quit()
+	case 'favorite':
+		return favorites.add(artwork)
+	case 'about':
+		return about.open()
+	case 'favorites':
+		return favorites.open()
+	case 'next':
+		return apis.getArtwork(true)
+	case 'quit':
+		return app.quit()
 	}
 }
 

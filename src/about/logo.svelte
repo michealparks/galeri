@@ -1,4 +1,7 @@
-<svg viewBox="0 0 1024 1024">
+<svg
+	class='h-20 w-20 border-4 rounded-full border-white opacity-0'
+	viewBox="0 0 1024 1024"
+>
   <path
      fill="#2C3E50"
      d="M0,512 a60,60 0 0,0 1024,0" />
@@ -13,21 +16,26 @@
 
 <style>
 	svg {
-		height: 60px;
-		width: 60px;
-		opacity: 0;
 		transform: translate(15px, 0);
 		animation-name: enter;
 		animation-duration: 700ms;
 		animation-fill-mode: forwards;
-		border: 5px solid #eee;
-		border-radius: 100%;
 	}
 
 	@keyframes enter {
-		0%   { transform: scale(0.0) translate(15px, 0); opacity: 0; }
-		60%  { transform: scale(1.05) translate(0, 0); }
-		80%  { transform: scale(0.97) translate(0, 0); }
-		100% { transform: scale(1.0) translate(0, 0); opacity: 1; } 
+		0% {
+			transform: scale(0.0) translate(15px, 0);
+			opacity: 0;
+		}
+		60% {
+			transform: scale(1.05) translate(0, 0);
+		}
+		80% {
+			transform: scale(0.97) translate(0, 0);
+		}
+		100% {
+			transform: scale(1.0) translate(0, 0);
+			opacity: 1;
+		} 
 	}
 </style>

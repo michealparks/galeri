@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@tailwind variants;
+
+body {
+  @apply font-sans;
+  @apply m-0;
+}
+
+::selection {
+  @apply bg-transparent;
+}
+
+* {
+  @apply box-border;
+  @apply select-none;
+  @apply cursor-default;
+}

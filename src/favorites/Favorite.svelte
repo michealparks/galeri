@@ -10,25 +10,20 @@
 </script>
 
 <section
+	class='overflow-hidden relative h-30 py-3 px-5 rounded-md'
 	id={favorite.id}
 	data-link={favorite.titleLink}
 >
 	<Image {enabled} src={favorite.src} />
-	<h2>{favorite.title}</h2>
-	<h3>{favorite.artist}</h3>
-	<p>{favorite.provider}</p>
+	<h2 class='relative pointer-events-none text-2xl my-0'>{favorite.title}</h2>
+	<h3 class='relative pointer-events-none my-0'>{favorite.artist}</h3>
+	<p class='relative pointer-events-none my-0 text-sm'>{favorite.provider}</p>
 	<Arrow />
 	<Delete {index} />
 </section>
 
 <style>
 	section {
-		overflow: hidden;
-		position: relative;
-    height: 300px;
-		padding: 10px 40px 10px 15px;
-    border-radius: 4px;
-		color: #fff;
 		background-color: #222;
 	}
 
@@ -48,15 +43,5 @@
 	section:hover :global(svg) {
 		opacity: 1;
 		transform: translate(0, 0)
-	}
-
-	h2, h3, p {
-		pointer-events: none;
-		position: relative;
-		margin: 5px 0;
-	}
-
-	p {
-		font-weight: 300;
 	}
 </style>

@@ -50,7 +50,6 @@ const init = async (): Promise<void> => {
 	store.current.subscribe(async (artObject) => {
 		const response = await window.fetch(artObject.src)
 		const blob = await response.blob()
-
 		store.currentImage.set(blob)
 	})
 

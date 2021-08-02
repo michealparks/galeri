@@ -48,7 +48,6 @@
 		await tick()
 
 		for (const id of newids) {
-			console.log(id)
 			const section = document.getElementById(id)!
 			observer.observe(section)
 		}
@@ -124,7 +123,11 @@
 	
 </script>
 
-<main on:click={handleClick} class:windows={platform === 'win32'}>
+<main
+	on:click={handleClick}
+	class='grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 auto-rows-[300px] gap-3 p-3 text-white'
+	class:windows={platform === 'win32'}
+>
 	{#each favorites as favorite, index (favorite.id)}
 		<Favorite
 			{index}
@@ -134,7 +137,9 @@
 	{/each}
 
 	{#if favorites.length === 0}
-		<h2>Artwork you have favorited will appear here.</h2>
+		<h2 class="w-screen text-white text-center">
+			Artwork you have favorited will appear here.
+		</h2>
 	{/if}
 </main>
 
@@ -144,17 +149,9 @@
 
 <style>
 	:global(body) {
-		overflow-y: auto;
-		overflow-x: hidden;
-		width: 100vw;
-	}
-
-	main {
-		display: grid;
-		grid-template-columns: 1fr 1fr 1fr;
-		grid-auto-rows: 300px;
-		grid-gap: 10px;
-		padding: 10px;
+		@apply overflow-y-auto;
+		@apply overflow-x-hidden;
+		@apply w-screen;
 	}
 
 	/*
@@ -163,11 +160,5 @@
 	*/
 	main.windows {
 		margin: 0 15px 0 0;
-	}
-
-	h2 {
-		color: #fff;
-		width: 100vw;
-		text-align: center;
 	}
 </style>

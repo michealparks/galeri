@@ -2,6 +2,7 @@ import { nanoid } from 'nanoid'
 import { get } from 'svelte/store'
 import store from './store'
 import { ENDPOINTS } from './constants'
+import $ from 'cheerio'
 import type { ArtObject } from './types'
 
 const randomArtwork = async (): Promise<ArtObject | undefined> => {
@@ -76,13 +77,12 @@ const parseBrowser = (str: string): ArtObject[] => {
 }
 
 const parseNodeJS = (str: string) => {
-	const { $ } = globalThis as any
 	const artworks: ArtObject[] = []
 
-	$('.gallerybox', str).each((_i: number, el: any) => {
+	$('.gallerybox', str).each((_, el) => {
 		const imgEl = $('img', el)
-		const titleEl: any = $('.gallerytext b', el)
-		const titleLinkEl: any = $('.gallerytext b a', el)
+		const titleEl = $('.gallerytext b', el)
+		const titleLinkEl = $('.gallerytext b a', el)
 		const artistEl = $('.gallerytext a', el)?.last()
 		const arr = imgEl.attr('src')?.split('/')?.slice(0, -1)
 		const src = arr?.join('/')?.replace('/thumb/', '/')

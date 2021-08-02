@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import sveltePlugin from '@sveltejs/vite-plugin-svelte'
+import { resolve } from 'path'
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -15,5 +16,13 @@ export default defineConfig({
 				favorites: './favorites.html'
 			}
 		}
+	},
+	resolve: {
+		alias: [
+			{ find: '$apis', replacement: resolve('.', 'apis') },
+			{ find: '$src', replacement: resolve('.', 'src') },
+			{ find: '$lib', replacement: resolve('.', 'lib') },
+			{ find: '$electron', replacement: resolve('.', 'electron') },
+		]
 	}
 })
