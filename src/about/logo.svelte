@@ -1,4 +1,4 @@
-<svg viewBox="0 0 1024 1024">
+<svg class='h-14 w-14' viewBox="0 0 1024 1024">
   <path
      fill="#2C3E50"
      d="M0,512 a60,60 0 0,0 1024,0" />
@@ -13,8 +13,6 @@
 
 <style>
 	svg {
-		height: 60px;
-		width: 60px;
 		opacity: 0;
 		transform: translate(15px, 0);
 		animation-name: enter;

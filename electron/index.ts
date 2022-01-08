@@ -36,8 +36,6 @@ if (gotTheLock === false) {
 	process.exit(0)
 }
 
-app.allowRendererProcessReuse = true
-
 if (app.dock !== undefined) {
 	app.dock.hide()
 }

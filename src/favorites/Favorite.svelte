@@ -11,6 +11,7 @@
 
 <section
 	id={favorite.id}
+	class='overflow-hidden relative h-80 px-2.5 pt-10 pb-4 rounded text-white bg-slate-800'
 	data-link={favorite.titleLink}
 >
 	<Image {enabled} src={favorite.src} />
@@ -22,16 +23,6 @@
 </section>
 
 <style>
-	section {
-		overflow: hidden;
-		position: relative;
-    height: 300px;
-		padding: 10px 40px 10px 15px;
-    border-radius: 4px;
-		color: #fff;
-		background-color: #222;
-	}
-
 	section:hover :global(div) {
 		transform: scale(1.1)
 	}

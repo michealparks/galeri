@@ -21,7 +21,7 @@ export default [{
   }],
   external: [
     'electron',
-    'fs',
+    'fs/promises',
     'crypto',
     'util',
     'path',
@@ -35,7 +35,7 @@ export default [{
     'electron-util',
     'electron-serve',
     'svelte/store',
-    'nanoid'
+    'nanoid',
   ]: []),
   plugins: [
     json(),

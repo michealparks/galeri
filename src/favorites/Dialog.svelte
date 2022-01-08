@@ -6,48 +6,24 @@
 	const dispatch = createEventDispatcher()
 </script>
 
-<div>
+<div class='fixed bottom-0 w-screen flex justify-center pointer-events-none'>
 	<section
+		class='pointer-events-auto flex items-center px-2 py-4 mb-4 rounded-3xl text-white text-sm'
 		in:fly='{{ y: 200, duration: 500, easing: quartOut }}'
 		out:fly='{{ y: 200, duration: 500, easing: quartIn }}'
 	>
 		Favorite removed
-		<button on:click={() => dispatch('undo')}>
+		<button
+			class='px-3 py-1.5 border border-white rounded bg-transparent text-sm font-normal text-white'
+			on:click={() => dispatch('undo')}
+		>
 			Undo
 		</button>
 	</section>
 </div>
 
 <style>
-	div {
-		pointer-events: none;
-		position: fixed;
-		bottom: 0;
-		width: 100vw;
-		display: flex;
-		justify-content: center;
-	}
-
 	section {
-		pointer-events: auto;
-		display: flex;
-		align-items: center;
-		padding: 8px 16px;
-		margin: 0 0 15px 0;
-		border-radius: 30px;
 		background: rgba(130,141,255,1);
-		color: white;
-		font-size: 14px;
-	}
-
-	button {
-		padding: 5px 10px;
-		margin: 0 0 0 10px;
-		border: 1px solid white;
-		border-radius: 5px;
-		background: none;
-		font-size: inherit;
-		font-weight: inherit;
-		color: white;
 	}
 </style>

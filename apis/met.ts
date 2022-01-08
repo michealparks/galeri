@@ -1,10 +1,10 @@
 import { nanoid } from 'nanoid'
 import { get } from 'svelte/store'
-import store from './store'
+import { met as metStore } from './store'
 import { ENDPOINTS } from './constants'
 import type { ArtObject } from './types'
 
-const { fetchJSON } = (globalThis as any)
+const { fetchJSON } = globalThis
 
 const randomArtwork = async (): Promise<ArtObject | undefined> => {
 	const artObjects = await getArtworks()
@@ -17,7 +17,7 @@ const randomArtwork = async (): Promise<ArtObject | undefined> => {
 }
 
 const getArtworks = async (): Promise<ArtObject[]> => {
-	const artworks = get(store.met)
+	const artworks = get(metStore)
 
 	if (artworks.length > 0) {
 
@@ -29,7 +29,7 @@ const getArtworks = async (): Promise<ArtObject[]> => {
 
 			const json = await fetchJSON(ENDPOINTS.metCollection)
 			const artworks = json.objectIDs
-			store.met.set(artworks)
+			metStore.set(artworks)
 			return artworks
 
 		} catch (err) {
@@ -39,11 +39,18 @@ const getArtworks = async (): Promise<ArtObject[]> => {
 	}
 }
 
+interface MetResponse {
+	primaryImage?: ''
+	title: string
+	artistDisplayName: string
+	objectURL: string
+}
+
 const removeRandomArtwork = async (artworks: ArtObject[]): Promise<ArtObject | undefined> => {
 	const randomIndex = Math.floor(Math.random() * artworks.length)
 	const [id] = (artworks.splice(randomIndex, 1) || [])
 
-	let object: any
+	let object: MetResponse
 
 	try {
 		object = await fetchJSON(`${ENDPOINTS.metObject}/${id}`)
@@ -74,7 +81,7 @@ const removeRandomArtwork = async (artworks: ArtObject[]): Promise<ArtObject | u
 		providerLink: 'https://www.metmuseum.org'
 	}
 
-	store.met.set(artworks)
+	metStore.set(artworks)
 
 	return artwork
 }

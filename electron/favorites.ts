@@ -9,19 +9,13 @@ import {
 	ERROR_ENOENT
 } from './constants'
 
-import fs from 'fs'
-import { promisify } from 'util'
+import fs from 'fs/promises'
 import { resolve } from 'path'
 import { nanoid } from 'nanoid'
 import { BrowserWindow, ipcMain } from 'electron'
+import { isErrnoException } from './util'
 
-
-const mkdir = promisify(fs.mkdir)
-const readFile = promisify(fs.readFile)
-const writeFile = promisify(fs.writeFile)
-const unlink = promisify(fs.unlink)
-
-type OldArtObject = {
+interface OldArtObject {
 	href: string
 	img: string
 	source: string
@@ -35,31 +29,31 @@ let favoritesList: ArtObject[] = []
 const init = async (): Promise<void> => {
 	// Create the app folder if it doesn't exist
 	try {
-		await mkdir(GALERI_DATA_PATH)
-	} catch (err) {
-		if (err.code !== ERROR_EEXIST) {
-			console.warn('favorites.init(): ', err)
+		await fs.mkdir(GALERI_DATA_PATH)
+	} catch (error) {
+		if (isErrnoException(error) && error.code !== ERROR_EEXIST) {
+			console.warn('favorites.init(): ', error)
 		}
 	}
 
 	// Upgrade the old favorites file if on the user's computer
 	try {
-		const favoritesFile = await readFile(DEPRECATED_FAVORITES_DATA_PATH, { encoding: 'utf-8' })
+		const favoritesFile = await fs.readFile(DEPRECATED_FAVORITES_DATA_PATH, { encoding: 'utf-8' })
 		favoritesList = upgradeFavoritesList(JSON.parse(favoritesFile).favorites as unknown)
-		await unlink(DEPRECATED_FAVORITES_DATA_PATH)
-		await writeFile(FAVORITES_DATA_PATH, JSON.stringify({ favorites: favoritesList }))
-	} catch (err) {
-		if (err.code !== ERROR_ENOENT) {
-			console.warn('favorites.init(): ', err)
+		await fs.unlink(DEPRECATED_FAVORITES_DATA_PATH)
+		await fs.writeFile(FAVORITES_DATA_PATH, JSON.stringify({ favorites: favoritesList }))
+	} catch (error) {
+		if (isErrnoException(error) && error.code !== ERROR_ENOENT) {
+			console.warn('favorites.init(): ', error)
 		}
 
 		// Get the favorites list
 		try {
-			const favoritesFile = await readFile(FAVORITES_DATA_PATH, { encoding: 'utf-8' })
+			const favoritesFile = await fs.readFile(FAVORITES_DATA_PATH, { encoding: 'utf-8' })
 			favoritesList = JSON.parse(favoritesFile).favorites
-		} catch (err) {
-			if (err.code !== ERROR_ENOENT) {
-				console.warn('favorites.init(): ', err)
+		} catch (error) {
+			if (isErrnoException(error) && error.code !== ERROR_ENOENT) {
+				console.warn('favorites.init(): ', error)
 			}
 		}
 	}
@@ -98,12 +92,11 @@ const upgradeFavoritesList = (favoritesList: unknown) => {
 
 const updateFavoritesList = (list: ArtObject[]) => {
 	try {
-		writeFile(FAVORITES_DATA_PATH, JSON.stringify({ favorites: list }))
+		fs.writeFile(FAVORITES_DATA_PATH, JSON.stringify({ favorites: list }))
 		favoritesList = list
 	} catch (err) {
 		console.warn('favorites.updateFavoriteList(): ', err)
 	}
-	
 }
 
 const open = async (): Promise<number> => {
@@ -133,7 +126,7 @@ const open = async (): Promise<number> => {
 		win = undefined
 	})
 
-	await win.loadURL(FAVORITES_PATH)
+	await win.loadFile(FAVORITES_PATH)
 
 	win.webContents.send('update', favoritesList)
 	win.show()

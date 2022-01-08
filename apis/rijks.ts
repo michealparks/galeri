@@ -1,8 +1,10 @@
 import { nanoid } from 'nanoid'
 import { get } from 'svelte/store'
-import store from './store'
+import { rijks as rijksStore, rijksPage } from './store'
 import { ENDPOINTS } from './constants'
 import type { ArtObject } from './types'
+
+const { fetchJSON } = globalThis
 
 const randomArtwork = async (): Promise<ArtObject | undefined> => {
 	const artworks = await getArtworks()
@@ -15,17 +17,17 @@ const randomArtwork = async (): Promise<ArtObject | undefined> => {
 }
 
 const getArtworks = async (): Promise<ArtObject[]> => {
-	const artworks = get(store.rijks)
+	const artworks = get(rijksStore)
 
 	if (artworks.length > 0) {
 		return artworks
 	} else {
-		const page = get(store.rijksPage)
+		const page = get(rijksPage)
 
 		let json
 	
 		try {
-			json = await (globalThis as any).fetchJSON(`${ENDPOINTS.rijks}&p=${page}`)
+			json = await globalThis.fetchJSON(`${ENDPOINTS.rijks}&p=${page}`)
 		} catch {
 			return []
 		}
@@ -53,8 +55,8 @@ const getArtworks = async (): Promise<ArtObject[]> => {
 			})
 		}
 
-		store.rijks.set(artworks)
-		store.rijksPage.set(page + 1)
+		rijksStore.set(artworks)
+		rijksPage.set(page + 1)
 
 		return artworks
 	}
@@ -64,7 +66,7 @@ const removeRandomArtwork = (artObjects: ArtObject[]): ArtObject | undefined => 
 	const randomIndex = Math.floor(Math.random() * artObjects.length)
 	const [artObject] = (artObjects.splice(randomIndex, 1) || [])
 
-	store.rijks.set(artObjects)
+	rijksStore.set(artObjects)
 
 	return artObject
 }

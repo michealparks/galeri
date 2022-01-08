@@ -1,16 +1,13 @@
 import type { ArtObject } from '../apis/types'
 
-import fs from 'fs'
+import fs from 'fs/promises'
 import path from 'path'
-import { promisify } from 'util'
 import { resolve, basename } from 'path'
 import { app, nativeImage } from 'electron'
 import { ERROR_EEXIST, GALERI_DATA_PATH } from './constants'
+import { isErrnoException } from './util'
 
-const { fetch } = (globalThis as any)
-const mkdir = promisify(fs.mkdir)
-const unlink = promisify(fs.unlink)
-const writeFile = promisify(fs.writeFile)
+const { fetch } = globalThis
 
 const makeFilepath = (artwork: ArtObject): string => {
 	return resolve(GALERI_DATA_PATH,  `artwork_${artwork.id}${path.extname(artwork.src)}`)
@@ -20,9 +17,9 @@ const download = async (artwork: ArtObject): Promise<string> => {
 	const output = makeFilepath(artwork)
 
 	try {
-		await mkdir(GALERI_DATA_PATH)
+		await fs.mkdir(GALERI_DATA_PATH)
 	} catch (err) {
-		if (err.code !== ERROR_EEXIST) {
+		if (isErrnoException(err) && err.code !== ERROR_EEXIST) {
 			console.warn('image.download(): ', err)
 		}
 	}
@@ -34,7 +31,7 @@ const download = async (artwork: ArtObject): Promise<string> => {
 
 const remove = async (filepath: string): Promise<void> => {
 	try {
-		await unlink(filepath)
+		await fs.unlink(filepath)
 	} catch (err) {
 		console.warn('image.remove(): ', err)
 	}
@@ -46,7 +43,7 @@ const makeThumb = async (imagepath: string): Promise<void> => {
 	const image = nativeImage.createFromPath(imagepath)
 	const filepath = resolve(app.getPath('appData'), 'Galeri Favorites', basename(imagepath))
 
-	await writeFile(filepath, image.resize({ width }).toJPEG(quality))
+	await fs.writeFile(filepath, image.resize({ width }).toJPEG(quality))
 }
 
 export const image = {

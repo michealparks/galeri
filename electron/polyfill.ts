@@ -28,6 +28,6 @@ const fetchJSON = async (input: string, opts: FetchOptions = {}): Promise<any> =
 	return JSON.parse(stdout)
 }
 
-;(globalThis as any).$ = $
-;(globalThis as any).fetch = fetch
-;(globalThis as any).fetchJSON = fetchJSON
+globalThis.$ = $
+globalThis.fetch = fetch
+globalThis.fetchJSON = fetchJSON

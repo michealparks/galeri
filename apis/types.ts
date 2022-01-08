@@ -10,9 +10,9 @@ export type ArtObject = {
 }
 
 export type Subscriber = {
-	(value: any): void
+	(value: unknown): void
 }
 
 export type GlobalSubscriber = {
-	(key: string, value: any): void
+	(key: string, value: unknown): void
 }

@@ -19,12 +19,12 @@
 
 <div
 	style='background-image: url({src})'
+	class='pointer-events-none'
 	class:visible={enabled && loaded}
 />
 
 <style>
 	div {
-		pointer-events: none;
 		opacity: 0;
 		transform: scale(1.0);
 		will-change: transform, opacity;

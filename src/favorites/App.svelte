@@ -1,6 +1,5 @@
 <script lang='ts'>
 	import type { ArtObject } from '../../apis/types'
-
 	import Favorite from './Favorite.svelte'
 	import Dialog from './Dialog.svelte'
 	import testList from './test-list'
@@ -124,7 +123,11 @@
 	
 </script>
 
-<main on:click={handleClick} class:windows={platform === 'win32'}>
+<main
+	class='grid grid-cols-3 auto-rows-fr gap-3 p-3'
+	class:windows={platform === 'win32'}
+	on:click={handleClick}
+>
 	{#each favorites as favorite, index (favorite.id)}
 		<Favorite
 			{index}
@@ -134,7 +137,9 @@
 	{/each}
 
 	{#if favorites.length === 0}
-		<h2>Artwork you have favorited will appear here.</h2>
+		<h2 class='w-screen text-white text-center'>
+			Artwork you have favorited will appear here.
+		</h2>
 	{/if}
 </main>
 
@@ -149,25 +154,11 @@
 		width: 100vw;
 	}
 
-	main {
-		display: grid;
-		grid-template-columns: 1fr 1fr 1fr;
-		grid-auto-rows: 300px;
-		grid-gap: 10px;
-		padding: 10px;
-	}
-
 	/*
 		Scrollbars on windows are currently not taken into account
 		when calculating window width. UGH.
 	*/
 	main.windows {
 		margin: 0 15px 0 0;
-	}
-
-	h2 {
-		color: #fff;
-		width: 100vw;
-		text-align: center;
 	}
 </style>

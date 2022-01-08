@@ -3,11 +3,11 @@
 	import Logo from './logo.svelte'
 </script>
 
-<div class='titlebar' />
+<div class='titlebar h-10 w-full top-0 left-0' />
 
-<header>
+<header class='flex justify-center items-center'>
 	<Logo />
-	<h1>Galeri</h1>
+	<h1 class='mb-2.5 text-5xl'>Galeri</h1>
 </header>
 
 <p>A perpetual artwork streaming app</p>
@@ -22,24 +22,7 @@
 		place-content: center;
 		text-align: center;
 	}
-
-	.titlebar {
-		-webkit-app-region: drag;
-		height: 40px;
-		width: 100%;
-		top: 0;
-		left: 0;
-	}
-
-	header {
-		display: flex;
-		justify-content: center;
-  	align-items: center;
-	}
-
 	h1 {
-		margin: 0 0 0 10px;
-  	font-size: 45px;
 		opacity: 0;
 		animation-name: move-right;
 		animation-duration: 400ms;

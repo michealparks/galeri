@@ -1,24 +1,25 @@
-import fs from 'fs'
+import fs from 'fs/promises'
 import { join } from 'path'
-import { promisify } from 'util'
 import { GALERI_DATA_PATH } from './constants'
-
-const stat = promisify(fs.stat)
-const writeFile = promisify(fs.writeFile)
 
 export const isFirstAppLaunch = async (): Promise<boolean> => {
   const checkFile = join(GALERI_DATA_PATH, '.electron-util--has-app-launched')
 
   try {
-    await stat(checkFile)
+    await fs.stat(checkFile)
     return false
   } catch {
     try {
-      await writeFile(checkFile, '')
+      await fs.writeFile(checkFile, '')
     } catch (err) {
       console.warn('isFirstAppLaunch(): ', err)
     }
   }
 
   return true
+}
+
+export const isErrnoException = (e: unknown): e is NodeJS.ErrnoException => {
+  if ('code' in (e as { code: unknown })) return true
+  else return false
 }

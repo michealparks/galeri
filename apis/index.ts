@@ -1,7 +1,7 @@
 import type { ArtObject } from './types'
 
 import { get } from 'svelte/store'
-import store from './store'
+import { store, current as currentStore, next as nextStore } from './store'
 import { wikipedia } from './wikipedia'
 import { rijks } from './rijks'
 import { met } from './met'
@@ -9,14 +9,16 @@ import { blacklist } from './blacklist'
 import { API_KEYS } from './constants'
 import { nanoid } from 'nanoid'
 
-const apiMap = new Map<string, typeof wikipedia | typeof rijks | typeof met>()
+type Apis = typeof wikipedia | typeof rijks | typeof met
+
+const apiMap = new Map<string, Apis>()
 apiMap.set('rijks', rijks)
 apiMap.set('wikipedia', wikipedia)
 apiMap.set('met', met)
 
 const getArtwork = async (forceNext = false): Promise<void> => {
-	let current = get<ArtObject | undefined>(store.current)
-	let next = get<ArtObject | undefined>(store.next)
+	let current = get(currentStore) as ArtObject | undefined
+	let next = get(nextStore) as ArtObject | undefined
 
 	if (current === undefined || forceNext) {
 		if (next === undefined) {
@@ -27,12 +29,12 @@ const getArtwork = async (forceNext = false): Promise<void> => {
 		}
 	}
 
-	store.current.set(current)
+	currentStore.set(current)
 
 	if (next === undefined) {
 		next = await getRandom()
 
-		store.next.set(next)
+		nextStore.set(next)
 	}
 }
 

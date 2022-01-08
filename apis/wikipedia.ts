@@ -1,8 +1,11 @@
 import { nanoid } from 'nanoid'
 import { get } from 'svelte/store'
-import store from './store'
+import { wikipedia as wikipediaStore } from './store'
 import { ENDPOINTS } from './constants'
 import type { ArtObject } from './types'
+import type { CheerioAPI } from 'cheerio'
+
+const { fetchJSON } = globalThis
 
 const randomArtwork = async (): Promise<ArtObject | undefined> => {
 	const artworks = await getArtObjects()
@@ -15,7 +18,7 @@ const randomArtwork = async (): Promise<ArtObject | undefined> => {
 }
 
 const getArtObjects = async (): Promise<ArtObject[]> => {
-	const artObjects = get(store.wikipedia)
+	const artObjects = get(wikipediaStore)
 
 	if (artObjects.length > 0) {
 
@@ -24,13 +27,12 @@ const getArtObjects = async (): Promise<ArtObject[]> => {
 	} else {
 
 		try {
-
-			const json = await (globalThis as any).fetchJSON(ENDPOINTS.wikipedia)
+			const json = await fetchJSON(ENDPOINTS.wikipedia)
 			const artObjects = 'window' in globalThis
 				? parseBrowser(json.parse.text['*'])
 				: parseNodeJS(json.parse.text['*'])
 
-			store.wikipedia.set(artObjects)
+			wikipediaStore.set(artObjects)
 
 			return artObjects
 
@@ -76,13 +78,13 @@ const parseBrowser = (str: string): ArtObject[] => {
 }
 
 const parseNodeJS = (str: string) => {
-	const { $ } = globalThis as any
+	const { $ } = globalThis as unknown as { $: CheerioAPI }
 	const artworks: ArtObject[] = []
 
-	$('.gallerybox', str).each((_i: number, el: any) => {
+	$('.gallerybox', str).each((_i: number, el) => {
 		const imgEl = $('img', el)
-		const titleEl: any = $('.gallerytext b', el)
-		const titleLinkEl: any = $('.gallerytext b a', el)
+		const titleEl = $('.gallerytext b', el)
+		const titleLinkEl = $('.gallerytext b a', el)
 		const artistEl = $('.gallerytext a', el)?.last()
 		const arr = imgEl.attr('src')?.split('/')?.slice(0, -1)
 		const src = arr?.join('/')?.replace('/thumb/', '/')
@@ -112,7 +114,7 @@ const fetchRandomArtwork = (artObjects: ArtObject[]): ArtObject | undefined => {
 	const randomIndex = Math.floor(Math.random() * artObjects.length)
 	const [artObject] = (artObjects.splice(randomIndex, 1) || [])
 
-	store.wikipedia.set(artObjects)
+	wikipediaStore.set(artObjects)
 
 	return artObject
 }

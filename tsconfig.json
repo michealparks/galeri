@@ -6,10 +6,11 @@
     "src/**/*.d.ts",
 		"src/**/*.js",
 		"src/**/*.ts",
-		"src/**/*.svelte"
+		"src/**/*.svelte",
+    "global.d.ts"
   ],
   "typeRoots": [],
-  "types": [],
+  "types": ["node"],
   "lib": ["dom", "node", "electron"],
   "compilerOptions": {
     "module": "esnext",

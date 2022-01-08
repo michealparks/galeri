@@ -25,7 +25,7 @@ const open = async (): Promise<number> => {
   win.setMenuBarVisibility(false)
   win.once('close', () => { win = undefined })
 
-  await win.loadURL(ABOUT_PATH)
+  await win.loadFile(ABOUT_PATH)
 
 	win.show()
 

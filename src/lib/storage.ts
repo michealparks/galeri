@@ -1,6 +1,7 @@
+import type { ArtObject } from '../../apis/types'
 import localforage from 'localforage'
 import { apis } from '../../apis'
-import store from '../../apis/store'
+import { store } from '../../apis/store'
 
 const init = async (): Promise<void> => {
 	const promises = new Set()
@@ -47,7 +48,7 @@ const init = async (): Promise<void> => {
 		})
 	}
 
-	store.current.subscribe(async (artObject) => {
+	store.current.subscribe(async (artObject: ArtObject) => {
 		const response = await window.fetch(artObject.src)
 		const blob = await response.blob()
 
