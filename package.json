@@ -58,7 +58,7 @@
     "eslint-plugin-svelte3": "^3.3.0",
     "gh-pages": "^3.2.3",
     "localforage": "^1.10.0",
-    "nanoid": "^3.1.30",
+    "nanoid": "^3.1.31",
     "postcss": "^8.4.5",
     "rollup": "^2.63.0",
     "rollup-plugin-copy": "^3.4.0",
