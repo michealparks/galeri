@@ -27,7 +27,7 @@ const getArtworks = async (): Promise<ArtObject[]> => {
 		let json
 	
 		try {
-			json = await globalThis.fetchJSON(`${ENDPOINTS.rijks}&p=${page}`)
+			json = await fetchJSON(`${ENDPOINTS.rijks}&p=${page}`)
 		} catch {
 			return []
 		}

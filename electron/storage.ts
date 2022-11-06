@@ -1,5 +1,5 @@
-import { resolve } from 'path'
-import fs from 'fs/promises'
+import path from 'node:path'
+import fs from 'node:fs/promises'
 import { API_KEYS } from '../apis/constants'
 import { store } from '../apis/store'
 import { ERROR_EEXIST, ERROR_ENOENT, GALERI_DATA_PATH } from './constants'
@@ -8,31 +8,31 @@ import { isErrnoException } from './util'
 const init = async (): Promise<void> => {
 	try {
 		await fs.mkdir(GALERI_DATA_PATH)
-	} catch (err) {
-		if (isErrnoException(err) && err.code !== ERROR_EEXIST) {
-			console.warn('storage.init(): ', err)
+	} catch (error) {
+		if (isErrnoException(error) && error.code !== ERROR_EEXIST) {
+			console.warn('storage.init():', error)
 		}
 	}
 
 	for (const api of API_KEYS) {
 		try {
-			const filepath = resolve(GALERI_DATA_PATH, `${api}.json`)
-			const file = await fs.readFile(filepath, { encoding: 'utf-8' })
+			const filepath = path.resolve(GALERI_DATA_PATH, `${api}.json`)
+			const file = await fs.readFile(filepath, 'utf-8')
 			store[api].set(JSON.parse(file))
-		} catch (err) {
-			if (isErrnoException(err) && err.code !== ERROR_ENOENT) {
-				console.warn('storage.init(): ', err)
+		} catch (error) {
+			if (isErrnoException(error) && error.code !== ERROR_ENOENT) {
+				console.warn('storage.init():', error)
 			}
 		}
 	}
 
 	try {
-		const filepath = resolve(GALERI_DATA_PATH, `rijksPage.json`)
-		const file = await fs.readFile(filepath, { encoding: 'utf-8' })
+		const filepath = path.resolve(GALERI_DATA_PATH, `rijksPage.json`)
+		const file = await fs.readFile(filepath, 'utf-8')
 		store.rijksPage.set(JSON.parse(file))
-	} catch (err) {
-		if (isErrnoException(err) && err.code !== ERROR_ENOENT) {
-			console.warn('storage.init(): ', err)
+	} catch (error) {
+		if (isErrnoException(error) && error.code !== ERROR_ENOENT) {
+			console.warn('storage.init():', error)
 		}
 	}
 
@@ -43,12 +43,12 @@ const init = async (): Promise<void> => {
 				return
 			}
 
-			const filepath = resolve(GALERI_DATA_PATH, `${key}.json`)
+			const filepath = path.resolve(GALERI_DATA_PATH, `${key}.json`)
 
 			try {
 				fs.writeFile(filepath, JSON.stringify(value))
-			} catch (err) {
-				console.warn('storage.init(): [key] ', err)
+			} catch (error) {
+				console.warn('storage.init(): [key]', error)
 			}
 		})
 	}

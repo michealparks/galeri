@@ -78,8 +78,8 @@ const menuTemplate: MenuItemConstructorOptions[] = [
 	...baseItems
 ]
 
-const onEvent = (fn: Subscriber): void => {
-	subscriber = fn
+const onEvent = (callback: Subscriber): void => {
+	subscriber = callback
 }
 
 const setUpdating = (): void => {
@@ -93,7 +93,7 @@ const setArtwork = (artwork: ArtObject): void => {
 
 	artworkLink = artwork.titleLink
 	menuTemplate[2].label = artwork.title.length > 30
-		? `${artwork.title.substring(0, 30)}...`
+		? `${artwork.title.slice(0, 30)}...`
 		: artwork.title
 
 	menuTemplate[2].enabled = (artworkLink !== undefined && artworkLink !== '')

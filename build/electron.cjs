@@ -2,16 +2,16 @@
 
 var electronUtil = require('electron-util');
 var unhandled = require('electron-unhandled');
-var os = require('os');
-var cp = require('child_process');
-var util = require('util');
+var os = require('node:os');
+var cp = require('node:child_process');
+var node_util = require('node:util');
 var $ = require('cheerio');
 var electron = require('electron');
 var wallpaper = require('wallpaper');
 var store$1 = require('svelte/store');
 var nanoid = require('nanoid');
-var path = require('path');
-var fs = require('fs/promises');
+var path = require('node:path');
+var fs = require('node:fs/promises');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -23,35 +23,35 @@ var wallpaper__default = /*#__PURE__*/_interopDefaultLegacy(wallpaper);
 var path__default = /*#__PURE__*/_interopDefaultLegacy(path);
 var fs__default = /*#__PURE__*/_interopDefaultLegacy(fs);
 
-const exec = util.promisify(cp__default["default"].exec);
+const exec = node_util.promisify(cp__default["default"].exec);
 // Node's request lib is failing to parse the headers for met requests :|
 // So for now we're just going to curl them.
-const fetch$1 = async (input, opts = {}) => {
+const fetch$1 = async (input, options = {}) => {
     // Windows curl doesn't currently support --compressed :|
     const cmd = `curl ${os__default["default"].platform() === 'win32' ? '' : '--compressed'}`;
-    const headersCmd = opts.headers === undefined ? '' : `-H "${opts.headers}"`;
-    const output = opts.output ? `--output "${opts.output}"` : '';
+    const headersCmd = options.headers === undefined ? '' : `-H "${options.headers}"`;
+    const output = options.output ? `--output "${options.output}"` : '';
     const fullCmd = `${cmd} ${headersCmd} "${input}" ${output}`;
     const { stdout, stderr } = await exec(fullCmd);
     return stdout;
 };
-const fetchJSON$2 = async (input, opts = {}) => {
-    opts.headers = `${opts.headers || ''} -H "Content-Type: application/json" -H "Accept: application/json"`;
-    const stdout = await fetch$1(input, opts);
+const fetchJSON$4 = async (input, options = {}) => {
+    options.headers = `${options.headers || ''} -H "Content-Type: application/json" -H "Accept: application/json"`;
+    const stdout = await fetch$1(input, options);
     return JSON.parse(stdout);
 };
 globalThis.$ = $__default["default"];
 globalThis.fetch = fetch$1;
-globalThis.fetchJSON = fetchJSON$2;
+globalThis.fetchJSON = fetchJSON$4;
 
 const rijksPage = store$1.writable(1);
 const rijks$1 = store$1.writable([]);
 const met$1 = store$1.writable([]);
 const wikipedia$1 = store$1.writable([]);
-const current = store$1.writable(undefined);
-const next = store$1.writable(undefined);
-const currentImage = store$1.writable(undefined);
-const nextImage = store$1.writable(undefined);
+const current = store$1.writable();
+const next = store$1.writable();
+const currentImage = store$1.writable();
+const nextImage = store$1.writable();
 const store = {
     rijks: rijks$1,
     rijksPage,
@@ -75,6 +75,7 @@ const ENDPOINTS = {
     wikipedia: 'https://en.wikipedia.org/w/api.php?action=parse&prop=text&page=Wikipedia:Featured_pictures/Artwork/Paintings&format=json&origin=*'
 };
 
+const { fetchJSON: fetchJSON$3 } = globalThis;
 const randomArtwork$2 = async () => {
     const artworks = await getArtObjects();
     if (artworks.length === 0) {
@@ -83,17 +84,17 @@ const randomArtwork$2 = async () => {
     return fetchRandomArtwork(artworks);
 };
 const getArtObjects = async () => {
-    const artObjects = store$1.get(store.wikipedia);
+    const artObjects = store$1.get(wikipedia$1);
     if (artObjects.length > 0) {
         return artObjects;
     }
     else {
         try {
-            const json = await globalThis.fetchJSON(ENDPOINTS.wikipedia);
+            const json = await fetchJSON$3(ENDPOINTS.wikipedia);
             const artObjects = 'window' in globalThis
                 ? parseBrowser(json.parse.text['*'])
                 : parseNodeJS(json.parse.text['*']);
-            store.wikipedia.set(artObjects);
+            wikipedia$1.set(artObjects);
             return artObjects;
         }
         catch {
@@ -101,25 +102,25 @@ const getArtObjects = async () => {
         }
     }
 };
-const parseBrowser = (str) => {
+const parseBrowser = (string) => {
     const artworks = [];
-    const dom = new DOMParser().parseFromString(str, 'text/html');
-    for (const el of dom.querySelectorAll('.gallerybox')) {
-        const imgEl = el.querySelector('img');
-        const titleEl = el.querySelector('.gallerytext b');
-        const titleLinkEl = el.querySelector('.gallerytext b a');
-        const artistEl = [...el.querySelectorAll('.gallerytext a')].pop();
-        const arr = imgEl?.src?.split('/')?.slice(0, -1);
-        const src = arr?.join('/')?.replace('/thumb/', '/');
-        const title = titleEl?.textContent?.trim();
-        const artist = artistEl?.textContent?.trim();
-        const artistLink = artistEl?.href;
-        const titleLink = titleLinkEl?.href;
-        if (src === undefined)
+    const dom = new DOMParser().parseFromString(string, 'text/html');
+    for (const element of dom.querySelectorAll('.gallerybox')) {
+        const imgElement = element.querySelector('img');
+        const titleElement = element.querySelector('.gallerytext b');
+        const titleLinkElement = element.querySelector('.gallerytext b a');
+        const artistElement = [...element.querySelectorAll('.gallerytext a')].pop();
+        const array = imgElement?.src?.split('/')?.slice(0, -1);
+        const source = array?.join('/')?.replace('/thumb/', '/');
+        const title = titleElement?.textContent?.trim();
+        const artist = artistElement?.textContent?.trim();
+        const artistLink = artistElement?.href;
+        const titleLink = titleLinkElement?.href;
+        if (source === undefined)
             continue;
         artworks.push({
             id: nanoid.nanoid(),
-            src: `https://upload.wikimedia.org${src.split('//upload.wikimedia.org').pop()}`,
+            src: `https://upload.wikimedia.org${source.split('//upload.wikimedia.org').pop()}`,
             title,
             artist,
             artistLink,
@@ -130,25 +131,25 @@ const parseBrowser = (str) => {
     }
     return artworks;
 };
-const parseNodeJS = (str) => {
+const parseNodeJS = (string) => {
     const { $ } = globalThis;
     const artworks = [];
-    $('.gallerybox', str).each((_i, el) => {
-        const imgEl = $('img', el);
-        const titleEl = $('.gallerytext b', el);
-        const titleLinkEl = $('.gallerytext b a', el);
-        const artistEl = $('.gallerytext a', el)?.last();
-        const arr = imgEl.attr('src')?.split('/')?.slice(0, -1);
-        const src = arr?.join('/')?.replace('/thumb/', '/');
-        const title = titleEl?.text()?.trim();
-        const artist = artistEl?.text()?.trim();
-        const artistLink = artistEl?.attr('href');
-        const titleLink = titleLinkEl?.attr('href');
-        if (src === undefined)
+    $('.gallerybox', string).each((_index, element) => {
+        const imgElement = $('img', element);
+        const titleElement = $('.gallerytext b', element);
+        const titleLinkElement = $('.gallerytext b a', element);
+        const artistElement = $('.gallerytext a', element)?.last();
+        const array = imgElement.attr('src')?.split('/')?.slice(0, -1);
+        const source = array?.join('/')?.replace('/thumb/', '/');
+        const title = titleElement?.text()?.trim();
+        const artist = artistElement?.text()?.trim();
+        const artistLink = artistElement?.attr('href');
+        const titleLink = titleLinkElement?.attr('href');
+        if (source === undefined)
             return;
         artworks.push({
             id: nanoid.nanoid(),
-            src: `https://upload.wikimedia.org${src.split('//upload.wikimedia.org').pop()}`,
+            src: `https://upload.wikimedia.org${source.split('//upload.wikimedia.org').pop()}`,
             title,
             artist,
             artistLink,
@@ -162,13 +163,14 @@ const parseNodeJS = (str) => {
 const fetchRandomArtwork = (artObjects) => {
     const randomIndex = Math.floor(Math.random() * artObjects.length);
     const [artObject] = (artObjects.splice(randomIndex, 1) || []);
-    store.wikipedia.set(artObjects);
+    wikipedia$1.set(artObjects);
     return artObject;
 };
 const wikipedia = {
     randomArtwork: randomArtwork$2
 };
 
+const { fetchJSON: fetchJSON$2 } = globalThis;
 const randomArtwork$1 = async () => {
     const artworks = await getArtworks$1();
     if (artworks.length === 0) {
@@ -177,15 +179,15 @@ const randomArtwork$1 = async () => {
     return removeRandomArtwork$1(artworks);
 };
 const getArtworks$1 = async () => {
-    const artworks = store$1.get(store.rijks);
+    const artworks = store$1.get(rijks$1);
     if (artworks.length > 0) {
         return artworks;
     }
     else {
-        const page = store$1.get(store.rijksPage);
+        const page = store$1.get(rijksPage);
         let json;
         try {
-            json = await globalThis.fetchJSON(`${ENDPOINTS.rijks}&p=${page}`);
+            json = await fetchJSON$2(`${ENDPOINTS.rijks}&p=${page}`);
         }
         catch {
             return [];
@@ -210,15 +212,15 @@ const getArtworks$1 = async () => {
                 providerLink: 'https://www.rijksmuseum.nl/en'
             });
         }
-        store.rijks.set(artworks);
-        store.rijksPage.set(page + 1);
+        rijks$1.set(artworks);
+        rijksPage.set(page + 1);
         return artworks;
     }
 };
 const removeRandomArtwork$1 = (artObjects) => {
     const randomIndex = Math.floor(Math.random() * artObjects.length);
     const [artObject] = (artObjects.splice(randomIndex, 1) || []);
-    store.rijks.set(artObjects);
+    rijks$1.set(artObjects);
     return artObject;
 };
 const rijks = {
@@ -234,7 +236,7 @@ const randomArtwork = async () => {
     return removeRandomArtwork(artObjects);
 };
 const getArtworks = async () => {
-    const artworks = store$1.get(store.met);
+    const artworks = store$1.get(met$1);
     if (artworks.length > 0) {
         return artworks;
     }
@@ -242,11 +244,11 @@ const getArtworks = async () => {
         try {
             const json = await fetchJSON$1(ENDPOINTS.metCollection);
             const artworks = json.objectIDs;
-            store.met.set(artworks);
+            met$1.set(artworks);
             return artworks;
         }
-        catch (err) {
-            console.error(err);
+        catch (error) {
+            console.error(error);
             return [];
         }
     }
@@ -258,8 +260,8 @@ const removeRandomArtwork = async (artworks) => {
     try {
         object = await fetchJSON$1(`${ENDPOINTS.metObject}/${id}`);
     }
-    catch (err) {
-        console.error(err);
+    catch (error) {
+        console.error(error);
         return;
     }
     const { primaryImage = '', title, artistDisplayName, objectURL } = (object || {});
@@ -276,7 +278,7 @@ const removeRandomArtwork = async (artworks) => {
         titleLink: objectURL,
         providerLink: 'https://www.metmuseum.org'
     };
-    store.met.set(artworks);
+    met$1.set(artworks);
     return artwork;
 };
 const met = {
@@ -290,30 +292,30 @@ const met = {
 // (or progressive, pending the definition of that word changing over time)
 // environment, please add a PR for an addition here.
 const blacklist = [
-    'd/d1/Pierre-Auguste_Renoir_-_Parisiennes_in_Algerian_Costume_or_Harem_-_Google_Art_Project.jpg/2000px-Pierre-Auguste_Renoir_-_Parisiennes_in_Algerian_Costume_or_Harem_-_Google_Art_Project.jpg',
-    '9/9c/John_William_Waterhouse_-_Echo_and_Narcissus_-_Google_Art_Project.jpg/2000px-John_William_Waterhouse_-_Echo_and_Narcissus_-_Google_Art_Project.jpg',
-    '3/36/Hugo_van_der_Goes_-_The_Fall_of_Man_and_The_Lamentation_-_Google_Art_Project.jpg/2000px-Hugo_van_der_Goes_-_The_Fall_of_Man_and_The_Lamentation_-_Google_Art_Project.jpg',
-    '2/2b/Antonio_Allegri%2C_called_Correggio_-_Jupiter_and_Io_-_Google_Art_Project.jpg/2000px-Antonio_Allegri%2C_called_Correggio_-_Jupiter_and_Io_-_Google_Art_Project.jpg',
-    '8/83/Angelo_Bronzino_-_Venus%2C_Cupid%2C_Folly_and_Time_-_National_Gallery%2C_London.jpg/2000px-Angelo_Bronzino_-_Venus%2C_Cupid%2C_Folly_and_Time_-_National_Gallery%2C_London.jpg',
-    'a/a4/Cornelis_Cornelisz._van_Haarlem_-_The_Fall_of_the_Titans_-_Google_Art_Project.jpg/2000px-Cornelis_Cornelisz._van_Haarlem_-_The_Fall_of_the_Titans_-_Google_Art_Project.jpg',
-    'f/f0/Venus_Consoling_Love%2C_Fran%C3%A7ois_Boucher%2C_1751.jpg/2000px-Venus_Consoling_Love%2C_Fran%C3%A7ois_Boucher%2C_1751.jpg',
-    'c/cd/Sarah_Goodridge_Beauty_Revealed_The_Metropolitan_Museum_of_Art.jpg/2000px-Sarah_Goodridge_Beauty_Revealed_The_Metropolitan_Museum_of_Art.jpg',
-    '1/1d/Piero_di_Cosimo_-_Portrait_de_femme_dit_de_Simonetta_Vespucci_-_Google_Art_Project.jpg/2000px-Piero_di_Cosimo_-_Portrait_de_femme_dit_de_Simonetta_Vespucci_-_Google_Art_Project.jpg',
-    '6/6d/Paul_Chabas_September_Morn_The_Metropolitan_Museum_of_Art.jpg/2000px-Paul_Chabas_September_Morn_The_Metropolitan_Museum_of_Art.jpg',
-    'f/f0/Venus_Consoling_Love%2C_François_Boucher%2C_1751.jpg/2000px-Venus_Consoling_Love%2C_François_Boucher%2C_1751.jpg',
-    '8/86/Giorgione_-_Sleeping_Venus_-_Google_Art_Project_2.jpg/2000px-Giorgione_-_Sleeping_Venus_-_Google_Art_Project_2.jpg',
-    'b/b5/Baudry_paul_the_wave_and_the_pearl.jpg/2000px-Baudry_paul_the_wave_and_the_pearl.jpg',
-    '5/5c/Edouard_Manet_-_Olympia_-_Google_Art_Project_3.jpg/2000px-Edouard_Manet_-_Olympia_-_Google_Art_Project_3.jpg',
-    '7/7c/RokebyVenus.jpg/2000px-RokebyVenus.jpg',
-    '4/4c/Goya_Maja_naga2.jpg/2000px-Goya_Maja_naga2.jpg',
-    '6/6e/William-Adolphe_Bouguereau_%281825-1905%29_-_The_Wave_%281896%29.jpg/2000px-William-Adolphe_Bouguereau_%281825-1905%29_-_The_Wave_%281896%29.jpg',
-    'e/e7/Fouquet_Madonna.jpg/2000px-Fouquet_Madonna.jpg',
-    '8/83/Angelo_Bronzino_-_Venus%2C_Cupid%2C_Folly_and_Time_-_National_Gallery%2C_London.jpg/2000px-Angelo_Bronzino_-_Venus%2C_Cupid%2C_Folly_and_Time_-_National_Gallery%2C_London.jpg',
-    'd/d4/Pierre-Auguste_Renoir%2C_French_-_The_Large_Bathers_-_Google_Art_Project.jpg/2000px-Pierre-Auguste_Renoir%2C_French_-_The_Large_Bathers_-_Google_Art_Project.jpg',
-    'f/fa/Peter_Paul_Rubens_-_The_Birth_of_the_Milky_Way%2C_1636-1637.jpg/2000px-Peter_Paul_Rubens_-_The_Birth_of_the_Milky_Way%2C_1636-1637.jpg',
-    '5/5f/Edvard_Munch_-_Madonna_-_Google_Art_Project.jpg/2000px-Edvard_Munch_-_Madonna_-_Google_Art_Project.jpg',
-    'b/b6/Feszty_Panorama.jpg/2000px-Feszty_Panorama.jpg',
-    '6/64/Titian_-_Venus_with_a_Mirror_-_Google_Art_Project.jpg'
+    'Pierre-Auguste_Renoir_-_Parisiennes_in_Algerian_Costume_or_Harem_-_Google_Art_Project.jpg',
+    'John_William_Waterhouse_-_Echo_and_Narcissus_-_Google_Art_Project.jpg',
+    'Hugo_van_der_Goes_-_The_Fall_of_Man_and_The_Lamentation_-_Google_Art_Project.jpg',
+    'Antonio_Allegri%2C_called_Correggio_-_Jupiter_and_Io_-_Google_Art_Project.jpg',
+    'Angelo_Bronzino_-_Venus%2C_Cupid%2C_Folly_and_Time_-_National_Gallery%2C_London.jpg',
+    'Cornelis_Cornelisz._van_Haarlem_-_The_Fall_of_the_Titans_-_Google_Art_Project.jpg',
+    'Venus_Consoling_Love%2C_Fran%C3%A7ois_Boucher%2C_1751.jpg',
+    'Sarah_Goodridge_Beauty_Revealed_The_Metropolitan_Museum_of_Art.jpg',
+    'Piero_di_Cosimo_-_Portrait_de_femme_dit_de_Simonetta_Vespucci_-_Google_Art_Project.jpg',
+    'Paul_Chabas_September_Morn_The_Metropolitan_Museum_of_Art.jpg',
+    'Venus_Consoling_Love%2C_François_Boucher%2C_1751.jpg',
+    'Giorgione_-_Sleeping_Venus_-_Google_Art_Project_2.jpg',
+    'Baudry_paul_the_wave_and_the_pearl.jpg',
+    'Edouard_Manet_-_Olympia_-_Google_Art_Project_3.jpg',
+    'RokebyVenus.jpg',
+    'Goya_Maja_naga2.jpg',
+    'William-Adolphe_Bouguereau_%281825-1905%29_-_The_Wave_%281896%29.jpg',
+    'Fouquet_Madonna.jpg',
+    'Angelo_Bronzino_-_Venus%2C_Cupid%2C_Folly_and_Time_-_National_Gallery%2C_London.jpg',
+    'Pierre-Auguste_Renoir%2C_French_-_The_Large_Bathers_-_Google_Art_Project.jpg',
+    'Peter_Paul_Rubens_-_The_Birth_of_the_Milky_Way%2C_1636-1637.jpg',
+    'Edvard_Munch_-_Madonna_-_Google_Art_Project.jpg',
+    'Feszty_Panorama.jpg',
+    'Titian_-_Venus_with_a_Mirror_-_Google_Art_Project.jpg'
 ];
 
 const apiMap = new Map();
@@ -321,21 +323,21 @@ apiMap.set('rijks', rijks);
 apiMap.set('wikipedia', wikipedia);
 apiMap.set('met', met);
 const getArtwork = async (forceNext = false) => {
-    let current = store$1.get(store.current);
-    let next = store$1.get(store.next);
-    if (current === undefined || forceNext) {
-        if (next === undefined) {
-            current = await getRandom();
+    let current$1 = store$1.get(current);
+    let next$1 = store$1.get(next);
+    if (current$1 === undefined || forceNext) {
+        if (next$1 === undefined) {
+            current$1 = await getRandom();
         }
         else {
-            current = next;
-            next = undefined;
+            current$1 = next$1;
+            next$1 = undefined;
         }
     }
-    store.current.set(current);
-    if (next === undefined) {
-        next = await getRandom();
-        store.next.set(next);
+    current.set(current$1);
+    if (next$1 === undefined) {
+        next$1 = await getRandom();
+        next.set(next$1);
     }
 };
 const disable = (apiName) => {
@@ -363,11 +365,10 @@ const apis = {
 
 var version = "0.1.0";
 
-const APP_VERSION = version;
 const APPDATA_PATH = electron.app.getPath('appData');
-const GALERI_DATA_PATH = path.resolve(APPDATA_PATH, 'Galeri');
-const FAVORITES_DATA_PATH = path.resolve(APPDATA_PATH, 'Galeri', 'favorites.json');
-const DEPRECATED_FAVORITES_DATA_PATH = path.resolve(APPDATA_PATH, 'Galeri Favorites', 'config.json');
+const GALERI_DATA_PATH = path__default["default"].resolve(APPDATA_PATH, 'Galeri');
+const FAVORITES_DATA_PATH = path__default["default"].resolve(APPDATA_PATH, 'Galeri', 'favorites.json');
+const DEPRECATED_FAVORITES_DATA_PATH = path__default["default"].resolve(APPDATA_PATH, 'Galeri Favorites', 'config.json');
 const ICON_PATH = `${electron.app.getAppPath()}/icon_32x32.png`;
 const ICON_DARK_PATH = `${electron.app.getAppPath()}/icon-dark_32x32.png`;
 const ABOUT_PATH = `${electron.app.getAppPath()}/about.html`;
@@ -391,10 +392,10 @@ electron.autoUpdater.on('update-downloaded', () => {
 const parseTag = (tag = '') => {
     return (tag.startsWith('v')
         ? tag.slice(1)
-        : tag).split('.').map((v) => parseInt(v, 10));
+        : tag).split('.').map((v) => Number.parseInt(v, 10));
 };
 const newVersionExists = (tag) => {
-    for (const [i, curVersion] of parseTag(APP_VERSION).entries()) {
+    for (const [i, curVersion] of parseTag(version).entries()) {
         if (curVersion > tag[i])
             return false;
     }
@@ -417,7 +418,7 @@ const updater = async () => {
 };
 
 const isFirstAppLaunch = async () => {
-    const checkFile = path.join(GALERI_DATA_PATH, '.electron-util--has-app-launched');
+    const checkFile = path__default["default"].join(GALERI_DATA_PATH, '.electron-util--has-app-launched');
     try {
         await fs__default["default"].stat(checkFile);
         return false;
@@ -426,31 +427,28 @@ const isFirstAppLaunch = async () => {
         try {
             await fs__default["default"].writeFile(checkFile, '');
         }
-        catch (err) {
-            console.warn('isFirstAppLaunch(): ', err);
+        catch (error) {
+            console.warn('isFirstAppLaunch():', error);
         }
     }
     return true;
 };
-const isErrnoException = (e) => {
-    if ('code' in e)
-        return true;
-    else
-        return false;
+const isErrnoException = (error) => {
+    return ('code' in error);
 };
 
 const { fetch } = globalThis;
 const makeFilepath = (artwork) => {
-    return path.resolve(GALERI_DATA_PATH, `artwork_${artwork.id}${path__default["default"].extname(artwork.src)}`);
+    return path__default["default"].resolve(GALERI_DATA_PATH, `artwork_${artwork.id}${path__default["default"].extname(artwork.src)}`);
 };
 const download = async (artwork) => {
     const output = makeFilepath(artwork);
     try {
         await fs__default["default"].mkdir(GALERI_DATA_PATH);
     }
-    catch (err) {
-        if (isErrnoException(err) && err.code !== ERROR_EEXIST) {
-            console.warn('image.download(): ', err);
+    catch (error) {
+        if (isErrnoException(error) && error.code !== ERROR_EEXIST) {
+            console.warn('image.download():', error);
         }
     }
     await fetch(artwork.src, { output });
@@ -460,15 +458,15 @@ const remove = async (filepath) => {
     try {
         await fs__default["default"].unlink(filepath);
     }
-    catch (err) {
-        console.warn('image.remove(): ', err);
+    catch (error) {
+        console.warn('image.remove():', error);
     }
 };
 const makeThumb = async (imagepath) => {
     const width = 1000;
     const quality = 100;
     const image = electron.nativeImage.createFromPath(imagepath);
-    const filepath = path.resolve(electron.app.getPath('appData'), 'Galeri Favorites', path.basename(imagepath));
+    const filepath = path__default["default"].resolve(electron.app.getPath('appData'), 'Galeri Favorites', path__default["default"].basename(imagepath));
     await fs__default["default"].writeFile(filepath, image.resize({ width }).toJPEG(quality));
 };
 const image = {
@@ -547,8 +545,8 @@ const menuTemplate = [
     },
     ...baseItems
 ];
-const onEvent = (fn) => {
-    subscriber = fn;
+const onEvent = (callback) => {
+    subscriber = callback;
 };
 const setUpdating = () => {
     _tray.setContextMenu(updatingTemplate);
@@ -559,7 +557,7 @@ const setArtwork = (artwork) => {
     }
     artworkLink = artwork.titleLink;
     menuTemplate[2].label = artwork.title.length > 30
-        ? `${artwork.title.substring(0, 30)}...`
+        ? `${artwork.title.slice(0, 30)}...`
         : artwork.title;
     menuTemplate[2].enabled = (artworkLink !== undefined && artworkLink !== '');
     _tray.setToolTip(artwork.title);
@@ -587,31 +585,31 @@ const init$2 = async () => {
     try {
         await fs__default["default"].mkdir(GALERI_DATA_PATH);
     }
-    catch (err) {
-        if (isErrnoException(err) && err.code !== ERROR_EEXIST) {
-            console.warn('storage.init(): ', err);
+    catch (error) {
+        if (isErrnoException(error) && error.code !== ERROR_EEXIST) {
+            console.warn('storage.init():', error);
         }
     }
     for (const api of API_KEYS) {
         try {
-            const filepath = path.resolve(GALERI_DATA_PATH, `${api}.json`);
-            const file = await fs__default["default"].readFile(filepath, { encoding: 'utf-8' });
+            const filepath = path__default["default"].resolve(GALERI_DATA_PATH, `${api}.json`);
+            const file = await fs__default["default"].readFile(filepath, 'utf-8');
             store[api].set(JSON.parse(file));
         }
-        catch (err) {
-            if (isErrnoException(err) && err.code !== ERROR_ENOENT) {
-                console.warn('storage.init(): ', err);
+        catch (error) {
+            if (isErrnoException(error) && error.code !== ERROR_ENOENT) {
+                console.warn('storage.init():', error);
             }
         }
     }
     try {
-        const filepath = path.resolve(GALERI_DATA_PATH, `rijksPage.json`);
-        const file = await fs__default["default"].readFile(filepath, { encoding: 'utf-8' });
+        const filepath = path__default["default"].resolve(GALERI_DATA_PATH, `rijksPage.json`);
+        const file = await fs__default["default"].readFile(filepath, 'utf-8');
         store.rijksPage.set(JSON.parse(file));
     }
-    catch (err) {
-        if (isErrnoException(err) && err.code !== ERROR_ENOENT) {
-            console.warn('storage.init(): ', err);
+    catch (error) {
+        if (isErrnoException(error) && error.code !== ERROR_ENOENT) {
+            console.warn('storage.init():', error);
         }
     }
     for (const [key, storeItem] of Object.entries(store)) {
@@ -620,12 +618,12 @@ const init$2 = async () => {
             if (value === undefined) {
                 return;
             }
-            const filepath = path.resolve(GALERI_DATA_PATH, `${key}.json`);
+            const filepath = path__default["default"].resolve(GALERI_DATA_PATH, `${key}.json`);
             try {
                 fs__default["default"].writeFile(filepath, JSON.stringify(value));
             }
-            catch (err) {
-                console.warn('storage.init(): [key] ', err);
+            catch (error) {
+                console.warn('storage.init(): [key]', error);
             }
         });
     }
@@ -674,28 +672,28 @@ const init$1 = async () => {
     }
     catch (error) {
         if (isErrnoException(error) && error.code !== ERROR_EEXIST) {
-            console.warn('favorites.init(): ', error);
+            console.warn('favorites.init():', error);
         }
     }
     // Upgrade the old favorites file if on the user's computer
     try {
-        const favoritesFile = await fs__default["default"].readFile(DEPRECATED_FAVORITES_DATA_PATH, { encoding: 'utf-8' });
+        const favoritesFile = await fs__default["default"].readFile(DEPRECATED_FAVORITES_DATA_PATH, 'utf-8');
         favoritesList = upgradeFavoritesList(JSON.parse(favoritesFile).favorites);
         await fs__default["default"].unlink(DEPRECATED_FAVORITES_DATA_PATH);
         await fs__default["default"].writeFile(FAVORITES_DATA_PATH, JSON.stringify({ favorites: favoritesList }));
     }
     catch (error) {
         if (isErrnoException(error) && error.code !== ERROR_ENOENT) {
-            console.warn('favorites.init(): ', error);
+            console.warn('favorites.init():', error);
         }
         // Get the favorites list
         try {
-            const favoritesFile = await fs__default["default"].readFile(FAVORITES_DATA_PATH, { encoding: 'utf-8' });
+            const favoritesFile = await fs__default["default"].readFile(FAVORITES_DATA_PATH, 'utf-8');
             favoritesList = JSON.parse(favoritesFile).favorites;
         }
         catch (error) {
             if (isErrnoException(error) && error.code !== ERROR_ENOENT) {
-                console.warn('favorites.init(): ', error);
+                console.warn('favorites.init():', error);
             }
         }
     }
@@ -730,8 +728,8 @@ const updateFavoritesList = (list) => {
         fs__default["default"].writeFile(FAVORITES_DATA_PATH, JSON.stringify({ favorites: list }));
         favoritesList = list;
     }
-    catch (err) {
-        console.warn('favorites.updateFavoriteList(): ', err);
+    catch (error) {
+        console.warn('favorites.updateFavoriteList():', error);
     }
 };
 const open = async () => {
@@ -749,7 +747,7 @@ const open = async () => {
         skipTaskbar: true,
         backgroundColor: '#333',
         webPreferences: {
-            preload: path.resolve(__dirname, 'preload.cjs'),
+            preload: path__default["default"].resolve(__dirname, 'preload.cjs'),
             scrollBounce: true
         }
     });
@@ -798,14 +796,13 @@ if (gotTheLock === false) {
     electron.app.quit();
     process.exit(0);
 }
-electron.app.allowRendererProcessReuse = true;
 if (electron.app.dock !== undefined) {
     electron.app.dock.hide();
 }
 let artwork;
 let imgPath;
 let nextImgPath;
-let prevImgPath;
+let previousImgPath;
 const handleTrayEvent = (event) => {
     switch (event) {
         case 'favorite':
@@ -831,7 +828,7 @@ const handleNextArtwork = async (next) => {
 const handleCurrentArtwork = async (current) => {
     tray.setUpdating();
     artwork = current;
-    prevImgPath = imgPath;
+    previousImgPath = imgPath;
     if (nextImgPath !== undefined && image.makeFilepath(current) === nextImgPath) {
         imgPath = nextImgPath;
     }
@@ -844,11 +841,11 @@ const handleCurrentArtwork = async (current) => {
         }
     }
     await wallpaper__default["default"].set(imgPath);
-    if (prevImgPath !== undefined) {
-        image.remove(prevImgPath);
+    if (previousImgPath !== undefined) {
+        image.remove(previousImgPath);
     }
-    const curWallpaper = await wallpaper__default["default"].get();
-    if (curWallpaper !== imgPath) {
+    const currentWallpaper = await wallpaper__default["default"].get();
+    if (currentWallpaper !== imgPath) {
         return apis.getArtwork(true);
     }
     tray.setArtwork(current);

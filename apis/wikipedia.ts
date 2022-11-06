@@ -7,6 +7,10 @@ import type { CheerioAPI } from 'cheerio'
 
 const { fetchJSON } = globalThis
 
+/**
+ * http://en.wikipedia.org/w/api.php?format=json&action=query&generator=images&prop=imageinfo&iiprop=url|dimensions|mime&gimlimit=500&pageids=16924509
+ * http://en.wikipedia.org/w/api.php?format=json&action=query&generator=images&prop=imageinfo&iiprop=url|dimensions|mime&gimcontinue=16924509|Vincent_van_Gogh_-_Dr_Paul_Gachet_-_Google_Art_Project.jpg
+ */
 const randomArtwork = async (): Promise<ArtObject | undefined> => {
 	const artworks = await getArtObjects()
 
@@ -44,27 +48,27 @@ const getArtObjects = async (): Promise<ArtObject[]> => {
 	}
 }
 
-const parseBrowser = (str: string): ArtObject[] => {
+const parseBrowser = (string: string): ArtObject[] => {
 	const artworks: ArtObject[] = []
-	const dom = new DOMParser().parseFromString(str, 'text/html')
+	const dom = new DOMParser().parseFromString(string, 'text/html')
 
-	for (const el of dom.querySelectorAll('.gallerybox')) {
-		const imgEl = el.querySelector('img')
-		const titleEl = el.querySelector('.gallerytext b')
-		const titleLinkEl = el.querySelector('.gallerytext b a') as HTMLAnchorElement | undefined
-		const artistEl = [...el.querySelectorAll('.gallerytext a')].pop() as HTMLAnchorElement | undefined
-		const arr = imgEl?.src?.split('/')?.slice(0, -1)
-		const src = arr?.join('/')?.replace('/thumb/', '/')
-		const title = titleEl?.textContent?.trim()
-		const artist = artistEl?.textContent?.trim()
-		const artistLink = artistEl?.href
-		const titleLink = titleLinkEl?.href
+	for (const element of dom.querySelectorAll('.gallerybox')) {
+		const imgElement = element.querySelector('img')
+		const titleElement = element.querySelector('.gallerytext b')
+		const titleLinkElement = element.querySelector('.gallerytext b a') as HTMLAnchorElement | undefined
+		const artistElement = [...element.querySelectorAll('.gallerytext a')].pop() as HTMLAnchorElement | undefined
+		const array = imgElement?.src?.split('/')?.slice(0, -1)
+		const source = array?.join('/')?.replace('/thumb/', '/')
+		const title = titleElement?.textContent?.trim()
+		const artist = artistElement?.textContent?.trim()
+		const artistLink = artistElement?.href
+		const titleLink = titleLinkElement?.href
 
-		if (src === undefined) continue
+		if (source === undefined) continue
 
 		artworks.push({
 			id: nanoid(),
-			src: `https://upload.wikimedia.org${src.split('//upload.wikimedia.org').pop()}`,
+			src: `https://upload.wikimedia.org${source.split('//upload.wikimedia.org').pop()}`,
 			title,
 			artist,
 			artistLink,
@@ -77,27 +81,27 @@ const parseBrowser = (str: string): ArtObject[] => {
 	return artworks
 }
 
-const parseNodeJS = (str: string) => {
+const parseNodeJS = (string: string) => {
 	const { $ } = globalThis as unknown as { $: CheerioAPI }
 	const artworks: ArtObject[] = []
 
-	$('.gallerybox', str).each((_i: number, el) => {
-		const imgEl = $('img', el)
-		const titleEl = $('.gallerytext b', el)
-		const titleLinkEl = $('.gallerytext b a', el)
-		const artistEl = $('.gallerytext a', el)?.last()
-		const arr = imgEl.attr('src')?.split('/')?.slice(0, -1)
-		const src = arr?.join('/')?.replace('/thumb/', '/')
-		const title = titleEl?.text()?.trim()
-		const artist = artistEl?.text()?.trim()
-		const artistLink = artistEl?.attr('href')
-		const titleLink = titleLinkEl?.attr('href')
+	$('.gallerybox', string).each((_index: number, element) => {
+		const imgElement = $('img', element)
+		const titleElement = $('.gallerytext b', element)
+		const titleLinkElement = $('.gallerytext b a', element)
+		const artistElement = $('.gallerytext a', element)?.last()
+		const array = imgElement.attr('src')?.split('/')?.slice(0, -1)
+		const source = array?.join('/')?.replace('/thumb/', '/')
+		const title = titleElement?.text()?.trim()
+		const artist = artistElement?.text()?.trim()
+		const artistLink = artistElement?.attr('href')
+		const titleLink = titleLinkElement?.attr('href')
 
-		if (src === undefined) return
+		if (source === undefined) return
 
 		artworks.push({
 			id: nanoid(),
-			src: `https://upload.wikimedia.org${src.split('//upload.wikimedia.org').pop()}`,
+			src: `https://upload.wikimedia.org${source.split('//upload.wikimedia.org').pop()}`,
 			title,
 			artist,
 			artistLink,

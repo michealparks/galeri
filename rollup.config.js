@@ -24,10 +24,10 @@ export default [{
     'fs/promises',
     'crypto',
     'util',
-    'path',
+    'node:path',
     'child_process',
-    'os'
-  ].concat(DEV ? [
+    'node:os'
+  , ...(DEV ? [
     'wallpaper',
     'cheerio',
     'electron-unhandled',
@@ -36,7 +36,7 @@ export default [{
     'electron-serve',
     'svelte/store',
     'nanoid',
-  ]: []),
+  ]: [])],
   plugins: [
     json(),
     DEV === false && nodeResolve({ preferBuiltins: true }),

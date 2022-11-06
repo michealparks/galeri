@@ -1,7 +1,7 @@
 import '../index.css'
 import App from './App.svelte'
 
-const target = document.getElementById('app')
+const target = document.querySelector('#app')
 
 if (!target) {
   throw new Error('Target is undefined')

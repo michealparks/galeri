@@ -10,6 +10,6 @@ interface FetchOptions {
 
 declare global {
   const fetchJSON: (input: RequestInfo | string, init?: RequestInit) => Promise<Response>
-  const fetch: (input: RequestInfo | string, opts: FetchOptions = {}) => string
+  const fetch: (input: RequestInfo | string, options: FetchOptions = {}) => string
   const $: CheerioAPI
 }

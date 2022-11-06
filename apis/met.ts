@@ -32,8 +32,8 @@ const getArtworks = async (): Promise<ArtObject[]> => {
 			metStore.set(artworks)
 			return artworks
 
-		} catch (err) {
-			console.error(err)
+		} catch (error) {
+			console.error(error)
 			return []
 		}
 	}
@@ -54,8 +54,8 @@ const removeRandomArtwork = async (artworks: ArtObject[]): Promise<ArtObject | u
 
 	try {
 		object = await fetchJSON(`${ENDPOINTS.metObject}/${id}`)
-	} catch (err) {
-		console.error(err)
+	} catch (error) {
+		console.error(error)
 		return
 	}
 

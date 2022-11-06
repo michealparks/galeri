@@ -3,6 +3,7 @@ import type { ArtObject } from '../apis/types'
 
 import { enforceMacOSAppLocation, openNewGitHubIssue, debugInfo } from 'electron-util'
 import unhandled from 'electron-unhandled'
+
 unhandled({
 	reportButton: error => {
 		openNewGitHubIssue({
@@ -43,7 +44,7 @@ if (app.dock !== undefined) {
 let artwork: ArtObject
 let imgPath: string
 let nextImgPath: string | undefined
-let prevImgPath: string
+let previousImgPath: string
 
 const handleTrayEvent = (event: string) => {
 	switch (event) {
@@ -72,7 +73,7 @@ const handleCurrentArtwork = async (current: ArtObject) => {
 	tray.setUpdating()
 
 	artwork = current
-	prevImgPath = imgPath
+	previousImgPath = imgPath
 
 	if (nextImgPath !== undefined && image.makeFilepath(current) === nextImgPath) {
 		imgPath = nextImgPath
@@ -86,13 +87,13 @@ const handleCurrentArtwork = async (current: ArtObject) => {
 
 	await wallpaper.set(imgPath)
 
-	if (prevImgPath !== undefined) {
-		image.remove(prevImgPath)
+	if (previousImgPath !== undefined) {
+		image.remove(previousImgPath)
 	}
 
-	const curWallpaper = await wallpaper.get()
+	const currentWallpaper = await wallpaper.get()
 
-	if (curWallpaper !== imgPath) {
+	if (currentWallpaper !== imgPath) {
 		return apis.getArtwork(true)
 	}
 

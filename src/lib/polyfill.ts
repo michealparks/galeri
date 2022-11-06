@@ -1,5 +1,5 @@
-const json = (res: Response) => {
-	return res.json()
+const json = (response: Response) => {
+	return response.json()
 }
 
 globalThis.fetchJSON = (input: RequestInfo, init?: RequestInit) => {

@@ -1,4 +1,4 @@
-import os from 'os'
+import os from 'node:os'
 import { autoUpdater } from 'electron'
 import { URLS, APP_VERSION } from './constants'
 
@@ -13,7 +13,7 @@ const parseTag = (tag = ''): number[] => {
 		tag.startsWith('v')
 			? tag.slice(1)
 			: tag
-	).split('.').map((v) => parseInt(v, 10))
+	).split('.').map((v) => Number.parseInt(v, 10))
 }
 
 const newVersionExists = (tag: number[]): boolean => {

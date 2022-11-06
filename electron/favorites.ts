@@ -9,8 +9,8 @@ import {
 	ERROR_ENOENT
 } from './constants'
 
-import fs from 'fs/promises'
-import { resolve } from 'path'
+import fs from 'node:fs/promises'
+import path from 'node:path'
 import { nanoid } from 'nanoid'
 import { BrowserWindow, ipcMain } from 'electron'
 import { isErrnoException } from './util'
@@ -32,28 +32,28 @@ const init = async (): Promise<void> => {
 		await fs.mkdir(GALERI_DATA_PATH)
 	} catch (error) {
 		if (isErrnoException(error) && error.code !== ERROR_EEXIST) {
-			console.warn('favorites.init(): ', error)
+			console.warn('favorites.init():', error)
 		}
 	}
 
 	// Upgrade the old favorites file if on the user's computer
 	try {
-		const favoritesFile = await fs.readFile(DEPRECATED_FAVORITES_DATA_PATH, { encoding: 'utf-8' })
+		const favoritesFile = await fs.readFile(DEPRECATED_FAVORITES_DATA_PATH, 'utf-8')
 		favoritesList = upgradeFavoritesList(JSON.parse(favoritesFile).favorites as unknown)
 		await fs.unlink(DEPRECATED_FAVORITES_DATA_PATH)
 		await fs.writeFile(FAVORITES_DATA_PATH, JSON.stringify({ favorites: favoritesList }))
 	} catch (error) {
 		if (isErrnoException(error) && error.code !== ERROR_ENOENT) {
-			console.warn('favorites.init(): ', error)
+			console.warn('favorites.init():', error)
 		}
 
 		// Get the favorites list
 		try {
-			const favoritesFile = await fs.readFile(FAVORITES_DATA_PATH, { encoding: 'utf-8' })
+			const favoritesFile = await fs.readFile(FAVORITES_DATA_PATH, 'utf-8')
 			favoritesList = JSON.parse(favoritesFile).favorites
 		} catch (error) {
 			if (isErrnoException(error) && error.code !== ERROR_ENOENT) {
-				console.warn('favorites.init(): ', error)
+				console.warn('favorites.init():', error)
 			}
 		}
 	}
@@ -94,8 +94,8 @@ const updateFavoritesList = (list: ArtObject[]) => {
 	try {
 		fs.writeFile(FAVORITES_DATA_PATH, JSON.stringify({ favorites: list }))
 		favoritesList = list
-	} catch (err) {
-		console.warn('favorites.updateFavoriteList(): ', err)
+	} catch (error) {
+		console.warn('favorites.updateFavoriteList():', error)
 	}
 }
 
@@ -115,7 +115,7 @@ const open = async (): Promise<number> => {
 		skipTaskbar: true,
 		backgroundColor: '#333',
 		webPreferences: {
-			preload: resolve(__dirname, 'preload.cjs'),
+			preload: path.resolve(__dirname, 'preload.cjs'),
 			scrollBounce: true
 		}
 	})
