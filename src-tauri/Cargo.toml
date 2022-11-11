@@ -1,0 +1,31 @@
+[package]
+name = "galeri-1"
+version = "0.0.1"
+description = "A perpetual artwork streaming app"
+authors = ["Micheal Parks"]
+license = ""
+repository = ""
+edition = "2021"
+rust-version = "1.65"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[build-dependencies]
+tauri-build = { version = "1.1", features = [] }
+
+[dependencies]
+serde_json = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+rand = "0.8.5"
+reqwest = { version = "0.11.12", features = ["json", "blocking", "gzip"] }
+tauri = { version = "1.1", features = ["http-all", "os-all", "path-all", "system-tray"] }
+wallpaper = "3.2.0"
+uuid = { version = "1.2.1", features = ["v4", "fast-rng", "macro-diagnostics"] }
+
+[features]
+# by default Tauri runs in production mode
+# when `tauri dev` runs it is executed with `cargo run --no-default-features` if `devPath` is an URL
+default = [ "custom-protocol" ]
+# this feature is used used for production builds where `devPath` points to the filesystem
+# DO NOT remove this
+custom-protocol = [ "tauri/custom-protocol" ]
