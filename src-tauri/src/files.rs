@@ -1,5 +1,6 @@
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::io::{ErrorKind};
 
 pub fn create_dir(path: &Path) {
   match fs::create_dir_all(path) {
@@ -14,7 +15,10 @@ pub fn create_dir(path: &Path) {
 pub fn delete_dir(path: &Path) {
   match fs::remove_dir_all(path) {
     Err(why) => {
-      println!("Error deleting dir: {:?}", why);
+      if why.kind() != ErrorKind::NotFound {
+        println!("Error deleting dir: {:?}", why);
+      }
+
       return;
     },
     Ok(_) => (),
