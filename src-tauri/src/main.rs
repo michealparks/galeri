@@ -5,18 +5,19 @@
 
 use std::path::{Path};
 use std::{thread, time, path::PathBuf};
-use tauri::SystemTrayEvent;
-use wallpaper;
+use tauri::{SystemTrayEvent};
 use webbrowser;
 
 mod api;
+mod autolaunch;
+mod files;
 mod tray;
+mod wallpaper;
 mod window;
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
 fn greet(name: &str) -> String {
-  
   format!("Hello, {}! You've been greeted from Rust!", name)
 }
 
@@ -24,20 +25,20 @@ fn sleep(duration: u64) {
   thread::sleep(time::Duration::from_secs(duration));
 }
 
-fn set_artwork_loop(appdir: &Path, handle: &tauri::AppHandle) {
-  println!("path {:?}", appdir);
+fn start_artwork_loop(appdir: &Path, handle: &tauri::AppHandle) {
+  let binding = appdir.join(&"images");
+  let artpath = binding.as_path();
 
-  let interval = 5; // One hour.
+  files::delete_dir(artpath);
+
+  let interval = 5; // 60 * 60; // One hour.
   let error_interval = 30;
   let mut artworks: Vec<api::Artwork> = Vec::with_capacity(0);
   let mut last_path = PathBuf::new();
 
   loop {
     if artworks.len() == 0 {
-      artworks = match api::fetch_list() {
-        Ok(results) => results,
-        Err(_) => Vec::with_capacity(0),
-      };
+      artworks = api::fetch_list();
     }
 
     if artworks.len() == 0 {
@@ -47,32 +48,28 @@ fn set_artwork_loop(appdir: &Path, handle: &tauri::AppHandle) {
 
     let artwork = artworks.pop().expect("Error popping artwork off array.");
 
-    let ok = api::fetch_image(&artwork.image_url, &appdir, &artwork.file);
+    let ok = api::fetch_image(&artwork.image_url, &artpath, &artwork.file.clone());
 
     if !ok {
       sleep(error_interval);
       continue;
     }
 
-    let path = appdir.join(artwork.file);
+    let path = artpath.join(&artwork.file);
 
-    match wallpaper::set_from_path(&String::from(path.to_string_lossy())) {
-      Ok(_) => (),
-      Err(_) => continue,
+    if wallpaper::set(&path) == false {
+      continue;
     }
-  
-    wallpaper::set_mode(wallpaper::Mode::Center);
 
     let tray_handle = handle.tray_handle();
-    tray_handle.set_menu(tray::create_menu(&artwork.title));
+    match tray_handle.set_menu(tray::create_menu(&artwork.title)) {
+      Err(why) => println!("Error setting tray menu: {:?}", why),
+      Ok(_) => (),
+    };
 
-    match last_path.to_str() {
-      Some(str) => if str != "" {
-        api::delete_file(&last_path);
-        ()
-      },
-      None => ()
-    }
+    api::write_json_file(appdir.join("current.json").as_path(), &api::Artwork { ..artwork });
+    
+    files::delete_file(&last_path);
 
     last_path = path;
 
@@ -80,26 +77,44 @@ fn set_artwork_loop(appdir: &Path, handle: &tauri::AppHandle) {
   }
 }
 
+fn open_artwork_source_url(appdir: &PathBuf) {
+  let artwork = match api::read_json_file(appdir.join("current.json").as_path()) {
+    Err(why) => {
+      println!("Error reading json file: {:?}", why);
+      return;
+    },
+    Ok(artwork) => artwork,
+  };
+
+  match webbrowser::open(&artwork.description_url) {
+    Err(why) => println!("Error opening browser: {:?}", why),
+    Ok(_) => (),
+  };
+}
+
 fn main() {
   tauri::Builder::default()
     .setup(move |app| {
+      autolaunch::setup(&app.package_info().name);
+
       let handle = app.handle();
-      let appdir = app.path_resolver().app_dir().expect("Error getting appdir").as_path().to_owned();
+      let handle_copy = app.handle();
+      let appdir = app.path_resolver().app_dir().expect("Error getting app_dir").as_path().to_owned();
+      let appdir_copy = appdir.clone().to_owned();
+      println!("appdir: {}", appdir.display());
 
       thread::spawn(move || {
-        set_artwork_loop(&appdir, &handle);
+        start_artwork_loop(&appdir_copy, &handle);
       });
 
-      tray::setup().on_event(|event| {
+      tray::setup().on_event(move |event| {
         match event {
           SystemTrayEvent::MenuItemClick { id, .. } => {
             match id.as_str() {
               "quit" => std::process::exit(0),
-              "title" => {
-                webbrowser::open("http://github.com");
-                return;
-              },
-              // "favorites" => window::create(&app.handle(), "index.html"),
+              "about" => window::focus_or_create(&handle_copy, "about", "about.html"),
+              "next" => {},
+              "title" => open_artwork_source_url(&appdir),
               _ => (),
             }
           }
@@ -111,6 +126,12 @@ fn main() {
       Ok(())
     })
     .invoke_handler(tauri::generate_handler![greet])
-    .run(tauri::generate_context!())
-    .expect("error while running Galeri");
+    .build(tauri::generate_context!())
+    .expect("Error building Galeri")
+    .run(|_app_handle, event| match event {
+      tauri::RunEvent::ExitRequested { api, .. } => {
+        api.prevent_exit();
+      }
+      _ => {}
+    });
 }

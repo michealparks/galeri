@@ -7,8 +7,8 @@
     "withGlobalTauri": true
   },
   "package": {
-    "productName": "galeri",
-    "version": "0.0.0"
+    "productName": "Galeri",
+    "version": "0.1.0"
   },
   "tauri": {
     "allowlist": {
@@ -28,8 +28,8 @@
     },
     "bundle": {
       "active": true,
-      "category": "DeveloperTool",
-      "copyright": "",
+      "category": "Entertainment",
+      "copyright": "2022 Micheal Parks",
       "deb": {
         "depends": []
       },
@@ -41,8 +41,8 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "identifier": "com.tauri.dev",
-      "longDescription": "",
+      "identifier": "com.galeri.dev",
+      "longDescription": "Galeri is a perpetual artwork streaming app.",
       "macOS": {
         "entitlements": null,
         "exceptionDomain": "",
