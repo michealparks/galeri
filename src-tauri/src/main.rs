@@ -25,7 +25,7 @@ fn start_artwork_loop(appdir: &Path, handle: &tauri::AppHandle) {
 
   files::delete_dir(artpath);
 
-  let interval = 5; // 60 * 60; // one hour.
+  let interval = 60 * 60; // one hour.
   let error_interval = 30; // seconds.
   let mut artworks: Vec<api::Artwork> = Vec::with_capacity(0);
   let mut last_path = PathBuf::new();
@@ -84,6 +84,7 @@ fn open_artwork_source_url(appdir: &PathBuf) {
 fn main() {
   tauri::Builder::default()
     .setup(move |app| {
+      // Don't show app icon in the dock.
       #[cfg(target_os = "macos")]
       app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
@@ -92,7 +93,6 @@ fn main() {
       let handle = app.handle();
       let appdir = app.path_resolver().app_dir().expect("Error getting app_dir").as_path().to_owned();
       let appdir_copy = appdir.clone();
-      println!("appdir: {}", appdir.display());
 
       thread::spawn(move || {
         start_artwork_loop(&appdir_copy, &handle);
@@ -121,7 +121,7 @@ fn main() {
     .build(tauri::generate_context!())
     .expect("Error building Galeri")
     .run(|_app_handle, event| match event {
-      // Prevents the app from exiting entirely if all windows are closed.
+      // Prevent the app from exiting entirely if all windows are closed.
       tauri::RunEvent::ExitRequested { api, .. } => {
         api.prevent_exit();
       }

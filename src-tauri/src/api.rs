@@ -27,6 +27,7 @@ pub struct Artwork {
 }
 
 const URL: &str = "https://en.wikipedia.org/w/api.php";
+const NUM_RESULTS: usize = 500;
 
 fn shuffle(mut vec: Vec<Artwork>) -> Vec<Artwork> {
   let mut rng = rand::thread_rng();
@@ -48,7 +49,6 @@ pub fn fetch_list() -> Vec<Artwork> {
     Ok(client) => client,
   };
 
-  let count = 500;
   let response = match client
     .get(URL)
     .query(&[("action", "query")])
@@ -56,7 +56,7 @@ pub fn fetch_list() -> Vec<Artwork> {
     .query(&[("generator", "images")])
     .query(&[("prop", "imageinfo")])
     .query(&[("iiprop", "url|dimensions|mime")])
-    .query(&[("gimlimit", count.to_string())])
+    .query(&[("gimlimit", NUM_RESULTS.to_string())])
     .query(&[("pageids", "16924509")])
     .send() {
       Err(why) => {
@@ -78,7 +78,7 @@ pub fn fetch_list() -> Vec<Artwork> {
     Ok(json) => json,
   };
 
-  let mut artworks: Vec<Artwork> = Vec::with_capacity(count);
+  let mut artworks: Vec<Artwork> = Vec::with_capacity(NUM_RESULTS);
 
   for (_key, value) in json.query.pages.as_object().unwrap() {
     let title = value["title"].to_string()
