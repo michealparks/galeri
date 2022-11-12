@@ -7,4 +7,3 @@ pub fn create(manager: &tauri::AppHandle, url: &str) {
     tauri::WindowUrl::App(url.into())
   ).build().expect("failed to build window");
 }
-

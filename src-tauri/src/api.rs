@@ -7,7 +7,6 @@ use std::fs::{File};
 use std::path::Path;
 use rand::Rng;
 use uuid::Uuid;
-use std::error::Error;
 
 #[derive(Debug, Deserialize, Serialize)]
 struct Query {
@@ -62,15 +61,11 @@ pub fn fetch_list() -> Result<Vec<Artwork>, Box<dyn std::error::Error>> {
 
   let mut artworks: Vec<Artwork> = Vec::with_capacity(count);
 
-
-// https://upload.wikimedia.org/wikipedia/commons/5/55/Vasnetsov_samolet.jpg
-// https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Giambattista_Tiepolo_-_The_Banquet_of_Cleopatra_-_Google_Art_Project.jpg/3091px-Giambattista_Tiepolo_-_The_Banquet_of_Cleopatra_-_Google_Art_Project.jpg
-
   for (_key, value) in response.query.pages.as_object().unwrap() {
-    let title = value["title"].to_string().replace("\"", "")
-      .replace("File:", "")
-      .replace(",", "")
-      .replace(" ", "_");
+    let title = value["title"].to_string()
+      .replace("\"", "")
+      .replace("File:", "");
+      
     let ext = match title.clone().split('.').last() {
       Some(str) => String::from(str),
       None => String::new(),
@@ -81,7 +76,7 @@ pub fn fetch_list() -> Result<Vec<Artwork>, Box<dyn std::error::Error>> {
     artworks.push(Artwork {
       description_url: value["imageinfo"][0]["descriptionurl"].to_string().replace("\"", ""),
       image_url: [image_url.replace("commons", "commons/thumb"), format!("2500px-{}", title)].join("/"),
-      title: title,
+      title: title.replace(".jpg", ""),
       file: file,
     });
   }
