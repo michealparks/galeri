@@ -91,7 +91,7 @@ fn main() {
       autolaunch::setup(&app.package_info().name);
 
       let handle = app.handle();
-      let appdir = app.path_resolver().app_dir().expect("Error getting app_dir").as_path().to_owned();
+      let appdir = app.path_resolver().app_data_dir().expect("Error getting app_dir").as_path().to_owned();
       let appdir_copy = appdir.clone();
 
       thread::spawn(move || {
