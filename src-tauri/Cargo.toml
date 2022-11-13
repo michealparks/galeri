@@ -1,5 +1,5 @@
 [package]
-name = "galeri-1"
+name = "Galeri"
 version = "0.1.0"
 description = "A perpetual artwork streaming app"
 authors = ["Micheal Parks"]
@@ -19,8 +19,8 @@ rand = "0.8.5"
 reqwest = { version = "0.11.12", features = ["json", "blocking", "gzip"] }
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
-tauri = { version = "1.2", features = ["http-all", "os-all", "path-all", "system-tray"] }
-uuid = { version = "1.2.1", features = ["v4", "fast-rng", "macro-diagnostics"] }
+tauri = { version = "1.2", features = ["fs-copy-file", "fs-create-dir", "fs-read-dir", "fs-read-file", "fs-remove-dir", "fs-remove-file", "fs-write-file", "http-request", "os-all", "path-all", "system-tray", "window-center", "window-create", "window-set-focus", "window-set-position", "window-set-resizable", "window-set-title", "window-show"] }
+uuid = { version = "1.2.1", features = ["v4", "fast-rng"] }
 wallpaper = "3.2.0"
 webbrowser = "0.8.2"
 

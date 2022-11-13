@@ -16,6 +16,10 @@ pub fn focus_or_create(handle: &tauri::AppHandle, label: &str, url: &str) {
     },
   };
 
+  match window.set_resizable(false) {
+    Err(why) => println!("Error setting window property: {:?}", why),
+    Ok(_) => (),
+  };
   match window.set_title("") {
     Err(why) => println!("Error setting window title: {:?}", why),
     Ok(_) => (),
