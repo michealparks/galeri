@@ -12,11 +12,26 @@
   },
   "tauri": {
     "allowlist": {
+      "all": false,
       "fs": {
-        "scope": ["$APP/*"]
+        "readFile": true,
+        "writeFile": true,
+        "readDir": true,
+        "copyFile": true,
+        "createDir": true,
+        "removeDir": true,
+        "removeFile": true
+      },
+      "window": {
+        "create": true,
+        "center": true,
+        "setResizable": true,
+        "setTitle": true,
+        "show": true,
+        "setPosition": true,
+        "setFocus": true
       },
       "http": {
-        "all": true,
         "request": true
       },
       "os": {

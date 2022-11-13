@@ -14,4 +14,7 @@ npm run tauri dev
 ```
 
 ### References:
+https://rfdonnelly.github.io/posts/tauri-async-rust-process/
 https://github.com/jondot/tauri-tray-app/blob/master/src-tauri/src/main.rs
+https://doc.rust-lang.org/book/ch16-03-shared-state.html#sharing-a-mutext-between-multiple-threads
+https://blog.knoldus.com/message-passing-in-rust-threads-is-very-helpful/

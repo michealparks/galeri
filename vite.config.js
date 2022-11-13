@@ -14,11 +14,17 @@ export default defineConfig({
   // https://tauri.studio/v1/api/config#buildconfig.beforedevcommand
   envPrefix: ["VITE_", "TAURI_"],
   build: {
+    polyfillModulePreload: false,
     // Tauri supports es2021
-    target: ["es2021", "chrome100", "safari13"],
+    target: ["es2021"],
     // don't minify for debug builds
     minify: !process.env.TAURI_DEBUG ? "esbuild" : false,
     // produce sourcemaps for debug builds
     sourcemap: !!process.env.TAURI_DEBUG,
+    rollupOptions: {
+      input: {
+        about: 'about.html',
+      },
+    },
   },
 });
