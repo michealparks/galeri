@@ -1,4 +1,5 @@
 use rand::Rng;
+use rand::seq::SliceRandom;
 use reqwest::{self, header, StatusCode};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -31,12 +32,7 @@ const NUM_RESULTS: usize = 500;
 
 fn shuffle(mut vec: Vec<Artwork>) -> Vec<Artwork> {
   let mut rng = rand::thread_rng();
-  let size = vec.len();
-
-  for i in 0..(size - 1) {
-    vec.swap(i, rng.gen::<usize>() % size);
-  }
-
+  vec.shuffle(&mut rng);
   return vec;
 }
 

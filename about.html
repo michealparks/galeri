@@ -15,6 +15,7 @@
         padding: 3rem;
         display: flex;
         flex-direction: column;
+        overflow: hidden;
 			}
 
       h1 {
@@ -43,14 +44,9 @@
   </head>
 
   <body>
-    <h1>G<span>aleri</span><small id="version"></small></h1>
+    <h1>G<span>aleri</span><small id="version">__VERSION__</small></h1>
     <p>A perpetual artwork streaming app.</p>
     <p>Made with ❤️ by Micheal Parks.</p>
     <p>Artworks provided by Wikipedia.</p>
-
-    <script type="module">
-      import { version } from './package.json'
-      document.querySelector('#version').textContent = version
-    </script>
   </body>
 </html>

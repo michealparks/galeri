@@ -11,7 +11,7 @@ pub fn set(path: &PathBuf) -> bool {
   }
 
   #[cfg(windows)]
-  match wallpaper::set_mode(wallpaper::Mode::Center) {
+  match wallpaper::set_mode(wallpaper::Mode::Crop) {
     Err(why) => println!("Error setting wallpaper mode: {:?}", why),
     Ok(_) => (), 
   };
