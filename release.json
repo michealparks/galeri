@@ -1,0 +1,23 @@
+{
+  "version": "0.1.0",
+  "notes": "The first release of the completely remade Galeri!",
+  "pub_date": "2022-11-14T03:13:38.092Z",
+  "platforms": {
+    "darwin-x86_64": {
+      "signature": "",
+      "url": "https://github.com/lemarier/tauri-test/releases/download/0.1.0/app.app.tar.gz"
+    },
+    "darwin-aarch64": {
+      "signature": "",
+      "url": "https://github.com/lemarier/tauri-test/releases/download/0.1.0/silicon/app.app.tar.gz"
+    },
+    "linux-x86_64": {
+      "signature": "",
+      "url": "https://github.com/lemarier/tauri-test/releases/download/0.1.0/app.AppImage.tar.gz"
+    },
+    "windows-x86_64": {
+      "signature": "",
+      "url": "https://github.com/lemarier/tauri-test/releases/download/0.1.0/app.x64.msi.zip"
+    }
+  }
+}

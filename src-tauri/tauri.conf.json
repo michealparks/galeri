@@ -82,7 +82,10 @@
       "iconAsTemplate": false
     },
     "updater": {
-      "active": false
+      "active": true,
+      "endpoints": ["https://releases.myapp.com/{{target}}/{{current_version}}"],
+      "dialog": true,
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDhEMzlDREQ5NkI0MzIzNzIKUldSeUkwTnIyYzA1alR3cStZb0I2TkpOOFJ2Z2xMNS9MbXJxMVFyU1lReDRoUkIwcDJycFVHN1EK"
     },
     "windows": []
   }
