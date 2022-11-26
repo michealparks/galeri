@@ -3,9 +3,13 @@
   windows_subsystem = "windows"
 )]
 
+
 use std::path::{Path};
-use std::{thread, time, path::PathBuf};
+use std::{path::PathBuf};
 use tauri::{SystemTrayEvent};
+use tokio::time;
+use tokio::sync::{mpsc};
+use tokio::sync::mpsc::Sender;
 use webbrowser;
 
 mod api;
@@ -15,54 +19,53 @@ mod tray;
 mod wallpaper;
 mod window;
 
-fn sleep(duration: u64) {
-  thread::sleep(time::Duration::from_secs(duration));
-}
+async fn start_artwork_loop(appdir: &Path, handle: &tauri::AppHandle, sender: &Sender<&str>) {
+  let mut error_interval = time::interval(time::Duration::from_secs(30));
+  let mut interval = time::interval(time::Duration::from_secs(30)); // one hour
 
-fn start_artwork_loop(appdir: &Path, handle: &tauri::AppHandle) {
   let binding = appdir.join(&"images");
   let artpath = binding.as_path();
 
   files::delete_dir(artpath);
 
-  let interval = 60 * 60; // one hour.
-  let error_interval = 30; // seconds.
   let mut artworks: Vec<api::Artwork> = Vec::with_capacity(0);
   let mut last_path = PathBuf::new();
 
   loop {
     if artworks.len() == 0 {
-      artworks = api::fetch_list();
+      artworks = api::fetch_list().await;
     }
 
     if artworks.len() == 0 {
-      sleep(error_interval);
+      error_interval.tick().await;
       continue;
     }
 
+    println!("hihihihih {:?}", artworks.len());
+
+
     let artwork = artworks.pop().expect("Error popping artwork off array.");
 
-    if api::fetch_image(&artwork.image_url, &artpath, &artwork.file.clone()) == false {
-      sleep(error_interval);
+    if api::fetch_image(&artwork.image_url, &artpath, &artwork.file.clone()).await == false {
+      error_interval.tick().await;
       continue;
     }
 
     let path = artpath.join(&artwork.file);
 
     if wallpaper::set(&path) == false {
-      sleep(error_interval);
+      error_interval.tick().await;
       continue;
     }
 
     tray::set_menu_item(&handle, "title", &artwork.title);
-
-    api::write_json_file(appdir.join("current.json").as_path(), &api::Artwork { ..artwork });
+    sender.send(artwork.description_url.to_string()).await;
     
     files::delete_file(&last_path);
 
     last_path = path;
 
-    sleep(interval);
+    interval.tick().await;
   }
 }
 
@@ -81,7 +84,12 @@ fn open_artwork_source_url(appdir: &PathBuf) {
   };
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
+  tauri::async_runtime::set(tokio::runtime::Handle::current());
+
+  let (sender, mut receiver) = mpsc::channel(32);
+
   tauri::Builder::default()
     .setup(move |app| {
       // Don't show app icon in the dock.
@@ -94,8 +102,14 @@ fn main() {
       let appdir = app.path_resolver().app_data_dir().expect("Error getting app_dir").as_path().to_owned();
       let appdir_copy = appdir.clone();
 
-      thread::spawn(move || {
-        start_artwork_loop(&appdir_copy, &handle);
+      tokio::spawn(async move {
+        start_artwork_loop(&appdir_copy, &handle, &sender).await;
+      });
+
+      tokio::spawn(async move {
+        while let Some(message) = receiver.recv().await {
+          println!("GOT = {}", message);
+        }
       });
 
       let handle_copy = app.handle();
