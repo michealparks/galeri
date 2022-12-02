@@ -1,9 +1,14 @@
 use auto_launch::AutoLaunchBuilder;
 use std::env::current_exe;
+use tauri::App;
 
-pub fn setup(name: &str) {
+pub fn setup(app: &mut App) {
+  // Don't show app icon in the dock.
+  #[cfg(target_os = "macos")]
+  app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+
   let mut builder = AutoLaunchBuilder::new();
-  builder.set_app_name(name);
+  builder.set_app_name(&app.package_info().name);
   builder.set_use_launch_agent(true);
 
   let current_exe = match current_exe() {

@@ -3,9 +3,11 @@
   windows_subsystem = "windows"
 )]
 
-use std::path::{Path};
-use std::{thread, time, path::PathBuf};
-use tauri::{SystemTrayEvent};
+use api::Artwork;
+use std::path::{Path, PathBuf};
+use tokio::time;
+use tokio::task::JoinHandle;
+use tokio::sync::mpsc;
 use webbrowser;
 
 mod api;
@@ -15,116 +17,109 @@ mod tray;
 mod wallpaper;
 mod window;
 
-fn sleep(duration: u64) {
-  thread::sleep(time::Duration::from_secs(duration));
-}
+async fn start_artwork_loop(artpath: &Path, sender: &mpsc::Sender<Artwork>) {
+  let mut error_interval = time::interval(time::Duration::from_secs(30));
+  let mut interval = time::interval(time::Duration::from_secs(30)); // one hour
 
-fn start_artwork_loop(appdir: &Path, handle: &tauri::AppHandle) {
-  let binding = appdir.join(&"images");
-  let artpath = binding.as_path();
-
-  files::delete_dir(artpath);
-
-  let interval = 60 * 60; // one hour.
-  let error_interval = 30; // seconds.
   let mut artworks: Vec<api::Artwork> = Vec::with_capacity(0);
   let mut last_path = PathBuf::new();
 
   loop {
+    interval.tick().await;
+  
     if artworks.len() == 0 {
-      artworks = api::fetch_list();
+      artworks = api::fetch_list().await;
     }
 
     if artworks.len() == 0 {
-      sleep(error_interval);
+      error_interval.tick().await;
       continue;
     }
 
     let artwork = artworks.pop().expect("Error popping artwork off array.");
 
-    if api::fetch_image(&artwork.image_url, &artpath, &artwork.file.clone()) == false {
-      sleep(error_interval);
+    if api::fetch_image(&artwork.image_url, &artpath, &artwork.file).await == false {
+      error_interval.tick().await;
       continue;
     }
 
     let path = artpath.join(&artwork.file);
 
     if wallpaper::set(&path) == false {
-      sleep(error_interval);
+      error_interval.tick().await;
       continue;
     }
 
-    tray::set_menu_item(&handle, "title", &artwork.title);
+    sender.send(artwork).await;
 
-    api::write_json_file(appdir.join("current.json").as_path(), &api::Artwork { ..artwork });
-    
     files::delete_file(&last_path);
 
     last_path = path;
-
-    sleep(interval);
   }
 }
 
-fn open_artwork_source_url(appdir: &PathBuf) {
-  let artwork = match api::read_json_file(appdir.join("current.json").as_path()) {
-    Err(why) => {
-      println!("Error reading json file: {:?}", why);
-      return;
-    },
-    Ok(artwork) => artwork,
-  };
+fn setup (handle: tauri::AppHandle, img_dir: PathBuf) -> JoinHandle<()> {
+  let (sender, mut receiver) = mpsc::channel(1);
 
-  match webbrowser::open(&artwork.description_url) {
-    Err(why) => println!("Error opening browser: {:?}", why),
-    Ok(_) => (),
-  };
+  let task = tokio::spawn(async move {
+    start_artwork_loop(&img_dir, &sender).await;
+  });
+
+  tokio::spawn(async move {
+    while let Some(artwork) = receiver.recv().await {
+      println!("{:?}", artwork);
+
+      tray::set_menu_item(&handle, "title", &artwork.title);
+    }
+  });
+
+  return task;
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
+  tauri::async_runtime::set(tokio::runtime::Handle::current());
+
   tauri::Builder::default()
-    .setup(move |app| {
-      // Don't show app icon in the dock.
-      #[cfg(target_os = "macos")]
-      app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+    .setup(|app| {
+      autolaunch::setup(app);
+      files::delete_dir(&app.path_resolver().app_data_dir().unwrap().join("images").as_path());
 
-      autolaunch::setup(&app.package_info().name);
-
+      let img_dir = app.path_resolver().app_data_dir().unwrap().as_path().join("images").as_path().to_owned();
       let handle = app.handle();
-      let appdir = app.path_resolver().app_data_dir().expect("Error getting app_dir").as_path().to_owned();
-      let appdir_copy = appdir.clone();
+      let mut artwork_task = setup(handle.clone(), img_dir.clone());
 
-      thread::spawn(move || {
-        start_artwork_loop(&appdir_copy, &handle);
-      });
-
-      let handle_copy = app.handle();
-
-      tray::setup().on_event(move |event| {
-        match event {
-          SystemTrayEvent::MenuItemClick { id, .. } => {
-            match id.as_str() {
-              "quit" => std::process::exit(0),
-              "about" => window::focus_or_create(&handle_copy, "about", "about.html"),
-              "next" => {},
-              "title" => open_artwork_source_url(&appdir),
-              _ => (),
-            }
+      tray::setup(app.handle(), move |menu_title| {
+        match menu_title {
+          "title" => {
+            match webbrowser::open("") {
+              Err(why) => println!("Error opening browser: {:?}", why),
+              Ok(_) => (),
+            };
+          },
+          "next" => {
+            artwork_task.abort();
+            artwork_task = setup(handle.clone(), img_dir.clone());
           }
-          _ => {}
+          _ => (),
         }
-      })
-      .build(app)?;
+        println!("{:?}", menu_title);
+      }).build(app).unwrap();
 
       Ok(())
     })
     .build(tauri::generate_context!())
     .expect("Error building Galeri")
-    .run(|_app_handle, event| match event {
-      // Prevent the app from exiting entirely if all windows are closed.
-      tauri::RunEvent::ExitRequested { api, .. } => {
-        api.prevent_exit();
+    .run(|_handle, event| {
+      match event {
+        tauri::RunEvent::Updater(why) => {
+          println!("Updater: {:?}", why);
+        },
+        // Prevent the app from exiting entirely if all windows are closed.
+        tauri::RunEvent::ExitRequested { api, .. } => {
+          api.prevent_exit();
+        },
+        _ => {}
       }
-      _ => {}
     });
 }

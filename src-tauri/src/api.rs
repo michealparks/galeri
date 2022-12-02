@@ -1,4 +1,6 @@
-use rand::Rng;
+// use rand::Rng;
+use std::io::Cursor;
+use rand::seq::SliceRandom;
 use reqwest::{self, header, StatusCode};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -31,17 +33,12 @@ const NUM_RESULTS: usize = 500;
 
 fn shuffle(mut vec: Vec<Artwork>) -> Vec<Artwork> {
   let mut rng = rand::thread_rng();
-  let size = vec.len();
-
-  for i in 0..(size - 1) {
-    vec.swap(i, rng.gen::<usize>() % size);
-  }
-
+  vec.shuffle(&mut rng);
   return vec;
 }
 
-pub fn fetch_list() -> Vec<Artwork> {
-  let client = match reqwest::blocking::Client::builder().gzip(true).build() {
+pub async fn fetch_list() -> Vec<Artwork> {
+  let client = match reqwest::Client::builder().gzip(true).build() {
     Err(why) => {
       println!("Error building fetch_list request {:?}", why);
       return Vec::with_capacity(0);
@@ -58,7 +55,7 @@ pub fn fetch_list() -> Vec<Artwork> {
     .query(&[("iiprop", "url|dimensions|mime")])
     .query(&[("gimlimit", NUM_RESULTS.to_string())])
     .query(&[("pageids", "16924509")])
-    .send() {
+    .send().await {
       Err(why) => {
         println!("Error fetching wikipedia artworks: {:?}", why);
         return Vec::with_capacity(0);
@@ -70,7 +67,7 @@ pub fn fetch_list() -> Vec<Artwork> {
     return Vec::with_capacity(0);
   }
 
-  let json = match response.json::<Response>() {
+  let json = match response.json::<Response>().await {
     Err(why) => {
       println!("Error deserializing wikipedia artworks response: {:?}", why);
       return Vec::with_capacity(0);
@@ -103,8 +100,8 @@ pub fn fetch_list() -> Vec<Artwork> {
   return shuffle(artworks);
 }
 
-pub fn fetch_image(url: &str, path: &Path, file: &str) -> bool {
-  let client = match reqwest::blocking::Client::builder().gzip(true).build() {
+pub async fn fetch_image(url: &str, path: &Path, file: &str) -> bool {
+  let client = match reqwest::Client::builder().gzip(true).build() {
     Err(why) => {
       println!("Error building fetch_image request: {:?}", why);
       return false;
@@ -112,9 +109,9 @@ pub fn fetch_image(url: &str, path: &Path, file: &str) -> bool {
     Ok(client) => client,
   };
 
-  let mut response = match client.get(url)
+  let response = match client.get(url)
     .header(header::USER_AGENT, "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36")
-    .send() {
+    .send().await {
       Err(why) => {
         println!("Error fetching image {:?}: {:?}", url, why);
         return false;
@@ -137,7 +134,17 @@ pub fn fetch_image(url: &str, path: &Path, file: &str) -> bool {
     Ok(file) => file,
   };
 
-  match std::io::copy(&mut response, &mut file) {
+  let bytes = match response.bytes().await {
+    Err(why) => {
+      println!("Error converting response to bytes: {:?}", why);
+      return false;
+    },
+    Ok(bytes) => bytes,
+  };
+
+  let mut content = Cursor::new(bytes);
+
+  match std::io::copy(&mut content, &mut file) {
     Err(why) => {
       println!("Error writing file {:?}: {:?}", file, why);
       return false;
