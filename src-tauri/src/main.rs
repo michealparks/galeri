@@ -3,12 +3,12 @@
   windows_subsystem = "windows"
 )]
 
+use tauri::App;
 use api::Artwork;
 use std::path::{Path, PathBuf};
 use tokio::time;
 use tokio::task::JoinHandle;
 use tokio::sync::mpsc;
-use webbrowser;
 
 mod api;
 mod autolaunch;
@@ -16,6 +16,17 @@ mod files;
 mod tray;
 mod wallpaper;
 mod window;
+
+// #[tauri::command]
+// fn open_url(message: String) {
+//   // do something with the message
+//   println!("Received message: {}", message);
+
+//   match webbrowser::open(&message) {
+//     Err(why) => println!("Error opening browser: {:?}", why),
+//     Ok(_) => (),
+//   };
+// }
 
 async fn start_artwork_loop(artpath: &Path, sender: &mpsc::Sender<Artwork>) {
   let mut error_interval = time::interval(time::Duration::from_secs(30));
@@ -58,7 +69,8 @@ async fn start_artwork_loop(artpath: &Path, sender: &mpsc::Sender<Artwork>) {
   }
 }
 
-fn setup (handle: tauri::AppHandle, img_dir: PathBuf) -> JoinHandle<()> {
+fn setup (app: &mut App, img_dir: PathBuf) -> JoinHandle<()> {
+  let handle = app.handle();
   let (sender, mut receiver) = mpsc::channel(1);
 
   let task = tokio::spawn(async move {
@@ -69,9 +81,16 @@ fn setup (handle: tauri::AppHandle, img_dir: PathBuf) -> JoinHandle<()> {
     while let Some(artwork) = receiver.recv().await {
       println!("{:?}", artwork);
 
+      match files::write_file("url.txt", &artwork.description_url.clone()) {
+        Err(why) => {},
+        Ok(client) => {},
+      }
+
       tray::set_menu_item(&handle, "title", &artwork.title);
     }
   });
+
+  tray::setup(app).build(app).unwrap();
 
   return task;
 }
@@ -86,30 +105,13 @@ async fn main() {
       files::delete_dir(&app.path_resolver().app_data_dir().unwrap().join("images").as_path());
 
       let img_dir = app.path_resolver().app_data_dir().unwrap().as_path().join("images").as_path().to_owned();
-      let handle = app.handle();
-      let mut artwork_task = setup(handle.clone(), img_dir.clone());
 
-      tray::setup(app.handle(), move |menu_title| {
-        match menu_title {
-          "title" => {
-            match webbrowser::open("") {
-              Err(why) => println!("Error opening browser: {:?}", why),
-              Ok(_) => (),
-            };
-          },
-          "next" => {
-            artwork_task.abort();
-            artwork_task = setup(handle.clone(), img_dir.clone());
-          }
-          _ => (),
-        }
-        println!("{:?}", menu_title);
-      }).build(app).unwrap();
+      let mut artwork_task = setup(app, img_dir.clone());
 
       Ok(())
     })
     .build(tauri::generate_context!())
-    .expect("Error building Galeri")
+    .expect("Error starting Galeri")
     .run(|_handle, event| {
       match event {
         tauri::RunEvent::Updater(why) => {
