@@ -19,7 +19,7 @@ const open = async (): Promise<number> => {
 		maximizable: false,
 		fullscreenable: false,
 		titleBarStyle: 'hiddenInset',
-		skipTaskbar: true
+		skipTaskbar: true,
 	})
 
 	win.setMenuBarVisibility(false)
@@ -37,5 +37,5 @@ const open = async (): Promise<number> => {
 }
 
 export const about = {
-	open
+	open,
 }

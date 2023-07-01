@@ -2,7 +2,7 @@ export default {
 	ecma: '2020',
 	module: true,
 	parse: {
-		html5_comments: false
+		html5_comments: false,
 	},
 	compress: {
 		arguments: true,
@@ -19,10 +19,10 @@ export default {
 	},
 	mangle: {
 		module: true,
-		toplevel: true
+		toplevel: true,
 	},
 	format: {
 		comments: false,
-		ecma: '2020'
-	}
+		ecma: '2020',
+	},
 }

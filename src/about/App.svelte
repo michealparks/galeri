@@ -1,6 +1,8 @@
 <script lang='ts'>
-	import { version } from '../../package.json'
-	import Logo from './Logo.svelte'
+
+import { version } from '../../package.json'
+import Logo from './Logo.svelte'
+
 </script>
 
 <div class='titlebar w-full top-0 left-0 h-[40px]' />

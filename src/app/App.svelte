@@ -1,20 +1,21 @@
 <script lang='ts'>
-	import '../lib/polyfill'
-	import { onMount } from 'svelte'
-	import Buttons from '../lib/Buttons.svelte'
-	import Info from '../lib/Info.svelte'
-	import { storage } from '../lib/storage'
-	import { current, currentImage } from '../../apis/store'
 
-	let url: string
+import { onMount } from 'svelte'
+import Buttons from '../lib/Buttons.svelte'
+import Info from '../lib/Info.svelte'
+import { storage } from '../lib/storage'
+import { currentStore, currentImageStore } from '../../apis/store'
 
-	onMount(async () => {
-		await storage.init()
+let url: string
 
-		currentImage.subscribe((blob) => {
-			url = URL.createObjectURL(blob)
-		})
+onMount(async () => {
+	await storage.init()
+
+	currentImageStore.subscribe((blob) => {
+		url = URL.createObjectURL(blob as Blob)
 	})
+})
+
 </script>
 
 <main
@@ -22,5 +23,5 @@
 	style={url === undefined ? undefined : `background-image: url(${url})`}
 >
 	<Buttons />
-	<Info current={$current} />
+	<Info current={$currentStore} />
 </main>

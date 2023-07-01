@@ -1,8 +1,10 @@
+
+import type { ArtObject } from './types'
 import { nanoid } from 'nanoid'
 import { get } from 'svelte/store'
-import store from './store'
+import { rijksStore, rijksPageStore } from './store'
 import { ENDPOINTS } from './constants'
-import type { ArtObject } from './types'
+import { fetchJSON } from './fetch'
 
 const randomArtwork = async (): Promise<ArtObject | undefined> => {
 	const artworks = await getArtworks()
@@ -15,17 +17,24 @@ const randomArtwork = async (): Promise<ArtObject | undefined> => {
 }
 
 const getArtworks = async (): Promise<ArtObject[]> => {
-	const artworks = get(store.rijks)
+	const artworks = get(rijksStore)
 
 	if (artworks.length > 0) {
 		return artworks
 	} else {
-		const page = get(store.rijksPage)
+		const page = get(rijksPageStore)
 
 		let json
 
 		try {
-			json = await (globalThis as any).fetchJSON(`${ENDPOINTS.rijks}&p=${page}`)
+			json = await fetchJSON(`${ENDPOINTS.rijks}&p=${page}`) as {
+				artObjects: {
+					webImage?: { url: string }
+					title: string
+					principalOrFirstMaker: string
+					links: { web: string }
+				}[]
+			}
 		} catch {
 			return []
 		}
@@ -49,12 +58,12 @@ const getArtworks = async (): Promise<ArtObject[]> => {
 				artistLink: undefined,
 				provider: 'Rijksmuseum',
 				titleLink: artObject.links.web,
-				providerLink: 'https://www.rijksmuseum.nl/en'
+				providerLink: 'https://www.rijksmuseum.nl/en',
 			})
 		}
 
-		store.rijks.set(artworks)
-		store.rijksPage.set(page + 1)
+		rijksStore.set(artworks)
+		rijksPageStore.set(page + 1)
 
 		return artworks
 	}
@@ -64,11 +73,11 @@ const removeRandomArtwork = (artObjects: ArtObject[]): ArtObject | undefined => 
 	const randomIndex = Math.floor(Math.random() * artObjects.length)
 	const [artObject] = (artObjects.splice(randomIndex, 1) || [])
 
-	store.rijks.set(artObjects)
+	rijksStore.set(artObjects)
 
 	return artObject
 }
 
 export const rijks = {
-	randomArtwork
+	randomArtwork,
 }

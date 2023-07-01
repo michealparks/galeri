@@ -29,5 +29,5 @@ export const blacklist = [
 	'f/fa/Peter_Paul_Rubens_-_The_Birth_of_the_Milky_Way%2C_1636-1637.jpg/2000px-Peter_Paul_Rubens_-_The_Birth_of_the_Milky_Way%2C_1636-1637.jpg',
 	'5/5f/Edvard_Munch_-_Madonna_-_Google_Art_Project.jpg/2000px-Edvard_Munch_-_Madonna_-_Google_Art_Project.jpg',
 	'b/b6/Feszty_Panorama.jpg/2000px-Feszty_Panorama.jpg',
-	'6/64/Titian_-_Venus_with_a_Mirror_-_Google_Art_Project.jpg'
+	'6/64/Titian_-_Venus_with_a_Mirror_-_Google_Art_Project.jpg',
 ]

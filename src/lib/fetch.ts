@@ -2,8 +2,6 @@ const json = (res: Response) => {
 	return res.json()
 }
 
-(globalThis as any).fetchJSON = (input: RequestInfo, init?: RequestInit) => {
+export const fetchJSON = (input: RequestInfo, init?: RequestInit): unknown => {
 	return fetch(input, init).then(json)
 }
-
-export {}

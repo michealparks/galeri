@@ -1,6 +1,5 @@
 import { Tray, Menu, app, shell } from 'electron'
 import { darkMode } from 'electron-util'
-
 import type { MenuItemConstructorOptions } from 'electron'
 import type { ArtObject, Subscriber } from '../apis/types'
 import { ICON_DARK_PATH, ICON_PATH } from './constants'
@@ -9,38 +8,42 @@ let _tray: Tray
 let subscriber: Subscriber
 let artworkLink: string | undefined
 
+const getOpenAtLogin = () => {
+	return app.getLoginItemSettings().openAtLogin
+}
+
 const baseItems: MenuItemConstructorOptions[] = [
 	{
-		type: 'separator'
+		type: 'separator',
 	}, {
 		label: 'Options',
 		submenu: [
 			{
 				label: 'Run On Startup',
 				type: 'checkbox',
-				checked: app.getLoginItemSettings().openAtLogin,
+				checked: getOpenAtLogin(),
 				click: () => app.setLoginItemSettings({
-					openAtLogin: !app.getLoginItemSettings().openAtLogin
-				})
+					openAtLogin: ! getOpenAtLogin(),
+				}),
 			},
-		]
+		],
 	}, {
-		type: 'separator'
+		type: 'separator',
 	}, {
 		label: 'Favorites',
 		type: 'normal',
-		click: () => subscriber('favorites')
+		click: () => subscriber('favorites'),
 	}, {
 		// Don't use role "about", it overrides opening our own Browserwindow
 		label: 'About',
 		type: 'normal',
-		click: () => subscriber('about')
+		click: () => subscriber('about'),
 	}, {
 		label: 'Quit',
 		role: 'quit',
 		type: 'normal',
-		click: () => subscriber('quit')
-	}
+		click: () => subscriber('quit'),
+	},
 ]
 
 const updatingTemplate = Menu.buildFromTemplate([
@@ -48,12 +51,12 @@ const updatingTemplate = Menu.buildFromTemplate([
 		label: 'Galeri',
 		enabled: false,
 	}, {
-		type: 'separator'
+		type: 'separator',
 	}, {
 		label: 'Updating...',
 		enabled: false,
 	},
-	...baseItems
+	...baseItems,
 ])
 
 const menuTemplate: MenuItemConstructorOptions[] = [
@@ -61,21 +64,21 @@ const menuTemplate: MenuItemConstructorOptions[] = [
 		label: 'Galeri',
 		enabled: false,
 	}, {
-		type: 'separator'
+		type: 'separator',
 	}, {
 		label: '',
 		click: () => artworkLink ? shell.openExternal(artworkLink) : undefined,
-		enabled: false
+		enabled: false,
 	}, {
 		label: 'Next Artwork',
 		type: 'normal',
-		click: () => subscriber('next')
+		click: () => subscriber('next'),
 	}, {
 		label: 'Add to Favorites',
 		type: 'normal',
-		click: () => subscriber('favorite')
+		click: () => subscriber('favorite'),
 	},
-	...baseItems
+	...baseItems,
 ]
 
 const onEvent = (fn: Subscriber): void => {
@@ -93,7 +96,7 @@ const setArtwork = (artwork: ArtObject): void => {
 
 	artworkLink = artwork.titleLink
 	menuTemplate[2].label = artwork.title.length > 30
-		? `${artwork.title.substring(0, 30)}...`
+		? `${artwork.title.slice(0, 30)}...`
 		: artwork.title
 
 	menuTemplate[2].enabled = (artworkLink !== undefined && artworkLink !== '')
@@ -125,5 +128,5 @@ const init = (): EventObject => {
 export const tray = {
 	init,
 	setArtwork,
-	setUpdating
+	setUpdating,
 }

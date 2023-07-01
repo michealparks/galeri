@@ -1,14 +1,14 @@
 
-import { resolve } from 'path'
+import path from 'path'
 import { app } from 'electron'
 import { version } from '../package.json'
 
 export const APP_VERSION = version
 
 export const APPDATA_PATH = app.getPath('appData')
-export const GALERI_DATA_PATH = resolve(APPDATA_PATH, 'Galeri')
-export const FAVORITES_DATA_PATH = resolve(APPDATA_PATH, 'Galeri', 'favorites.json')
-export const DEPRECATED_FAVORITES_DATA_PATH = resolve(APPDATA_PATH, 'Galeri Favorites', 'config.json')
+export const GALERI_DATA_PATH = path.resolve(APPDATA_PATH, 'Galeri')
+export const FAVORITES_DATA_PATH = path.resolve(APPDATA_PATH, 'Galeri', 'favorites.json')
+export const DEPRECATED_FAVORITES_DATA_PATH = path.resolve(APPDATA_PATH, 'Galeri Favorites', 'config.json')
 
 export const ICON_PATH = `${app.getAppPath()}/icon_32x32.png`
 export const ICON_DARK_PATH = `${app.getAppPath()}/icon-dark_32x32.png`
@@ -25,5 +25,5 @@ export const URLS = {
 	githubReleaseAPI: 'https://api.github.com/repos/michealparks/galeri-www/releases/latest',
 	feedUrl: 'https://raw.githubusercontent.com/michealparks/galeri-www/master/updater.json',
 	feedUrlWindows: 'https://github.com/michealparks/galeri/releases/download',
-	issues: 'https://github.com/michealparks/galeri-www/issues'
+	issues: 'https://github.com/michealparks/galeri-www/issues',
 }

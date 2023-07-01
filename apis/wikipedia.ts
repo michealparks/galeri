@@ -1,9 +1,10 @@
 import { nanoid } from 'nanoid'
 import { get } from 'svelte/store'
-import store from './store'
+import { wikipediaStore } from './store'
 import { ENDPOINTS } from './constants'
 import $ from 'cheerio'
 import type { ArtObject } from './types'
+import { fetchJSON } from './fetch'
 
 const randomArtwork = async (): Promise<ArtObject | undefined> => {
 	const artworks = await getArtObjects()
@@ -16,7 +17,7 @@ const randomArtwork = async (): Promise<ArtObject | undefined> => {
 }
 
 const getArtObjects = async (): Promise<ArtObject[]> => {
-	const artObjects = get(store.wikipedia)
+	const artObjects = get(wikipediaStore)
 
 	if (artObjects.length > 0) {
 
@@ -26,12 +27,15 @@ const getArtObjects = async (): Promise<ArtObject[]> => {
 
 		try {
 
-			const json = await (globalThis as any).fetchJSON(ENDPOINTS.wikipedia)
+			const json = await fetchJSON(ENDPOINTS.wikipedia) as {
+				parse: { text: { '*': string } }
+			}
+
 			const artObjects = 'window' in globalThis
 				? parseBrowser(json.parse.text['*'])
 				: parseNodeJS(json.parse.text['*'])
 
-			store.wikipedia.set(artObjects)
+			wikipediaStore.set(artObjects)
 
 			return artObjects
 
@@ -69,7 +73,7 @@ const parseBrowser = (str: string): ArtObject[] => {
 			artistLink,
 			titleLink: titleLink ? `https://wikipedia.org/wiki${titleLink.split('/wiki').pop()}` : '',
 			provider: 'Wikipedia',
-			providerLink: 'https://wikipedia.org'
+			providerLink: 'https://wikipedia.org',
 		})
 	}
 
@@ -101,7 +105,7 @@ const parseNodeJS = (str: string) => {
 			artistLink,
 			titleLink: titleLink ? `https://wikipedia.org/wiki${titleLink.split('/wiki').pop()}` : '',
 			provider: 'Wikipedia',
-			providerLink: 'https://wikipedia.org'
+			providerLink: 'https://wikipedia.org',
 		})
 	})
 
@@ -112,11 +116,11 @@ const fetchRandomArtwork = (artObjects: ArtObject[]): ArtObject | undefined => {
 	const randomIndex = Math.floor(Math.random() * artObjects.length)
 	const [artObject] = (artObjects.splice(randomIndex, 1) || [])
 
-	store.wikipedia.set(artObjects)
+	wikipediaStore.set(artObjects)
 
 	return artObject
 }
 
 export const wikipedia = {
-	randomArtwork
+	randomArtwork,
 }

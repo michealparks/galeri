@@ -5,18 +5,18 @@ import {
 	FAVORITES_DATA_PATH,
 	DEPRECATED_FAVORITES_DATA_PATH,
 	FAVORITES_PATH,
-	ERROR_EEXIST,
 	ERROR_ENOENT
 } from './constants'
 
 import fs from 'fs'
 import { promisify } from 'util'
-import { resolve } from 'path'
+import path from 'path'
 import { nanoid } from 'nanoid'
 import { BrowserWindow, ipcMain } from 'electron'
+import { makeDirectory, reportError } from './util'
+import { fileURLToPath } from 'url'
+import url from 'url'
 
-
-const mkdir = promisify(fs.mkdir)
 const readFile = promisify(fs.readFile)
 const writeFile = promisify(fs.writeFile)
 const unlink = promisify(fs.unlink)
@@ -30,38 +30,31 @@ type OldArtObject = {
 }
 
 let win: BrowserWindow | undefined
-let favoritesList: ArtObject[] = []
+let favoritesList: ArtObject[]
 
-const init = async (): Promise<void> => {
-	// Create the app folder if it doesn't exist
+// Upgrades the old favorites file if on the user's computer
+const upgradeFavoritesFile = async () => {
 	try {
-		await mkdir(GALERI_DATA_PATH)
-	} catch (err) {
-		if (err.code !== ERROR_EEXIST) {
-			console.warn('favorites.init(): ', err)
-		}
-	}
-
-	// Upgrade the old favorites file if on the user's computer
-	try {
-		const favoritesFile = await readFile(DEPRECATED_FAVORITES_DATA_PATH, { encoding: 'utf-8' })
-		favoritesList = upgradeFavoritesList(JSON.parse(favoritesFile).favorites as unknown)
+		const favoritesFile = await readFile(DEPRECATED_FAVORITES_DATA_PATH, 'utf-8')
+		const favoritesList = upgradeFavoritesList(JSON.parse(favoritesFile).favorites as unknown)
 		await unlink(DEPRECATED_FAVORITES_DATA_PATH)
 		await writeFile(FAVORITES_DATA_PATH, JSON.stringify({ favorites: favoritesList }))
-	} catch (err) {
-		if (err.code !== ERROR_ENOENT) {
-			console.warn('favorites.init(): ', err)
-		}
+	} catch (error) {
+		reportError('upgradeFavoritesFile(): ', error, ERROR_ENOENT)
+	}
+}
 
-		// Get the favorites list
-		try {
-			const favoritesFile = await readFile(FAVORITES_DATA_PATH, { encoding: 'utf-8' })
-			favoritesList = JSON.parse(favoritesFile).favorites
-		} catch (err) {
-			if (err.code !== ERROR_ENOENT) {
-				console.warn('favorites.init(): ', err)
-			}
-		}
+const initFavorites = async (): Promise<void> => {
+	await makeDirectory(GALERI_DATA_PATH)
+	await upgradeFavoritesFile()
+
+	// Get the favorites list
+	try {
+		const file = await readFile(FAVORITES_DATA_PATH, 'utf-8')
+		const json = JSON.parse(file)
+		favoritesList = json.favorites
+	} catch (error) {
+		reportError('favorites.init(): ', error, ERROR_ENOENT)
 	}
 
 	for (const favoriteItem of favoritesList) {
@@ -87,7 +80,7 @@ const upgradeFavoritesList = (favoritesList: unknown) => {
 			artist: oldArtObject.text,
 			artistLink: undefined,
 			provider: oldArtObject.source,
-			providerLink: ''
+			providerLink: '',
 		})
 	}
 
@@ -100,8 +93,8 @@ const updateFavoritesList = (list: ArtObject[]) => {
 	try {
 		writeFile(FAVORITES_DATA_PATH, JSON.stringify({ favorites: list }))
 		favoritesList = list
-	} catch (err) {
-		console.warn('favorites.updateFavoriteList(): ', err)
+	} catch (error) {
+		reportError('updateFavoritesList(): ', error)
 	}
 	
 }
@@ -122,9 +115,9 @@ const open = async (): Promise<number> => {
 		skipTaskbar: true,
 		backgroundColor: '#333',
 		webPreferences: {
-			preload: resolve(__dirname, 'preload.cjs'),
-			scrollBounce: true
-		}
+			preload: path.resolve(fileURLToPath(import.meta.url), 'preload.cjs'),
+			scrollBounce: true,
+		},
 	})
 
 	win.setMenuBarVisibility(false)
@@ -133,7 +126,9 @@ const open = async (): Promise<number> => {
 		win = undefined
 	})
 
-	await win.loadURL(FAVORITES_PATH)
+	console.log(import.meta.url)
+	console.log(path.resolve(fileURLToPath(import.meta.url), '..', 'favorites.html'))
+	await win.loadURL(`file://${path.resolve(fileURLToPath(import.meta.url), '..', 'favorites.html')}`)
 
 	win.webContents.send('update', favoritesList)
 	win.show()
@@ -145,7 +140,7 @@ const open = async (): Promise<number> => {
 	return win.id
 }
 
-const add = async (artwork: ArtObject): Promise<void> => {
+const add = (artwork: ArtObject): void => {
 	const index = favoritesList.findIndex(({ id }) => id === artwork.id)
 
 	// If the artwork already is favorited, just move it to the top.
@@ -161,7 +156,7 @@ const add = async (artwork: ArtObject): Promise<void> => {
 }
 
 export const favorites = {
-	init,
+	init: initFavorites,
 	open,
-	add
+	add,
 }

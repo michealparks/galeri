@@ -1,20 +1,22 @@
 <script lang='ts'>
-	import { afterUpdate } from 'svelte'
 
-	export let src: string
+import { afterUpdate } from 'svelte'
 
-	export let enabled = false
-	let firstEnabled = false
-	let loaded = false
+export let src: string
 
-	afterUpdate(() => {
-		if (enabled === true && firstEnabled === false) {
-			const img = new Image()
-			img.onload = () => { loaded = true }
-			img.src = src
-			firstEnabled = true
-		}
-	})
+export let enabled = false
+let firstEnabled = false
+let loaded = false
+
+afterUpdate(() => {
+	if (enabled === true && firstEnabled === false) {
+		const img = new Image()
+		img.onload = () => { loaded = true }
+		img.src = src
+		firstEnabled = true
+	}
+})
+
 </script>
 
 <div
@@ -27,10 +29,6 @@
 />
 
 <style>
-	div {
-		will-change: transform, opacity;
-	}
-
 	div.visible {
 		opacity: 1;
 	}

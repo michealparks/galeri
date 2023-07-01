@@ -1,6 +1,17 @@
+import type { ArtObject } from '../../apis/types'
 import localforage from 'localforage'
 import { apis } from '../../apis'
-import store from '../../apis/store'
+import * as store from '../../apis/store'
+import {
+	currentStore,
+	nextStore,
+	currentImageStore,
+	nextImageStore,
+	wikipediaStore,
+	rijksStore,
+	rijksPageStore,
+	metStore
+} from '../../apis/store'
 
 const init = async (): Promise<void> => {
 	const promises = new Set()
@@ -14,13 +25,13 @@ const init = async (): Promise<void> => {
 		current,
 		next,
 		currentImage,
-		nextImage
+		nextImage,
 	] = await Promise.all(promises)
 
-	if (current) store.current.set(current)
-	if (next) store.next.set(next)
-	if (currentImage) store.currentImage.set(currentImage)
-	if (nextImage) store.nextImage.set(nextImage)
+	if (current) currentStore.set(current as ArtObject)
+	if (next) nextStore.set(next as ArtObject)
+	if (currentImage) currentImageStore.set(currentImage)
+	if (nextImage) nextImageStore.set(nextImage)
 
 	promises.clear()
 
@@ -33,13 +44,13 @@ const init = async (): Promise<void> => {
 		wikipedia,
 		rijks,
 		rijksPage,
-		met
+		met,
 	] = await Promise.all(promises)
 
-	if (wikipedia) store.wikipedia.set(wikipedia)
-	if (rijks) store.rijks.set(rijks)
-	if (rijksPage) store.rijksPage.set(rijksPage)
-	if (met) store.met.set(met)
+	if (wikipedia) wikipediaStore.set(wikipedia as ArtObject[])
+	if (rijks) rijksStore.set(rijks as ArtObject[])
+	if (rijksPage) rijksPageStore.set(rijksPage as number)
+	if (met) metStore.set(met as ArtObject[])
 
 	for (const [key, storeItem] of Object.entries(store)) {
 		storeItem.subscribe(value => {
@@ -47,10 +58,14 @@ const init = async (): Promise<void> => {
 		})
 	}
 
-	store.current.subscribe(async (artObject) => {
+	currentStore.subscribe(async (artObject) => {
+		if (artObject === undefined) {
+			return
+		}
+
 		const response = await window.fetch(artObject.src)
 		const blob = await response.blob()
-		store.currentImage.set(blob)
+		currentImageStore.set(blob)
 	})
 
 	apis.disable('met')
@@ -58,5 +73,5 @@ const init = async (): Promise<void> => {
 }
 
 export const storage = {
-	init
+	init,
 }

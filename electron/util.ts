@@ -1,13 +1,30 @@
 import fs from 'fs'
-import { join } from 'path'
+import path from 'path'
 import { promisify } from 'util'
-import { GALERI_DATA_PATH } from './constants'
+import { ERROR_EEXIST, GALERI_DATA_PATH } from './constants'
 
 const stat = promisify(fs.stat)
 const writeFile = promisify(fs.writeFile)
+const mkdir = promisify(fs.mkdir)
+
+export const makeDirectory = async (path: string): Promise<void> => {
+	try {
+		await mkdir(path)
+	} catch (error) {
+		reportError('makeDirectory(): ', error, ERROR_EEXIST)
+	}
+}
+
+export const reportError = (prefix: string, error: unknown, ...exceptions: string[]): void => {
+	const { code } = error as { code: string }
+
+	if (exceptions.includes(code) === false) {
+		console.warn(prefix, JSON.stringify(error))
+	}
+}
 
 export const isFirstAppLaunch = async (): Promise<boolean> => {
-	const checkFile = join(GALERI_DATA_PATH, '.electron-util--has-app-launched')
+	const checkFile = path.join(GALERI_DATA_PATH, '.electron-util--has-app-launched')
 
 	try {
 		await stat(checkFile)
@@ -15,8 +32,8 @@ export const isFirstAppLaunch = async (): Promise<boolean> => {
 	} catch {
 		try {
 			await writeFile(checkFile, '')
-		} catch (err) {
-			console.warn('isFirstAppLaunch(): ', err)
+		} catch (error) {
+			reportError('isFirstAppLaunch():', error)
 		}
 	}
 

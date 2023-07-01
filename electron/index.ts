@@ -3,21 +3,23 @@ import type { ArtObject } from '../apis/types'
 
 import { enforceMacOSAppLocation, openNewGitHubIssue, debugInfo } from 'electron-util'
 import unhandled from 'electron-unhandled'
+
 unhandled({
 	reportButton: error => {
 		openNewGitHubIssue({
 			user: 'michealparks',
 			repo: 'galeri',
-			body: `\`\`\`\n${error.stack}\n\`\`\`\n\n---\n\n${debugInfo()}`
+			body: `\`\`\`\n${error.stack}\n\`\`\`\n\n---\n\n${debugInfo()}`,
 		})
-		process.exit(1)
-	}
+		throw new Error('App crashed.')
+	},
 })
 
-import './polyfill'
+import './fetch'
 import { app, powerMonitor } from 'electron'
 import wallpaper from 'wallpaper'
 import { apis } from '../apis'
+import { currentStore, nextStore } from '../apis/store'
 import { updater } from './updater'
 import { image } from './image'
 import { tray } from './tray'
@@ -33,10 +35,8 @@ const gotTheLock = app.requestSingleInstanceLock()
 
 if (gotTheLock === false) {
 	app.quit()
-	process.exit(0)
+	throw new Error('App already running.')
 }
-
-app.allowRendererProcessReuse = true
 
 if (app.dock !== undefined) {
 	app.dock.hide()
@@ -110,7 +110,7 @@ const init = async () => {
 		isFirstAppLaunch(),
 		app.whenReady(),
 		storage.init(),
-		favorites.init()
+		favorites.init(),
 	])
 
 	enforceMacOSAppLocation()
@@ -118,8 +118,8 @@ const init = async () => {
 
 	await apis.getArtwork(false)
 
-	apis.store.next.subscribe(handleNextArtwork)
-	apis.store.current.subscribe(handleCurrentArtwork)
+	nextStore.subscribe(handleNextArtwork)
+	currentStore.subscribe(handleCurrentArtwork)
 
 	powerMonitor.on('suspend', handleSuspend)
 

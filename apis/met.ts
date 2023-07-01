@@ -1,10 +1,9 @@
 import { nanoid } from 'nanoid'
 import { get } from 'svelte/store'
-import store from './store'
+import { metStore } from './store'
 import { ENDPOINTS } from './constants'
+import { fetchJSON } from './fetch'
 import type { ArtObject } from './types'
-
-const { fetchJSON } = (globalThis as any)
 
 const randomArtwork = async (): Promise<ArtObject | undefined> => {
 	const artObjects = await getArtworks()
@@ -17,7 +16,7 @@ const randomArtwork = async (): Promise<ArtObject | undefined> => {
 }
 
 const getArtworks = async (): Promise<ArtObject[]> => {
-	const artworks = get(store.met)
+	const artworks = get(metStore)
 
 	if (artworks.length > 0) {
 
@@ -27,13 +26,16 @@ const getArtworks = async (): Promise<ArtObject[]> => {
 
 		try {
 
-			const json = await fetchJSON(ENDPOINTS.metCollection)
+			const json = await fetchJSON(ENDPOINTS.metCollection) as {
+				objectIDs: string[]
+			}
+
 			const artworks = json.objectIDs
-			store.met.set(artworks)
+			metStore.set(artworks)
 			return artworks
 
-		} catch (err) {
-			console.error(err)
+		} catch (error) {
+			console.error(error)
 			return []
 		}
 	}
@@ -43,17 +45,19 @@ const removeRandomArtwork = async (artworks: ArtObject[]): Promise<ArtObject | u
 	const randomIndex = Math.floor(Math.random() * artworks.length)
 	const [id] = (artworks.splice(randomIndex, 1) || [])
 
-	let object: {
+	interface MetArtObject {
 		primaryImage: string
 		title: string
 		artistDisplayName: string
 		objectURL: string
 	}
 
+	let object: MetArtObject
+
 	try {
-		object = await fetchJSON(`${ENDPOINTS.metObject}/${id}`)
-	} catch (err) {
-		console.error(err)
+		object = await fetchJSON(`${ENDPOINTS.metObject}/${id}`) as MetArtObject
+	} catch (error) {
+		console.error(error)
 		return
 	}
 
@@ -61,7 +65,7 @@ const removeRandomArtwork = async (artworks: ArtObject[]): Promise<ArtObject | u
 		primaryImage = '',
 		title,
 		artistDisplayName,
-		objectURL
+		objectURL,
 	} = (object || {})
 
 	if (primaryImage === '' || primaryImage === undefined) {
@@ -71,19 +75,19 @@ const removeRandomArtwork = async (artworks: ArtObject[]): Promise<ArtObject | u
 	const artwork: ArtObject = {
 		id: nanoid(),
 		src: primaryImage,
-		title: title,
+		title,
 		artist: artistDisplayName,
 		artistLink: '',
 		provider: 'The Metropolitan Museum of Art',
 		titleLink: objectURL,
-		providerLink: 'https://www.metmuseum.org'
+		providerLink: 'https://www.metmuseum.org',
 	}
 
-	store.met.set(artworks)
+	metStore.set(artworks)
 
 	return artwork
 }
 
 export const met = {
-	randomArtwork
+	randomArtwork,
 }

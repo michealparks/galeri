@@ -1,7 +1,7 @@
 import type { ArtObject } from './types'
 
 import { get } from 'svelte/store'
-import store from './store'
+import { currentStore, nextStore } from './store'
 import { wikipedia } from './wikipedia'
 import { rijks } from './rijks'
 import { met } from './met'
@@ -15,8 +15,8 @@ apiMap.set('wikipedia', wikipedia)
 apiMap.set('met', met)
 
 const getArtwork = async (forceNext = false): Promise<void> => {
-	let current = get<ArtObject | undefined>(store.current)
-	let next = get<ArtObject | undefined>(store.next)
+	let current = get<ArtObject | undefined>(currentStore)
+	let next = get<ArtObject | undefined>(nextStore)
 
 	if (current === undefined || forceNext) {
 		if (next === undefined) {
@@ -27,12 +27,12 @@ const getArtwork = async (forceNext = false): Promise<void> => {
 		}
 	}
 
-	store.current.set(current)
+	currentStore.set(current)
 
 	if (next === undefined) {
 		next = await getRandom()
 
-		store.next.set(next)
+		nextStore.set(next)
 	}
 }
 
@@ -60,7 +60,6 @@ const getRandom = async (): Promise<ArtObject> => {
 }
 
 export const apis = {
-	store,
 	getArtwork,
-	disable
+	disable,
 }

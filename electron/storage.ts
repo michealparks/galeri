@@ -1,43 +1,34 @@
-import { resolve } from 'path'
+import path from 'path'
 import fs from 'fs'
 import { promisify } from 'util'
 import { API_KEYS } from '../apis/constants'
-import store from '../apis/store'
-import { ERROR_EEXIST, ERROR_ENOENT, GALERI_DATA_PATH } from './constants'
+import * as store from '../apis/store'
+import { ERROR_ENOENT, GALERI_DATA_PATH } from './constants'
+import { makeDirectory, reportError } from './util'
 
 const writeFile = promisify(fs.writeFile)
 const readFile = promisify(fs.readFile)
-const mkdir = promisify(fs.mkdir)
+const warnMsg = 'storage.init(): '
 
 const init = async (): Promise<void> => {
-	try {
-		await mkdir(GALERI_DATA_PATH)
-	} catch (err) {
-		if (err.code !== ERROR_EEXIST) {
-			console.warn('storage.init(): ', err)
-		}
-	}
+	await makeDirectory(GALERI_DATA_PATH)
 
 	for (const api of API_KEYS) {
 		try {
-			const filepath = resolve(GALERI_DATA_PATH, `${api}.json`)
+			const filepath = path.resolve(GALERI_DATA_PATH, `${api}.json`)
 			const file = await readFile(filepath, { encoding: 'utf-8' })
-			store[api].set(JSON.parse(file))
-		} catch (err) {
-			if (err.code !== ERROR_ENOENT) {
-				console.warn('storage.init(): ', err)
-			}
+			store[`${api}Store`].set(JSON.parse(file))
+		} catch (error) {
+			reportError(warnMsg, error, ERROR_ENOENT)
 		}
 	}
 
 	try {
-		const filepath = resolve(GALERI_DATA_PATH, 'rijksPage.json')
+		const filepath = path.resolve(GALERI_DATA_PATH, 'rijksPage.json')
 		const file = await readFile(filepath, { encoding: 'utf-8' })
-		store.rijksPage.set(JSON.parse(file))
-	} catch (err) {
-		if (err.code !== ERROR_ENOENT) {
-			console.warn('storage.init(): ', err)
-		}
+		store.rijksPageStore.set(JSON.parse(file))
+	} catch (error) {
+		reportError(warnMsg, error, ERROR_ENOENT)
 	}
 
 	for (const [key, storeItem] of Object.entries(store)) {
@@ -47,17 +38,17 @@ const init = async (): Promise<void> => {
 				return
 			}
 
-			const filepath = resolve(GALERI_DATA_PATH, `${key}.json`)
+			const filepath = path.resolve(GALERI_DATA_PATH, `${key}.json`)
 
 			try {
 				writeFile(filepath, JSON.stringify(value))
-			} catch (err) {
-				console.warn('storage.init(): [key] ', err)
+			} catch (error) {
+				console.warn(warnMsg, error)
 			}
 		})
 	}
 }
 
 export const storage = {
-	init
+	init,
 }

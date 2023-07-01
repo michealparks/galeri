@@ -1,9 +1,11 @@
 <script lang='ts'>
-	import { createEventDispatcher } from 'svelte'
-	import { fly } from 'svelte/transition'
-	import { quartIn, quartOut } from 'svelte/easing'
 
-	const dispatch = createEventDispatcher()
+import { createEventDispatcher } from 'svelte'
+import { fly } from 'svelte/transition'
+import { quartIn, quartOut } from 'svelte/easing'
+
+const dispatch = createEventDispatcher()
+
 </script>
 
 <div class='pointer-events-none fixed bottom-0 w-screen flex justify-center text-white mb-3'>
@@ -23,7 +25,9 @@
 </div>
 
 <style>
-	section {
-		background: rgba(130, 141, 255, 1);
-	}
+
+section {
+	background: rgba(130, 141, 255, 1);
+}
+
 </style>
